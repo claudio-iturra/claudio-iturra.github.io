@@ -1,0 +1,1729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Rose Analysis Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist@2.26.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 50%, #6c5ce7 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 30%, #6c5ce7 70%, #a29bfe 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '🌪️';
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 3rem;
+            animation: spin 4s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.75;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 0;
+            min-height: 1200px;
+        }
+        
+        .input-panel {
+            background: #f8fafc;
+            padding: 30px;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+            max-height: 1200px;
+        }
+        
+        .input-section {
+            margin-bottom: 25px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #74b9ff;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .data-input {
+            width: 100%;
+            height: 150px;
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+        
+        .data-input:focus {
+            outline: none;
+            border-color: #74b9ff;
+            box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.12);
+        }
+        
+        .input-help {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        .param-group {
+            margin-bottom: 18px;
+        }
+        
+        .param-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .param-group input, .param-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .param-group input:focus, .param-group select:focus {
+            outline: none;
+            border-color: #74b9ff;
+            box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.12);
+        }
+        
+        .param-unit {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .preset-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .preset-btn {
+            padding: 12px 16px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .preset-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            transform: translateY(-2px);
+        }
+        
+        .wind-rose-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .tab-btn.active {
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            border-color: #74b9ff;
+        }
+        
+        .tab-btn:hover:not(.active) {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+        }
+        
+        .analyze-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(116, 185, 255, 0.4);
+        }
+        
+        .analyze-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f0f4ff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-card.primary { border-left: 4px solid #74b9ff; }
+        .stat-card.secondary { border-left: 4px solid #00b894; }
+        .stat-card.tertiary { border-left: 4px solid #fdcb6e; }
+        .stat-card.quaternary { border-left: 4px solid #e17055; }
+        .stat-card.wind { border-left: 4px solid #6c5ce7; }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: #74b9ff;
+            margin-bottom: 5px;
+        }
+        
+        .stat-unit {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 400;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 400px 600px 400px;
+            gap: 25px;
+            padding: 30px;
+        }
+        
+        .chart-box {
+            background: #fafafa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        }
+        
+        .chart-box.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .chart-box.wind-rose-main {
+            grid-column: 1 / -1;
+            grid-row: 2;
+        }
+        
+        .chart-header {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .chart-content {
+            flex: 1;
+            position: relative;
+        }
+        
+        .export-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        
+        .export-btn {
+            padding: 10px 18px;
+            background: #74b9ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .export-btn:hover {
+            background: #0984e3;
+            transform: translateY(-1px);
+        }
+        
+        .direction-table {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .direction-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .direction-table th {
+            background: #f8fafc;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e2e8f0;
+            position: sticky;
+            top: 0;
+        }
+        
+        .direction-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .direction-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .speed-bins {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .speed-bin {
+            padding: 8px;
+            background: #f1f5f9;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+            border: 1px solid #cbd5e1;
+        }
+        
+        .compass-directions {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .compass-dir {
+            padding: 6px;
+            background: #f8fafc;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-panel {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+                max-height: none;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(5, 400px);
+            }
+            
+            .chart-box.full-width, .chart-box.wind-rose-main {
+                grid-column: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stats-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .wind-rose-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌪️ Wind Rose Analysis</h1>
+            <p>Comprehensive Wind Direction & Velocity Analysis by Claudio Iturra</p>
+            <div class="subtitle">Wind Rose • Directional Statistics • Speed Distribution • Frequency Analysis</div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="input-panel">
+                <div class="input-section">
+                    <div class="section-title">
+                        🧭 Wind Direction Data
+                    </div>
+                    <textarea 
+                        class="data-input" 
+                        id="windDirectionData" 
+                        placeholder="Enter wind direction data (degrees 0-360)...
+Examples:
+45, 90, 135, 180, 225
+OR
+45
+90
+135
+OR with timestamps:
+2023-01-01 00:00, 45
+2023-01-01 01:00, 90"></textarea>
+                    <div class="input-help">
+                        Wind direction in degrees (0-360°). 0° = North, 90° = East, 180° = South, 270° = West
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        💨 Wind Velocity Data
+                    </div>
+                    <textarea 
+                        class="data-input" 
+                        id="windVelocityData" 
+                        placeholder="Enter wind velocity data...
+Examples:
+5.2, 8.1, 12.5, 6.8, 3.2
+OR
+5.2
+8.1
+12.5
+OR with timestamps:
+2023-01-01 00:00, 5.2
+2023-01-01 01:00, 8.1"></textarea>
+                    <div class="input-help">
+                        Wind velocity/speed values. Must have same number of points as direction data.
+                    </div>
+                    <div class="preset-section">
+                        <button class="preset-btn" onclick="loadSampleData('coastal')">🏖️ Coastal</button>
+                        <button class="preset-btn" onclick="loadSampleData('mountain')">⛰️ Mountain</button>
+                        <button class="preset-btn" onclick="loadSampleData('urban')">🏙️ Urban</button>
+                        <button class="preset-btn" onclick="loadSampleData('offshore')">🌊 Offshore</button>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        ⚙️ Analysis Parameters
+                    </div>
+                    <div class="param-group">
+                        <label for="velocityUnits">Velocity Units</label>
+                        <select id="velocityUnits">
+                            <option value="m/s" selected>m/s (meters per second)</option>
+                            <option value="km/h">km/h (kilometers per hour)</option>
+                            <option value="mph">mph (miles per hour)</option>
+                            <option value="knots">knots</option>
+                        </select>
+                    </div>
+                    <div class="param-group">
+                        <label for="directionSectors">Direction Sectors</label>
+                        <select id="directionSectors">
+                            <option value="8">8 sectors (45° each)</option>
+                            <option value="16" selected>16 sectors (22.5° each)</option>
+                            <option value="32">32 sectors (11.25° each)</option>
+                        </select>
+                    </div>
+                    <div class="param-group">
+                        <label for="speedBins">Speed Bin Method</label>
+                        <select id="speedBins">
+                            <option value="auto" selected>Automatic (Beaufort-like)</option>
+                            <option value="equal">Equal intervals</option>
+                            <option value="quantile">Quantile-based</option>
+                            <option value="custom">Custom bins</option>
+                        </select>
+                    </div>
+                    <div class="param-group" id="customBinsGroup" style="display: none;">
+                        <label for="customBinValues">Custom Bin Edges</label>
+                        <input type="text" id="customBinValues" placeholder="0, 2, 5, 8, 12, 20" value="0, 2, 5, 8, 12, 20">
+                        <div class="param-unit">comma-separated values</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="calmThreshold">Calm Wind Threshold</label>
+                        <input type="number" id="calmThreshold" value="0.5" step="0.1" min="0" max="5">
+                        <div class="param-unit">minimum wind speed to include</div>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        📊 Wind Rose Type
+                    </div>
+                    <div class="wind-rose-tabs">
+                        <button class="tab-btn active" id="frequencyTab" onclick="switchRoseType('frequency')">
+                            📊 Frequency
+                        </button>
+                        <button class="tab-btn" id="speedTab" onclick="switchRoseType('speed')">
+                            💨 Speed
+                        </button>
+                        <button class="tab-btn" id="energyTab" onclick="switchRoseType('energy')">
+                            ⚡ Energy
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        🎨 Display Options
+                    </div>
+                    <div class="param-group">
+                        <label for="colorScheme">Color Scheme</label>
+                        <select id="colorScheme">
+                            <option value="viridis" selected>Viridis</option>
+                            <option value="plasma">Plasma</option>
+                            <option value="blues">Blues</option>
+                            <option value="reds">Reds</option>
+                            <option value="rainbow">Rainbow</option>
+                        </select>
+                    </div>
+                    <div class="param-group">
+                        <label for="roseStyle">Rose Style</label>
+                        <select id="roseStyle">
+                            <option value="filled" selected>Filled sectors</option>
+                            <option value="outline">Outline only</option>
+                            <option value="both">Both filled & outline</option>
+                        </select>
+                    </div>
+                    <div class="param-group">
+                        <label for="showPercentages">Show Percentages</label>
+                        <select id="showPercentages">
+                            <option value="true" selected>Yes</option>
+                            <option value="false">No</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button class="analyze-btn" id="analyzeBtn" onclick="performWindAnalysis()">
+                    🌪️ Generate Wind Rose
+                </button>
+                
+                <div id="statusMessage"></div>
+            </div>
+            
+            <div class="results-area">
+                <div class="stats-dashboard" id="statsDashboard">
+                    <!-- Statistics will be populated here -->
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <div class="chart-header">Wind Direction Distribution</div>
+                        <div class="chart-content">
+                            <canvas id="directionChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box">
+                        <div class="chart-header">Wind Speed Distribution</div>
+                        <div class="chart-content">
+                            <canvas id="speedChart"></canvas>
+                        </div>
+                        <div class="export-controls">
+                            <button class="export-btn" onclick="exportWindData()">📊 Export Data</button>
+                            <button class="export-btn" onclick="exportStatistics()">📈 Export Stats</button>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box wind-rose-main">
+                        <div class="chart-header" id="windRoseHeader">Wind Rose - Frequency Distribution</div>
+                        <div class="chart-content">
+                            <div id="windRosePlot" style="width: 100%; height: 100%;"></div>
+                        </div>
+                        <div class="export-controls">
+                            <button class="export-btn" onclick="exportWindRose()">🌪️ Export Rose</button>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box">
+                        <div class="chart-header">Time Series - Direction</div>
+                        <div class="chart-content">
+                            <canvas id="timeSeriesDirection"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box">
+                        <div class="chart-header">Time Series - Speed</div>
+                        <div class="chart-content">
+                            <canvas id="timeSeriesSpeed"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box full-width">
+                        <div class="chart-header">Directional Statistics Summary</div>
+                        <div class="chart-content">
+                            <div class="direction-table" id="directionTable">
+                                <!-- Direction statistics table will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let directionChart = null;
+        let speedChart = null;
+        let timeSeriesDirectionChart = null;
+        let timeSeriesSpeedChart = null;
+        let windAnalysisResults = null;
+        let currentRoseType = 'frequency';
+        
+        // Wind direction names
+        const DIRECTION_NAMES = {
+            8: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'],
+            16: ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 
+                 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'],
+            32: ['N', 'NbE', 'NNE', 'NEbN', 'NE', 'NEbE', 'ENE', 'EbN',
+                 'E', 'EbS', 'ESE', 'SEbE', 'SE', 'SEbS', 'SSE', 'SbE',
+                 'S', 'SbW', 'SSW', 'SWbS', 'SW', 'SWbW', 'WSW', 'WbS',
+                 'W', 'WbN', 'WNW', 'NWbW', 'NW', 'NWbN', 'NNW', 'NbW']
+        };
+        
+        function switchRoseType(type) {
+            currentRoseType = type;
+            
+            // Update tab appearance
+            document.getElementById('frequencyTab').classList.toggle('active', type === 'frequency');
+            document.getElementById('speedTab').classList.toggle('active', type === 'speed');
+            document.getElementById('energyTab').classList.toggle('active', type === 'energy');
+            
+            // Update header
+            const headers = {
+                'frequency': 'Wind Rose - Frequency Distribution',
+                'speed': 'Wind Rose - Mean Speed Distribution',
+                'energy': 'Wind Rose - Energy Distribution'
+            };
+            document.getElementById('windRoseHeader').textContent = headers[type];
+            
+            // Regenerate wind rose if data exists
+            if (windAnalysisResults) {
+                createWindRose();
+            }
+        }
+        
+        function loadSampleData(type) {
+            const samples = {
+                'coastal': generateCoastalData(),
+                'mountain': generateMountainData(),
+                'urban': generateUrbanData(),
+                'offshore': generateOffshoreData()
+            };
+            
+            document.getElementById('windDirectionData').value = samples[type].directions;
+            document.getElementById('windVelocityData').value = samples[type].velocities;
+        }
+        
+        function generateCoastalData() {
+            const data = { directions: [], velocities: [] };
+            const points = 500;
+            
+            for (let i = 0; i < points; i++) {
+                // Coastal winds: predominantly onshore (270°) during day, offshore (90°) at night
+                const hour = (i * 24 / points) % 24;
+                let direction, velocity;
+                
+                if (hour >= 6 && hour <= 18) {
+                    // Daytime: onshore winds (SW to NW)
+                    direction = 225 + 90 * Math.random() + 20 * (Math.random() - 0.5);
+                    velocity = 3 + 8 * Math.random();
+                } else {
+                    // Nighttime: offshore winds (NE to SE)
+                    direction = 45 + 90 * Math.random() + 15 * (Math.random() - 0.5);
+                    velocity = 1 + 5 * Math.random();
+                }
+                
+                // Add some variability
+                direction += 30 * (Math.random() - 0.5);
+                velocity += 2 * (Math.random() - 0.5);
+                
+                // Normalize direction
+                direction = ((direction % 360) + 360) % 360;
+                velocity = Math.max(0, velocity);
+                
+                data.directions.push(direction.toFixed(1));
+                data.velocities.push(velocity.toFixed(1));
+            }
+            
+            return {
+                directions: data.directions.join('\n'),
+                velocities: data.velocities.join('\n')
+            };
+        }
+        
+        function generateMountainData() {
+            const data = { directions: [], velocities: [] };
+            const points = 400;
+            
+            for (let i = 0; i < points; i++) {
+                // Mountain winds: valley winds (up-valley during day, down-valley at night)
+                const hour = (i * 24 / points) % 24;
+                let direction, velocity;
+                
+                if (hour >= 8 && hour <= 20) {
+                    // Daytime: up-valley winds (assume valley runs N-S, so winds from S)
+                    direction = 180 + 60 * (Math.random() - 0.5);
+                    velocity = 2 + 6 * Math.random();
+                } else {
+                    // Nighttime: down-valley winds (from N)
+                    direction = 360 + 60 * (Math.random() - 0.5);
+                    if (direction >= 360) direction -= 360;
+                    velocity = 1 + 4 * Math.random();
+                }
+                
+                // Add terrain effects
+                direction += 45 * (Math.random() - 0.5);
+                velocity += 3 * (Math.random() - 0.5);
+                
+                // Normalize
+                direction = ((direction % 360) + 360) % 360;
+                velocity = Math.max(0, velocity);
+                
+                data.directions.push(direction.toFixed(1));
+                data.velocities.push(velocity.toFixed(1));
+            }
+            
+            return {
+                directions: data.directions.join('\n'),
+                velocities: data.velocities.join('\n')
+            };
+        }
+        
+        function generateUrbanData() {
+            const data = { directions: [], velocities: [] };
+            const points = 600;
+            
+            for (let i = 0; i < points; i++) {
+                // Urban winds: more variable due to buildings, generally reduced speeds
+                // Slight preference for prevailing wind direction (SW)
+                let direction, velocity;
+                
+                if (Math.random() < 0.4) {
+                    // Prevailing SW winds
+                    direction = 225 + 90 * (Math.random() - 0.5);
+                    velocity = 2 + 8 * Math.random();
+                } else {
+                    // Random directions due to urban turbulence
+                    direction = 360 * Math.random();
+                    velocity = 0.5 + 6 * Math.random();
+                }
+                
+                // Urban turbulence effects
+                direction += 60 * (Math.random() - 0.5);
+                velocity *= (0.6 + 0.8 * Math.random()); // Reduced speeds due to buildings
+                
+                // Normalize
+                direction = ((direction % 360) + 360) % 360;
+                velocity = Math.max(0, velocity);
+                
+                data.directions.push(direction.toFixed(1));
+                data.velocities.push(velocity.toFixed(1));
+            }
+            
+            return {
+                directions: data.directions.join('\n'),
+                velocities: data.velocities.join('\n')
+            };
+        }
+        
+        function generateOffshoreData() {
+            const data = { directions: [], velocities: [] };
+            const points = 800;
+            
+            for (let i = 0; i < points; i++) {
+                // Offshore winds: more consistent, higher speeds, prevailing westerlies
+                let direction, velocity;
+                
+                // Prevailing westerly winds with seasonal variation
+                const season = Math.sin(2 * Math.PI * i / points); // Simulate seasonal cycle
+                direction = 270 + 30 * season + 45 * (Math.random() - 0.5);
+                velocity = 8 + 12 * Math.random() + 3 * season;
+                
+                // Storm events (occasional high winds)
+                if (Math.random() < 0.05) {
+                    velocity += 15 + 10 * Math.random();
+                }
+                
+                // Normalize
+                direction = ((direction % 360) + 360) % 360;
+                velocity = Math.max(0, velocity);
+                
+                data.directions.push(direction.toFixed(1));
+                data.velocities.push(velocity.toFixed(1));
+            }
+            
+            return {
+                directions: data.directions.join('\n'),
+                velocities: data.velocities.join('\n')
+            };
+        }
+        
+        function parseWindData(dataText) {
+            const lines = dataText.trim().split('\n');
+            const values = [];
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                if (line.includes(',')) {
+                    const parts = line.split(',');
+                    if (parts.length === 2 && isNaN(parts[0])) {
+                        // Timestamp, value format
+                        values.push(parseFloat(parts[1].trim()));
+                    } else {
+                        // Multiple comma-separated values
+                        for (let part of parts) {
+                            const val = parseFloat(part.trim());
+                            if (!isNaN(val)) values.push(val);
+                        }
+                    }
+                } else {
+                    const val = parseFloat(line);
+                    if (!isNaN(val)) values.push(val);
+                }
+            }
+            
+            return values;
+        }
+        
+        function createSpeedBins(velocities, method, customBins = null) {
+            const maxSpeed = Math.max(...velocities);
+            let bins = [];
+            
+            switch (method) {
+                case 'auto':
+                    // Beaufort-like scale adapted to data
+                    bins = [0, 2, 5, 8, 12, 17, Math.max(20, maxSpeed + 1)];
+                    break;
+                    
+                case 'equal':
+                    const numBins = 6;
+                    for (let i = 0; i <= numBins; i++) {
+                        bins.push(i * maxSpeed / numBins);
+                    }
+                    break;
+                    
+                case 'quantile':
+                    const sortedSpeeds = [...velocities].sort((a, b) => a - b);
+                    const quantiles = [0, 0.2, 0.4, 0.6, 0.8, 0.95, 1.0];
+                    bins = quantiles.map(q => {
+                        const index = Math.floor(q * (sortedSpeeds.length - 1));
+                        return sortedSpeeds[index];
+                    });
+                    break;
+                    
+                case 'custom':
+                    if (customBins && customBins.length > 1) {
+                        bins = [...customBins].sort((a, b) => a - b);
+                    } else {
+                        bins = [0, 2, 5, 8, 12, 20];
+                    }
+                    break;
+            }
+            
+            // Ensure bins cover all data
+            if (bins[bins.length - 1] < maxSpeed) {
+                bins[bins.length - 1] = maxSpeed + 0.1;
+            }
+            
+            return bins;
+        }
+        
+        function binWindData(directions, velocities, directionSectors, speedBins, calmThreshold) {
+            const sectorSize = 360 / directionSectors;
+            const windRose = [];
+            
+            // Initialize wind rose matrix
+            for (let i = 0; i < directionSectors; i++) {
+                windRose[i] = new Array(speedBins.length - 1).fill(0);
+            }
+            
+            let calmCount = 0;
+            let totalCount = 0;
+            
+            for (let i = 0; i < directions.length; i++) {
+                const dir = directions[i];
+                const speed = velocities[i];
+                
+                if (speed < calmThreshold) {
+                    calmCount++;
+                    continue;
+                }
+                
+                // Find direction sector
+                let sectorIndex = Math.floor(((dir + sectorSize / 2) % 360) / sectorSize);
+                if (sectorIndex >= directionSectors) sectorIndex = 0;
+                
+                // Find speed bin
+                let speedIndex = -1;
+                for (let j = 0; j < speedBins.length - 1; j++) {
+                    if (speed >= speedBins[j] && speed < speedBins[j + 1]) {
+                        speedIndex = j;
+                        break;
+                    }
+                }
+                
+                if (speedIndex >= 0) {
+                    windRose[sectorIndex][speedIndex]++;
+                    totalCount++;
+                }
+            }
+            
+            return {
+                windRose: windRose,
+                calmCount: calmCount,
+                totalCount: totalCount,
+                validCount: totalCount
+            };
+        }
+        
+        function calculateDirectionalStatistics(directions, velocities, directionSectors) {
+            const sectorSize = 360 / directionSectors;
+            const sectorNames = DIRECTION_NAMES[directionSectors];
+            const stats = [];
+            
+            for (let i = 0; i < directionSectors; i++) {
+                const sectorStart = i * sectorSize;
+                const sectorEnd = (i + 1) * sectorSize;
+                const sectorCenter = sectorStart + sectorSize / 2;
+                
+                const sectorData = [];
+                
+                for (let j = 0; j < directions.length; j++) {
+                    const dir = directions[j];
+                    let inSector = false;
+                    
+                    if (sectorEnd <= 360) {
+                        inSector = dir >= sectorStart && dir < sectorEnd;
+                    } else {
+                        // Handle wrap-around at 360°
+                        inSector = dir >= sectorStart || dir < (sectorEnd - 360);
+                    }
+                    
+                    if (inSector) {
+                        sectorData.push({
+                            direction: dir,
+                            velocity: velocities[j]
+                        });
+                    }
+                }
+                
+                if (sectorData.length > 0) {
+                    const speeds = sectorData.map(d => d.velocity);
+                    const meanSpeed = speeds.reduce((sum, s) => sum + s, 0) / speeds.length;
+                    const maxSpeed = Math.max(...speeds);
+                    const minSpeed = Math.min(...speeds);
+                    const frequency = sectorData.length / directions.length * 100;
+                    
+                    stats.push({
+                        sector: i,
+                        name: sectorNames[i],
+                        center: sectorCenter,
+                        frequency: frequency,
+                        count: sectorData.length,
+                        meanSpeed: meanSpeed,
+                        maxSpeed: maxSpeed,
+                        minSpeed: minSpeed
+                    });
+                } else {
+                    stats.push({
+                        sector: i,
+                        name: sectorNames[i],
+                        center: sectorCenter,
+                        frequency: 0,
+                        count: 0,
+                        meanSpeed: 0,
+                        maxSpeed: 0,
+                        minSpeed: 0
+                    });
+                }
+            }
+            
+            return stats;
+        }
+        
+        function performWindAnalysis() {
+            const directionText = document.getElementById('windDirectionData').value.trim();
+            const velocityText = document.getElementById('windVelocityData').value.trim();
+            
+            if (!directionText || !velocityText) {
+                showMessage('Please enter both wind direction and velocity data.', 'error');
+                return;
+            }
+            
+            try {
+                const directions = parseWindData(directionText);
+                const velocities = parseWindData(velocityText);
+                
+                if (directions.length !== velocities.length) {
+                    showMessage('Direction and velocity data must have the same number of points.', 'error');
+                    return;
+                }
+                
+                if (directions.length < 3) {
+                    showMessage('Need at least 3 data points for analysis.', 'error');
+                    return;
+                }
+                
+                // Validate direction data
+                const invalidDirections = directions.filter(d => d < 0 || d > 360);
+                if (invalidDirections.length > 0) {
+                    showMessage('Wind directions must be between 0 and 360 degrees.', 'error');
+                    return;
+                }
+                
+                // Get analysis parameters
+                const directionSectors = parseInt(document.getElementById('directionSectors').value);
+                const speedBinMethod = document.getElementById('speedBins').value;
+                const calmThreshold = parseFloat(document.getElementById('calmThreshold').value);
+                const velocityUnits = document.getElementById('velocityUnits').value;
+                
+                let customBins = null;
+                if (speedBinMethod === 'custom') {
+                    const customBinText = document.getElementById('customBinValues').value;
+                    customBins = customBinText.split(',').map(s => parseFloat(s.trim())).filter(n => !isNaN(n));
+                    if (customBins.length < 2) {
+                        showMessage('Custom bins must have at least 2 values.', 'error');
+                        return;
+                    }
+                }
+                
+                showMessage('Analyzing wind data...', 'info');
+                
+                // Create speed bins
+                const speedBins = createSpeedBins(velocities, speedBinMethod, customBins);
+                
+                // Bin the wind data
+                const binResult = binWindData(directions, velocities, directionSectors, speedBins, calmThreshold);
+                
+                // Calculate directional statistics
+                const directionalStats = calculateDirectionalStatistics(directions, velocities, directionSectors);
+                
+                // Store results
+                windAnalysisResults = {
+                    directions: directions,
+                    velocities: velocities,
+                    windRose: binResult.windRose,
+                    speedBins: speedBins,
+                    directionSectors: directionSectors,
+                    calmCount: binResult.calmCount,
+                    totalCount: directions.length,
+                    validCount: binResult.validCount,
+                    directionalStats: directionalStats,
+                    parameters: {
+                        velocityUnits: velocityUnits,
+                        calmThreshold: calmThreshold,
+                        speedBinMethod: speedBinMethod
+                    }
+                };
+                
+                // Update displays
+                updateWindStatistics();
+                createDirectionChart();
+                createSpeedChart();
+                createWindRose();
+                createTimeSeriesCharts();
+                createDirectionalStatsTable();
+                
+                showMessage(`Wind analysis complete! Analyzed ${directions.length} data points.`, 'success');
+                
+            } catch (error) {
+                console.error('Wind analysis error:', error);
+                showMessage(`Analysis failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateWindStatistics() {
+            if (!windAnalysisResults) return;
+            
+            const { directions, velocities, calmCount, totalCount, validCount, parameters, directionalStats } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            
+            // Basic wind statistics
+            const meanSpeed = velocities.reduce((sum, v) => sum + v, 0) / velocities.length;
+            const maxSpeed = Math.max(...velocities);
+            const minSpeed = Math.min(...velocities);
+            const stdSpeed = Math.sqrt(velocities.reduce((sum, v) => sum + Math.pow(v - meanSpeed, 2), 0) / velocities.length);
+            
+            // Directional statistics
+            const prevailingDirection = directionalStats.reduce((prev, curr) => 
+                curr.frequency > prev.frequency ? curr : prev
+            );
+            
+            const calmPercentage = (calmCount / totalCount * 100);
+            
+            // Vector mean wind direction (circular statistics)
+            let sumSin = 0, sumCos = 0;
+            for (let i = 0; i < directions.length; i++) {
+                const radians = directions[i] * Math.PI / 180;
+                sumSin += Math.sin(radians);
+                sumCos += Math.cos(radians);
+            }
+            const meanDirection = (Math.atan2(sumSin, sumCos) * 180 / Math.PI + 360) % 360;
+            
+            let statsHTML = `
+                <div class="stat-card primary">
+                    <div class="stat-label">Total Points</div>
+                    <div class="stat-value">${totalCount}</div>
+                    <div class="stat-unit">measurements</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-label">Mean Speed</div>
+                    <div class="stat-value">${meanSpeed.toFixed(2)}</div>
+                    <div class="stat-unit">${units}</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-label">Max Speed</div>
+                    <div class="stat-value">${maxSpeed.toFixed(1)}</div>
+                    <div class="stat-unit">${units}</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Mean Direction</div>
+                    <div class="stat-value">${meanDirection.toFixed(1)}°</div>
+                    <div class="stat-unit">${getDirectionName(meanDirection)}</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Prevailing Dir</div>
+                    <div class="stat-value">${prevailingDirection.center.toFixed(0)}°</div>
+                    <div class="stat-unit">${prevailingDirection.name}</div>
+                </div>
+                <div class="stat-card tertiary">
+                    <div class="stat-label">Speed Std Dev</div>
+                    <div class="stat-value">${stdSpeed.toFixed(2)}</div>
+                    <div class="stat-unit">${units}</div>
+                </div>
+                <div class="stat-card tertiary">
+                    <div class="stat-label">Calm Winds</div>
+                    <div class="stat-value">${calmPercentage.toFixed(1)}%</div>
+                    <div class="stat-unit">${calmCount} points</div>
+                </div>
+                <div class="stat-card wind">
+                    <div class="stat-label">Valid Data</div>
+                    <div class="stat-value">${validCount}</div>
+                    <div class="stat-unit">${(validCount/totalCount*100).toFixed(1)}%</div>
+                </div>
+            `;
+            
+            document.getElementById('statsDashboard').innerHTML = statsHTML;
+        }
+        
+        function getDirectionName(degrees) {
+            const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
+                              'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+            const index = Math.round(degrees / 22.5) % 16;
+            return directions[index];
+        }
+        
+        function createDirectionChart() {
+            const ctx = document.getElementById('directionChart').getContext('2d');
+            
+            if (directionChart) {
+                directionChart.destroy();
+            }
+            
+            const { directionalStats } = windAnalysisResults;
+            
+            const labels = directionalStats.map(stat => stat.name);
+            const frequencies = directionalStats.map(stat => stat.frequency);
+            
+            directionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Frequency (%)',
+                        data: frequencies,
+                        backgroundColor: 'rgba(116, 185, 255, 0.7)',
+                        borderColor: '#74b9ff',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Wind Direction' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Frequency (%)' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createSpeedChart() {
+            const ctx = document.getElementById('speedChart').getContext('2d');
+            
+            if (speedChart) {
+                speedChart.destroy();
+            }
+            
+            const { velocities, speedBins, parameters } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            
+            // Create histogram
+            const binCounts = new Array(speedBins.length - 1).fill(0);
+            const binLabels = [];
+            
+            for (let i = 0; i < speedBins.length - 1; i++) {
+                binLabels.push(`${speedBins[i].toFixed(1)}-${speedBins[i+1].toFixed(1)}`);
+            }
+            
+            for (let speed of velocities) {
+                for (let i = 0; i < speedBins.length - 1; i++) {
+                    if (speed >= speedBins[i] && speed < speedBins[i + 1]) {
+                        binCounts[i]++;
+                        break;
+                    }
+                }
+            }
+            
+            speedChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: binLabels,
+                    datasets: [{
+                        label: 'Count',
+                        data: binCounts,
+                        backgroundColor: 'rgba(0, 184, 148, 0.7)',
+                        borderColor: '#00b894',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: `Wind Speed (${units})` }
+                        },
+                        y: {
+                            title: { display: true, text: 'Count' },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createWindRose() {
+            const { windRose, speedBins, directionSectors, directionalStats, parameters } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            const colorScheme = document.getElementById('colorScheme').value;
+            const showPercentages = document.getElementById('showPercentages').value === 'true';
+            
+            // Create color palette
+            const colors = getColorPalette(colorScheme, speedBins.length - 1);
+            
+            // Prepare data for Plotly polar chart
+            const traces = [];
+            const sectorNames = DIRECTION_NAMES[directionSectors];
+            const sectorAngles = [];
+            
+            // Calculate sector angles (Plotly uses mathematical convention: 0° = East, counterclockwise)
+            // Convert from meteorological convention (0° = North, clockwise)
+            for (let i = 0; i < directionSectors; i++) {
+                const meteoAngle = i * 360 / directionSectors;
+                const plotlyAngle = (90 - meteoAngle + 360) % 360;
+                sectorAngles.push(plotlyAngle);
+            }
+            
+            // Add closing angle for complete sectors
+            sectorAngles.push(sectorAngles[0]);
+            
+            let maxRadius = 0;
+            
+            // Create traces for each speed bin
+            for (let speedBin = 0; speedBin < speedBins.length - 1; speedBin++) {
+                const radialValues = [];
+                const cumulativeValues = [];
+                
+                for (let sector = 0; sector < directionSectors; sector++) {
+                    let cumulativeValue = 0;
+                    
+                    if (currentRoseType === 'frequency') {
+                        // Stack frequencies
+                        for (let sb = 0; sb <= speedBin; sb++) {
+                            cumulativeValue += windRose[sector][sb];
+                        }
+                        cumulativeValue = cumulativeValue / windAnalysisResults.validCount * 100;
+                    } else if (currentRoseType === 'speed') {
+                        // Use mean speed for this sector and speed bin
+                        const stat = directionalStats[sector];
+                        cumulativeValue = stat.meanSpeed * windRose[sector][speedBin] / windAnalysisResults.validCount * 100;
+                    } else if (currentRoseType === 'energy') {
+                        // Energy is proportional to speed cubed
+                        const stat = directionalStats[sector];
+                        cumulativeValue = Math.pow(stat.meanSpeed, 3) * windRose[sector][speedBin] / windAnalysisResults.validCount * 100;
+                    }
+                    
+                    radialValues.push(windRose[sector][speedBin] / windAnalysisResults.validCount * 100);
+                    cumulativeValues.push(cumulativeValue);
+                    maxRadius = Math.max(maxRadius, cumulativeValue);
+                }
+                
+                // Close the polygon
+                radialValues.push(radialValues[0]);
+                cumulativeValues.push(cumulativeValues[0]);
+                
+                const speedLabel = `${speedBins[speedBin].toFixed(1)}-${speedBins[speedBin + 1].toFixed(1)} ${units}`;
+                
+                traces.push({
+                    type: 'scatterpolar',
+                    mode: 'lines',
+                    r: cumulativeValues,
+                    theta: sectorAngles,
+                    fill: 'tonext',
+                    fillcolor: colors[speedBin],
+                    line: {
+                        color: colors[speedBin],
+                        width: 1
+                    },
+                    name: speedLabel,
+                    hovertemplate: `<b>${speedLabel}</b><br>` +
+                                  `Direction: %{theta}°<br>` +
+                                  `Frequency: %{r:.1f}%<br>` +
+                                  '<extra></extra>'
+                });
+            }
+            
+            // Layout configuration
+            const layout = {
+                polar: {
+                    radialaxis: {
+                        visible: true,
+                        range: [0, maxRadius * 1.1],
+                        ticksuffix: showPercentages ? '%' : '',
+                        title: {
+                            text: currentRoseType === 'frequency' ? 'Frequency (%)' :
+                                  currentRoseType === 'speed' ? `Mean Speed (${units})` :
+                                  'Energy Density'
+                        }
+                    },
+                    angularaxis: {
+                        visible: true,
+                        tickmode: 'array',
+                        tickvals: sectorAngles.slice(0, -1),
+                        ticktext: sectorNames,
+                        direction: 'clockwise',
+                        rotation: 90
+                    }
+                },
+                showlegend: true,
+                legend: {
+                    orientation: 'v',
+                    x: 1.02,
+                    y: 0.5
+                },
+                margin: { l: 80, r: 150, t: 80, b: 80 }
+            };
+            
+            Plotly.newPlot('windRosePlot', traces, layout, {responsive: true});
+        }
+        
+        function getColorPalette(scheme, numColors) {
+            const palettes = {
+                viridis: ['#440154', '#482777', '#3f4a8a', '#31678e', '#26838f', '#1f9d8a', '#6cce5a', '#b6de2b', '#fee825'],
+                plasma: ['#0c0786', '#40039c', '#6a00a7', '#8f0da4', '#b12a90', '#cc4778', '#e16462', '#f2844b', '#fca636', '#fcce25'],
+                blues: ['#f7fbff', '#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c', '#08306b'],
+                reds: ['#fff5f0', '#fee0d2', '#fcbba1', '#fc9272', '#fb6a4a', '#ef3b2c', '#cb181d', '#a50f15', '#67000d'],
+                rainbow: ['#ff0000', '#ff8000', '#ffff00', '#80ff00', '#00ff00', '#00ff80', '#00ffff', '#0080ff', '#0000ff']
+            };
+            
+            const palette = palettes[scheme] || palettes.viridis;
+            const colors = [];
+            
+            for (let i = 0; i < numColors; i++) {
+                const index = Math.floor(i * (palette.length - 1) / (numColors - 1));
+                colors.push(palette[index]);
+            }
+            
+            return colors;
+        }
+        
+        function createTimeSeriesCharts() {
+            const { directions, velocities } = windAnalysisResults;
+            
+            // Direction time series
+            const ctxDir = document.getElementById('timeSeriesDirection').getContext('2d');
+            if (timeSeriesDirectionChart) {
+                timeSeriesDirectionChart.destroy();
+            }
+            
+            const timePoints = directions.map((_, i) => i);
+            
+            timeSeriesDirectionChart = new Chart(ctxDir, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [{
+                        label: 'Wind Direction',
+                        data: directions,
+                        borderColor: '#74b9ff',
+                        backgroundColor: 'rgba(116, 185, 255, 0.1)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time Index' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Direction (°)' },
+                            min: 0,
+                            max: 360
+                        }
+                    }
+                }
+            });
+            
+            // Speed time series
+            const ctxSpeed = document.getElementById('timeSeriesSpeed').getContext('2d');
+            if (timeSeriesSpeedChart) {
+                timeSeriesSpeedChart.destroy();
+            }
+            
+            timeSeriesSpeedChart = new Chart(ctxSpeed, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [{
+                        label: 'Wind Speed',
+                        data: velocities,
+                        borderColor: '#00b894',
+                        backgroundColor: 'rgba(0, 184, 148, 0.1)',
+                        borderWidth: 1,
+                        pointRadius: 0,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time Index' }
+                        },
+                        y: {
+                            title: { display: true, text: `Speed (${windAnalysisResults.parameters.velocityUnits})` },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createDirectionalStatsTable() {
+            const { directionalStats, parameters } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Direction</th>
+                            <th>Sector</th>
+                            <th>Frequency (%)</th>
+                            <th>Count</th>
+                            <th>Mean Speed</th>
+                            <th>Max Speed</th>
+                            <th>Min Speed</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            directionalStats.forEach(stat => {
+                tableHTML += `
+                    <tr>
+                        <td><strong>${stat.name}</strong></td>
+                        <td>${stat.center.toFixed(0)}°</td>
+                        <td>${stat.frequency.toFixed(1)}%</td>
+                        <td>${stat.count}</td>
+                        <td>${stat.meanSpeed.toFixed(2)} ${units}</td>
+                        <td>${stat.maxSpeed.toFixed(1)} ${units}</td>
+                        <td>${stat.minSpeed.toFixed(1)} ${units}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            document.getElementById('directionTable').innerHTML = tableHTML;
+        }
+        
+        function exportWindData() {
+            if (!windAnalysisResults) {
+                showMessage('No wind data to export.', 'error');
+                return;
+            }
+            
+            const { directions, velocities, parameters } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            
+            let csvContent = `Time_Index,Wind_Direction_deg,Wind_Speed_${units}\n`;
+            
+            for (let i = 0; i < directions.length; i++) {
+                csvContent += `${i},${directions[i]},${velocities[i]}\n`;
+            }
+            
+            downloadCSV(csvContent, 'wind_data.csv');
+        }
+        
+        function exportStatistics() {
+            if (!windAnalysisResults) {
+                showMessage('No statistics to export.', 'error');
+                return;
+            }
+            
+            const { directionalStats, parameters } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            
+            let csvContent = `Direction,Sector_Center_deg,Frequency_percent,Count,Mean_Speed_${units},Max_Speed_${units},Min_Speed_${units}\n`;
+            
+            directionalStats.forEach(stat => {
+                csvContent += `${stat.name},${stat.center},${stat.frequency},${stat.count},${stat.meanSpeed},${stat.maxSpeed},${stat.minSpeed}\n`;
+            });
+            
+            downloadCSV(csvContent, 'wind_statistics.csv');
+        }
+        
+        function exportWindRose() {
+            if (!windAnalysisResults) {
+                showMessage('No wind rose data to export.', 'error');
+                return;
+            }
+            
+            const { windRose, speedBins, directionSectors, parameters } = windAnalysisResults;
+            const units = parameters.velocityUnits;
+            const sectorNames = DIRECTION_NAMES[directionSectors];
+            
+            // Create header
+            let csvContent = 'Direction';
+            for (let i = 0; i < speedBins.length - 1; i++) {
+                csvContent += `,${speedBins[i].toFixed(1)}-${speedBins[i+1].toFixed(1)}_${units}`;
+            }
+            csvContent += '\n';
+            
+            // Add data rows
+            for (let sector = 0; sector < directionSectors; sector++) {
+                csvContent += sectorNames[sector];
+                for (let speedBin = 0; speedBin < speedBins.length - 1; speedBin++) {
+                    const frequency = windRose[sector][speedBin] / windAnalysisResults.validCount * 100;
+                    csvContent += `,${frequency.toFixed(2)}`;
+                }
+                csvContent += '\n';
+            }
+            
+            downloadCSV(csvContent, 'wind_rose.csv');
+        }
+        
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function showMessage(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            const className = type === 'error' ? 'error-message' : 
+                            type === 'success' ? 'success-message' : 'info-message';
+            
+            statusDiv.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
+            }
+        }
+        
+        // Handle custom bins visibility
+        document.getElementById('speedBins').addEventListener('change', function() {
+            const customGroup = document.getElementById('customBinsGroup');
+            customGroup.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+        
+        // Initialize with sample data
+        loadSampleData('coastal');
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96b8f247330b88b2',t:'MTc1NDU5MjQ4Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
