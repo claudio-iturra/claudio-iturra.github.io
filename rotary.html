@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rotary Spectral Analysis Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <style>
+        .ocean-gradient {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+        }
+        
+        .spectral-animation {
+            background: linear-gradient(-45deg, #1e40af, #3b82f6, #06b6d4, #0891b2);
+            background-size: 400% 400%;
+            animation: spectral 8s ease-in-out infinite;
+        }
+        
+        @keyframes spectral {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .analysis-card {
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+        
+        .parameter-highlight {
+            background: linear-gradient(45deg, #f0f9ff, #e0f2fe);
+            border-left: 4px solid #0891b2;
+        }
+        
+        .frequency-badge {
+            background: linear-gradient(45deg, #dbeafe, #bfdbfe);
+            border: 1px solid #93c5fd;
+        }
+        
+        .wavelet-colorbar {
+            background: linear-gradient(to right, #1e3a8a, #3b82f6, #06b6d4, #10b981, #fbbf24, #f59e0b, #ef4444);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
+        <div class="max-w-7xl mx-auto px-6 py-4">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-slate-800">🌀 Rotary Spectral Analyzer</h1>
+                <div class="hidden md:flex space-x-6">
+                    <a href="#input" class="text-slate-600 hover:text-blue-600 transition-colors">Data Input</a>
+                    <a href="#analysis" class="text-slate-600 hover:text-blue-600 transition-colors">Analysis</a>
+                    <a href="#theory" class="text-slate-600 hover:text-blue-600 transition-colors">Theory</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="pt-20 pb-12 ocean-gradient text-white">
+        <div class="absolute inset-0 spectral-animation opacity-20"></div>
+        <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">Rotary Spectral Analysis</h1>
+            <p class="text-lg md:text-xl mb-8 text-blue-200 max-w-3xl mx-auto">
+                Advanced time-frequency analysis of rotating flows using rotary spectra and continuous wavelet transforms by Claudio Iturra
+            </p>
+            <a href="#input" class="inline-block bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-blue-50 transition-colors">
+                Start Analysis
+            </a>
+        </div>
+    </section>
+
+    <!-- Data Input Section -->
+    <section id="input" class="py-16">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 text-slate-800">Velocity Data Input</h2>
+                <p class="text-xl text-slate-600">Enter your u and v velocity time series with temporal resolution</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Data Input Panel -->
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-6 text-slate-800">Input Configuration</h3>
+                    
+                    <!-- Temporal Parameters -->
+                    <div class="mb-6 p-4 bg-blue-50 rounded-lg">
+                        <h4 class="font-semibold text-slate-800 mb-3">⏱️ Temporal Parameters</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Sampling Interval (minutes)</label>
+                                <input type="number" id="sampling-interval" step="0.1" value="10" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">Start Time (optional)</label>
+                                <input type="datetime-local" id="start-time" 
+                                    class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Method Selection -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-slate-700 mb-3">Choose Input Method:</label>
+                        <div class="flex flex-wrap gap-2">
+                            <button id="manual-btn" onclick="setInputMethod('manual')" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm">
+                                Manual Entry
+                            </button>
+                            <button id="sample-btn" onclick="setInputMethod('sample')" class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm">
+                                Sample Data
+                            </button>
+                            <button id="synthetic-btn" onclick="setInputMethod('synthetic')" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                                Synthetic Rotary
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Manual Input -->
+                    <div id="manual-input" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">U Component (m/s) - comma separated</label>
+                            <textarea id="u-data" rows="3" placeholder="0.5, 0.3, -0.2, -0.6, 0.1, ..." 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">V Component (m/s) - comma separated</label>
+                            <textarea id="v-data" rows="3" placeholder="0.2, 0.6, 0.4, -0.1, -0.3, ..." 
+                                class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Synthetic Data Generator -->
+                    <div id="synthetic-input" class="space-y-4 hidden">
+                        <h4 class="font-semibold text-slate-800">Synthetic Rotary Signal Parameters</h4>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">CW Amplitude (m/s)</label>
+                                    <input type="number" id="cw-amp" step="0.01" value="1.0" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">CW Frequency (cph)</label>
+                                    <input type="number" id="cw-freq" step="0.01" value="2.0" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">CW Phase (°)</label>
+                                    <input type="number" id="cw-phase" step="1" value="0" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">CCW Amplitude (m/s)</label>
+                                    <input type="number" id="ccw-amp" step="0.01" value="0.6" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">CCW Frequency (cph)</label>
+                                    <input type="number" id="ccw-freq" step="0.01" value="1.5" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">CCW Phase (°)</label>
+                                    <input type="number" id="ccw-phase" step="1" value="45" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Duration (hours)</label>
+                                    <input type="number" id="duration" step="1" value="48" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Noise Level</label>
+                                    <input type="number" id="noise-level" step="0.01" value="0.05" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Chirp Rate (cph²)</label>
+                                    <input type="number" id="chirp-rate" step="0.001" value="0" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                            </div>
+                        </div>
+                        <button onclick="generateSyntheticRotary()" class="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            Generate Synthetic Rotary Signal
+                        </button>
+                    </div>
+
+                    <!-- Analysis Options -->
+                    <div class="mt-6 p-4 bg-slate-50 rounded-lg">
+                        <h4 class="font-semibold text-slate-800 mb-3">Analysis Options</h4>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Spectral Method</label>
+                                    <select id="spectral-method" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                        <option value="welch">Welch's Method</option>
+                                        <option value="periodogram">Periodogram</option>
+                                        <option value="multitaper">Multitaper</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Window Length</label>
+                                    <select id="window-length" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                        <option value="auto">Auto</option>
+                                        <option value="256">256 points</option>
+                                        <option value="512">512 points</option>
+                                        <option value="1024">1024 points</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Wavelet Type</label>
+                                    <select id="wavelet-type" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                        <option value="morlet">Morlet</option>
+                                        <option value="paul">Paul</option>
+                                        <option value="dog">DOG (Mexican Hat)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Wavelet Parameter</label>
+                                    <input type="number" id="wavelet-param" step="0.1" value="6" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Min Frequency (cph)</label>
+                                    <input type="number" id="min-freq" step="0.01" value="0.1" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-700 mb-1">Max Frequency (cph)</label>
+                                    <input type="number" id="max-freq" step="0.1" value="6.0" class="w-full px-2 py-1 border border-slate-300 rounded text-sm">
+                                </div>
+                            </div>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="detrend-data" checked class="mr-2">
+                                <span class="text-sm">Detrend Data</span>
+                            </label>
+                            <label class="flex items-center">
+                                <input type="checkbox" id="confidence-bands" checked class="mr-2">
+                                <span class="text-sm">Show Confidence Bands</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button onclick="performRotaryAnalysis()" class="w-full mt-6 bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                        🌀 Analyze Rotary Spectra
+                    </button>
+                </div>
+
+                <!-- Information Panel -->
+                <div class="bg-gradient-to-br from-blue-50 to-cyan-100 rounded-2xl p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Rotary Analysis Theory</h3>
+                    <div class="space-y-4">
+                        <div class="bg-white/70 rounded-lg p-4">
+                            <h4 class="font-semibold text-slate-800 mb-2">🌀 Rotary Components</h4>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• <strong>Clockwise (CW):</strong> Negative rotary component</li>
+                                <li>• <strong>Counterclockwise (CCW):</strong> Positive rotary component</li>
+                                <li>• <strong>Complex velocity:</strong> w = u + iv</li>
+                                <li>• <strong>Rotary decomposition:</strong> w = w⁺ + w⁻</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white/70 rounded-lg p-4">
+                            <h4 class="font-semibold text-slate-800 mb-2">📊 Spectral Analysis</h4>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• <strong>Power spectral density:</strong> Energy vs frequency</li>
+                                <li>• <strong>Rotary ratio:</strong> CW/CCW energy ratio</li>
+                                <li>• <strong>Frequency resolution:</strong> Δf = 1/(N×Δt)</li>
+                                <li>• <strong>Nyquist frequency:</strong> fₙ = 1/(2×Δt)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white/70 rounded-lg p-4">
+                            <h4 class="font-semibold text-slate-800 mb-2">🌊 Wavelet Transform</h4>
+                            <ul class="text-sm text-slate-600 space-y-1">
+                                <li>• <strong>Time-frequency:</strong> Localized spectral analysis</li>
+                                <li>• <strong>Cone of influence:</strong> Edge effects boundary</li>
+                                <li>• <strong>Scale-frequency:</strong> s = f₀/f relationship</li>
+                                <li>• <strong>Wavelet coherence:</strong> Phase relationships</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white/70 rounded-lg p-4">
+                            <h4 class="font-semibold text-slate-800 mb-2">🎯 Applications</h4>
+                            <div class="grid grid-cols-1 gap-2 text-xs text-slate-600">
+                                <div><strong>Oceanography:</strong> Inertial oscillations, tidal analysis</div>
+                                <div><strong>Meteorology:</strong> Atmospheric waves, cyclone tracking</div>
+                                <div><strong>Geophysics:</strong> Seismic wave polarization</div>
+                                <div><strong>Engineering:</strong> Rotating machinery vibration</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis Results Section -->
+    <section id="analysis" class="py-16 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 text-slate-800">Rotary Spectral Analysis Results</h2>
+                <p class="text-xl text-slate-600">Comprehensive time-frequency analysis of rotating flows</p>
+            </div>
+
+            <div id="results-container" class="hidden">
+                <!-- Time Series and Hodograph -->
+                <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Velocity Time Series</h3>
+                        <div id="timeseries-plot" class="w-full h-80"></div>
+                    </div>
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Velocity Hodograph</h3>
+                        <div id="hodograph-plot" class="w-full h-80"></div>
+                    </div>
+                </div>
+
+                <!-- Rotary Spectra -->
+                <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Positive Rotary Spectrum (CCW)</h3>
+                        <div id="positive-spectrum-plot" class="w-full h-80"></div>
+                    </div>
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Negative Rotary Spectrum (CW)</h3>
+                        <div id="negative-spectrum-plot" class="w-full h-80"></div>
+                    </div>
+                </div>
+
+                <!-- Combined Rotary Spectrum -->
+                <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200 mb-8">
+                    <h3 class="text-xl font-bold mb-4 text-slate-800">Combined Rotary Spectrum</h3>
+                    <div id="combined-spectrum-plot" class="w-full h-96"></div>
+                </div>
+
+                <!-- Rotary Wavelets -->
+                <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Positive Rotary Wavelet (CCW)</h3>
+                        <div id="positive-wavelet-plot" class="w-full h-96"></div>
+                    </div>
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Negative Rotary Wavelet (CW)</h3>
+                        <div id="negative-wavelet-plot" class="w-full h-96"></div>
+                    </div>
+                </div>
+
+                <!-- Wavelet Statistics -->
+                <div class="grid lg:grid-cols-2 gap-8 mb-8">
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Global Wavelet Spectrum</h3>
+                        <div id="global-wavelet-plot" class="w-full h-80"></div>
+                    </div>
+                    <div class="analysis-card bg-white rounded-2xl p-6 shadow-lg border border-slate-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">Rotary Ratio</h3>
+                        <div id="rotary-ratio-plot" class="w-full h-80"></div>
+                    </div>
+                </div>
+
+                <!-- Analysis Summary -->
+                <div class="analysis-card bg-slate-50 rounded-2xl p-6">
+                    <h3 class="text-2xl font-bold mb-6 text-slate-800">Analysis Summary</h3>
+                    <div class="grid md:grid-cols-3 gap-6">
+                        <div class="parameter-highlight p-4 rounded-lg">
+                            <h4 class="font-semibold text-slate-800 mb-2">Data Properties</h4>
+                            <div id="data-stats" class="space-y-1 text-sm text-slate-600">
+                                <!-- Data statistics will be populated here -->
+                            </div>
+                        </div>
+                        <div class="parameter-highlight p-4 rounded-lg">
+                            <h4 class="font-semibold text-slate-800 mb-2">Spectral Peaks</h4>
+                            <div id="spectral-peaks" class="space-y-1 text-sm text-slate-600">
+                                <!-- Spectral peaks will be populated here -->
+                            </div>
+                        </div>
+                        <div class="parameter-highlight p-4 rounded-lg">
+                            <h4 class="font-semibold text-slate-800 mb-2">Rotary Properties</h4>
+                            <div id="rotary-properties" class="space-y-1 text-sm text-slate-600">
+                                <!-- Rotary properties will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- No Results Message -->
+            <div id="no-results" class="text-center py-12">
+                <svg class="w-24 h-24 mx-auto text-slate-300 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+                <h3 class="text-2xl font-bold text-slate-600 mb-4">No Analysis Results Yet</h3>
+                <p class="text-slate-500 mb-6">Enter your velocity data and perform rotary spectral analysis</p>
+                <a href="#input" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    Go to Data Input
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Theory Section -->
+    <section id="theory" class="py-16 bg-slate-50">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 text-slate-800">Rotary Spectral Theory</h2>
+                <p class="text-xl text-slate-600">Mathematical foundations of rotary analysis and wavelet transforms</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Rotary Decomposition</h3>
+                    <div class="space-y-4 text-slate-600">
+                        <p>Complex velocity representation:</p>
+                        <div class="bg-slate-50 p-4 rounded-lg font-mono text-sm">
+                            w(t) = u(t) + iv(t)
+                        </div>
+                        <p>Rotary components:</p>
+                        <div class="bg-slate-50 p-4 rounded-lg font-mono text-sm">
+                            w⁺(t) = ½[w(t) + iw*(t)]  (CCW)<br>
+                            w⁻(t) = ½[w(t) - iw*(t)]  (CW)
+                        </div>
+                        <p>Where w*(t) is the complex conjugate of w(t).</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Rotary Spectra</h3>
+                    <div class="space-y-4 text-slate-600">
+                        <p>Power spectral densities:</p>
+                        <div class="bg-slate-50 p-4 rounded-lg font-mono text-sm">
+                            S⁺(f) = |W⁺(f)|²  (CCW spectrum)<br>
+                            S⁻(f) = |W⁻(f)|²  (CW spectrum)
+                        </div>
+                        <p>Rotary ratio:</p>
+                        <div class="bg-slate-50 p-4 rounded-lg font-mono text-sm">
+                            R(f) = S⁻(f) / S⁺(f)
+                        </div>
+                        <p>R > 1: CW dominant, R < 1: CCW dominant</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Continuous Wavelet Transform</h3>
+                    <div class="space-y-4 text-slate-600">
+                        <p>Wavelet transform of rotary components:</p>
+                        <div class="bg-slate-50 p-4 rounded-lg font-mono text-sm">
+                            W⁺(a,b) = ∫ w⁺(t)ψ*((t-b)/a)dt<br>
+                            W⁻(a,b) = ∫ w⁻(t)ψ*((t-b)/a)dt
+                        </div>
+                        <p>Where ψ(t) is the mother wavelet, a is scale, b is translation.</p>
+                        <p>Common wavelets: Morlet, Paul, DOG (Derivative of Gaussian)</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-4 text-slate-800">Physical Interpretation</h3>
+                    <div class="space-y-3 text-slate-600">
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h4 class="font-semibold">Inertial Oscillations</h4>
+                            <p class="text-sm">Near-inertial frequency f = 2Ω sin(φ)</p>
+                        </div>
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h4 class="font-semibold">Tidal Currents</h4>
+                            <p class="text-sm">Elliptical tidal motion decomposition</p>
+                        </div>
+                        <div class="border-l-4 border-purple-500 pl-4">
+                            <h4 class="font-semibold">Atmospheric Waves</h4>
+                            <p class="text-sm">Gravity waves and planetary waves</p>
+                        </div>
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <h4 class="font-semibold">Turbulent Eddies</h4>
+                            <p class="text-sm">Coherent vortical structures</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-white py-8">
+        <div class="max-w-6xl mx-auto px-6 text-center">
+            <p class="text-slate-400">
+                © 2024 Rotary Spectral Analysis Tool. Advanced time-frequency analysis for geophysical flows.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        let currentInputMethod = 'manual';
+        let analysisResults = null;
+
+        // Smooth scrolling
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        function setInputMethod(method) {
+            currentInputMethod = method;
+            
+            // Update button styles
+            document.querySelectorAll('#manual-btn, #sample-btn, #synthetic-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'bg-gray-600', 'bg-green-600');
+                btn.classList.add('bg-gray-400');
+            });
+            
+            // Hide all input sections
+            document.getElementById('manual-input').classList.add('hidden');
+            document.getElementById('synthetic-input').classList.add('hidden');
+            
+            if (method === 'manual') {
+                document.getElementById('manual-btn').classList.remove('bg-gray-400');
+                document.getElementById('manual-btn').classList.add('bg-blue-600');
+                document.getElementById('manual-input').classList.remove('hidden');
+            } else if (method === 'sample') {
+                document.getElementById('sample-btn').classList.remove('bg-gray-400');
+                document.getElementById('sample-btn').classList.add('bg-gray-600');
+                loadSampleData();
+            } else if (method === 'synthetic') {
+                document.getElementById('synthetic-btn').classList.remove('bg-gray-400');
+                document.getElementById('synthetic-btn').classList.add('bg-green-600');
+                document.getElementById('synthetic-input').classList.remove('hidden');
+            }
+        }
+
+        function loadSampleData() {
+            // Generate realistic oceanographic data with inertial oscillations and tides
+            const dt = 10; // 10 minutes
+            const duration = 48; // 48 hours
+            const nPoints = Math.floor(duration * 60 / dt);
+            
+            const u = [];
+            const v = [];
+            
+            for (let i = 0; i < nPoints; i++) {
+                const t = i * dt / 60; // time in hours
+                
+                // Inertial oscillation (f = 1.4e-4 rad/s ≈ 0.04 cph at 45°N)
+                const f_inertial = 0.04; // cycles per hour
+                const omega_f = 2 * Math.PI * f_inertial;
+                const u_inertial = 0.8 * Math.cos(omega_f * t);
+                const v_inertial = 0.8 * Math.sin(omega_f * t); // CCW rotation
+                
+                // M2 tidal component (semi-diurnal)
+                const f_m2 = 2.0; // cycles per day = 1/12 cycles per hour
+                const omega_m2 = 2 * Math.PI * f_m2 / 24;
+                const u_m2 = 0.6 * Math.cos(omega_m2 * t + Math.PI/4);
+                const v_m2 = 0.4 * Math.cos(omega_m2 * t + Math.PI/3);
+                
+                // Diurnal component (K1)
+                const f_k1 = 1.0; // cycles per day
+                const omega_k1 = 2 * Math.PI * f_k1 / 24;
+                const u_k1 = 0.3 * Math.cos(omega_k1 * t);
+                const v_k1 = 0.2 * Math.cos(omega_k1 * t + Math.PI/6);
+                
+                // High frequency component
+                const f_high = 6.0 / 24; // 6 cycles per day
+                const omega_high = 2 * Math.PI * f_high;
+                const u_high = 0.2 * Math.cos(omega_high * t + Math.PI/2);
+                const v_high = -0.15 * Math.cos(omega_high * t); // CW rotation
+                
+                // Add noise
+                const noise_u = (Math.random() - 0.5) * 0.1;
+                const noise_v = (Math.random() - 0.5) * 0.1;
+                
+                u.push(u_inertial + u_m2 + u_k1 + u_high + noise_u);
+                v.push(v_inertial + v_m2 + v_k1 + v_high + noise_v);
+            }
+            
+            document.getElementById('u-data').value = u.slice(0, 50).map(val => val.toFixed(3)).join(', ') + ', ...';
+            document.getElementById('v-data').value = v.slice(0, 50).map(val => val.toFixed(3)).join(', ') + ', ...';
+            
+            // Store full data for analysis
+            window.sampleData = { u, v };
+        }
+
+        function generateSyntheticRotary() {
+            const cwAmp = parseFloat(document.getElementById('cw-amp').value);
+            const cwFreq = parseFloat(document.getElementById('cw-freq').value);
+            const cwPhase = parseFloat(document.getElementById('cw-phase').value) * Math.PI / 180;
+            
+            const ccwAmp = parseFloat(document.getElementById('ccw-amp').value);
+            const ccwFreq = parseFloat(document.getElementById('ccw-freq').value);
+            const ccwPhase = parseFloat(document.getElementById('ccw-phase').value) * Math.PI / 180;
+            
+            const duration = parseFloat(document.getElementById('duration').value);
+            const noiseLevel = parseFloat(document.getElementById('noise-level').value);
+            const chirpRate = parseFloat(document.getElementById('chirp-rate').value);
+            
+            const dt = parseFloat(document.getElementById('sampling-interval').value) / 60; // convert to hours
+            const nPoints = Math.floor(duration / dt);
+            
+            const u = [];
+            const v = [];
+            
+            for (let i = 0; i < nPoints; i++) {
+                const t = i * dt;
+                
+                // Clockwise component (negative frequency)
+                const omega_cw = 2 * Math.PI * (cwFreq + chirpRate * t);
+                const u_cw = cwAmp * Math.cos(omega_cw * t + cwPhase);
+                const v_cw = -cwAmp * Math.sin(omega_cw * t + cwPhase); // CW rotation
+                
+                // Counterclockwise component (positive frequency)
+                const omega_ccw = 2 * Math.PI * (ccwFreq + chirpRate * t);
+                const u_ccw = ccwAmp * Math.cos(omega_ccw * t + ccwPhase);
+                const v_ccw = ccwAmp * Math.sin(omega_ccw * t + ccwPhase); // CCW rotation
+                
+                // Add noise
+                const noise_u = (Math.random() - 0.5) * noiseLevel;
+                const noise_v = (Math.random() - 0.5) * noiseLevel;
+                
+                u.push(u_cw + u_ccw + noise_u);
+                v.push(v_cw + v_ccw + noise_v);
+            }
+            
+            document.getElementById('u-data').value = u.map(val => val.toFixed(4)).join(', ');
+            document.getElementById('v-data').value = v.map(val => val.toFixed(4)).join(', ');
+        }
+
+        function parseData() {
+            // Check if we have sample data stored
+            if (window.sampleData && currentInputMethod === 'sample') {
+                return window.sampleData;
+            }
+            
+            const uStr = document.getElementById('u-data').value;
+            const vStr = document.getElementById('v-data').value;
+            
+            if (!uStr || !vStr) {
+                alert('Please enter data for both U and V components');
+                return null;
+            }
+            
+            try {
+                // Handle truncated display data
+                const uData = uStr.includes('...') ? 
+                    uStr.replace(', ...', '').split(',').map(s => parseFloat(s.trim())) :
+                    uStr.split(',').map(s => parseFloat(s.trim()));
+                const vData = vStr.includes('...') ? 
+                    vStr.replace(', ...', '').split(',').map(s => parseFloat(s.trim())) :
+                    vStr.split(',').map(s => parseFloat(s.trim()));
+                
+                if (uData.some(isNaN) || vData.some(isNaN)) {
+                    alert('All values must be valid numbers');
+                    return null;
+                }
+                
+                if (uData.length !== vData.length) {
+                    alert('U and V arrays must have the same length');
+                    return null;
+                }
+                
+                return { u: uData, v: vData };
+            } catch (error) {
+                alert('Error parsing data. Please check your input format.');
+                return null;
+            }
+        }
+
+        function calculateRotaryComponents(u, v) {
+            const n = u.length;
+            const w_plus = new Array(n); // CCW component
+            const w_minus = new Array(n); // CW component
+            
+            for (let i = 0; i < n; i++) {
+                // w = u + iv
+                const w_real = u[i];
+                const w_imag = v[i];
+                
+                // w+ = 0.5 * (w + i*conj(w)) = 0.5 * (u + iv + i*(u - iv)) = 0.5 * (u + iv + iu + v)
+                const w_plus_real = 0.5 * (w_real + w_imag);
+                const w_plus_imag = 0.5 * (w_imag + w_real);
+                
+                // w- = 0.5 * (w - i*conj(w)) = 0.5 * (u + iv - i*(u - iv)) = 0.5 * (u + iv - iu - v)
+                const w_minus_real = 0.5 * (w_real - w_imag);
+                const w_minus_imag = 0.5 * (w_imag - w_real);
+                
+                w_plus[i] = math.complex(w_plus_real, w_plus_imag);
+                w_minus[i] = math.complex(w_minus_real, w_minus_imag);
+            }
+            
+            return { w_plus, w_minus };
+        }
+
+        function calculateFFT(data) {
+            // Simple FFT implementation using math.js
+            const n = data.length;
+            
+            // Pad to next power of 2 for efficiency
+            const nfft = Math.pow(2, Math.ceil(Math.log2(n)));
+            const paddedData = [...data];
+            while (paddedData.length < nfft) {
+                paddedData.push(math.complex(0, 0));
+            }
+            
+            // Use math.js FFT
+            const fftResult = math.fft(paddedData);
+            
+            return fftResult.slice(0, Math.floor(nfft/2) + 1); // Return positive frequencies only
+        }
+
+        function calculatePowerSpectrum(fftData, dt, method = 'periodogram') {
+            const n = fftData.length;
+            const df = 1.0 / (2 * (n - 1) * dt); // frequency resolution
+            
+            const frequencies = [];
+            const power = [];
+            
+            for (let i = 0; i < n; i++) {
+                frequencies.push(i * df);
+                const magnitude = math.abs(fftData[i]);
+                power.push(magnitude * magnitude / (n * df)); // Power spectral density
+            }
+            
+            return { frequencies, power };
+        }
+
+        function calculateWaveletTransform(data, dt, waveletType = 'morlet', param = 6) {
+            const n = data.length;
+            const minFreq = parseFloat(document.getElementById('min-freq').value);
+            const maxFreq = parseFloat(document.getElementById('max-freq').value);
+            
+            // Generate frequency array (logarithmic spacing)
+            const nFreqs = 50;
+            const freqs = [];
+            for (let i = 0; i < nFreqs; i++) {
+                const f = minFreq * Math.pow(maxFreq / minFreq, i / (nFreqs - 1));
+                freqs.push(f);
+            }
+            
+            // Time array
+            const time = [];
+            for (let i = 0; i < n; i++) {
+                time.push(i * dt);
+            }
+            
+            // Initialize wavelet transform matrix
+            const wavelet = [];
+            for (let i = 0; i < nFreqs; i++) {
+                wavelet.push(new Array(n).fill(0));
+            }
+            
+            // Calculate wavelet transform for each frequency
+            for (let fi = 0; fi < nFreqs; fi++) {
+                const freq = freqs[fi];
+                const scale = 1.0 / freq; // Simplified scale-frequency relationship
+                
+                for (let ti = 0; ti < n; ti++) {
+                    let sum = math.complex(0, 0);
+                    
+                    // Convolution with wavelet
+                    for (let k = 0; k < n; k++) {
+                        const t_norm = (k - ti) * dt / scale;
+                        
+                        let wavelet_val;
+                        if (waveletType === 'morlet') {
+                            // Morlet wavelet
+                            const omega0 = param;
+                            const envelope = Math.exp(-0.5 * t_norm * t_norm);
+                            const oscillation = math.complex(Math.cos(omega0 * t_norm), Math.sin(omega0 * t_norm));
+                            wavelet_val = math.multiply(envelope, oscillation);
+                        } else if (waveletType === 'paul') {
+                            // Paul wavelet
+                            const m = param;
+                            const denom = Math.pow(1 + t_norm * t_norm, m + 1);
+                            wavelet_val = math.complex(1 / denom, 0);
+                        } else {
+                            // DOG (Mexican hat) wavelet
+                            const m = param;
+                            const envelope = Math.exp(-0.5 * t_norm * t_norm);
+                            const polynomial = Math.pow(-1, m + 1) * Math.pow(t_norm, 2 * m);
+                            wavelet_val = math.complex(envelope * polynomial, 0);
+                        }
+                        
+                        sum = math.add(sum, math.multiply(data[k], math.conj(wavelet_val)));
+                    }
+                    
+                    wavelet[fi][ti] = math.abs(sum);
+                }
+            }
+            
+            return { time, frequencies: freqs, wavelet };
+        }
+
+        function performRotaryAnalysis() {
+            const data = parseData();
+            if (!data) return;
+            
+            const samplingInterval = parseFloat(document.getElementById('sampling-interval').value);
+            const dt = samplingInterval / 60; // Convert minutes to hours
+            
+            // Detrend data if requested
+            let u = data.u;
+            let v = data.v;
+            
+            if (document.getElementById('detrend-data').checked) {
+                u = detrend(u);
+                v = detrend(v);
+            }
+            
+            // Calculate rotary components
+            const rotaryComponents = calculateRotaryComponents(u, v);
+            
+            // Calculate FFT and power spectra
+            const fft_plus = calculateFFT(rotaryComponents.w_plus);
+            const fft_minus = calculateFFT(rotaryComponents.w_minus);
+            
+            const spectrum_plus = calculatePowerSpectrum(fft_plus, dt);
+            const spectrum_minus = calculatePowerSpectrum(fft_minus, dt);
+            
+            // Calculate wavelet transforms
+            const wavelet_plus = calculateWaveletTransform(rotaryComponents.w_plus, dt, 
+                document.getElementById('wavelet-type').value, 
+                parseFloat(document.getElementById('wavelet-param').value));
+            const wavelet_minus = calculateWaveletTransform(rotaryComponents.w_minus, dt,
+                document.getElementById('wavelet-type').value, 
+                parseFloat(document.getElementById('wavelet-param').value));
+            
+            // Store results
+            analysisResults = {
+                data: { u, v, dt, samplingInterval },
+                rotary: rotaryComponents,
+                spectra: { plus: spectrum_plus, minus: spectrum_minus },
+                wavelets: { plus: wavelet_plus, minus: wavelet_minus }
+            };
+            
+            // Show results container
+            document.getElementById('results-container').classList.remove('hidden');
+            document.getElementById('no-results').classList.add('hidden');
+            
+            // Generate all plots
+            plotTimeSeries(u, v, dt);
+            plotHodograph(u, v);
+            plotRotarySpectra(spectrum_plus, spectrum_minus);
+            plotCombinedSpectrum(spectrum_plus, spectrum_minus);
+            plotRotaryWavelets(wavelet_plus, wavelet_minus);
+            plotGlobalWaveletSpectrum(wavelet_plus, wavelet_minus);
+            plotRotaryRatio(spectrum_plus, spectrum_minus);
+            generateSummaryStatistics(u, v, spectrum_plus, spectrum_minus, dt, samplingInterval);
+            
+            // Scroll to results
+            document.getElementById('analysis').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function detrend(data) {
+            const n = data.length;
+            const x = Array.from({length: n}, (_, i) => i);
+            
+            // Calculate linear trend
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = data.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * data[i], 0);
+            const sumXX = x.reduce((sum, xi) => sum + xi * xi, 0);
+            
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+            
+            // Remove trend
+            return data.map((yi, i) => yi - (slope * i + intercept));
+        }
+
+        function plotTimeSeries(u, v, dt) {
+            const time = Array.from({length: u.length}, (_, i) => i * dt);
+            
+            const uTrace = {
+                x: time,
+                y: u,
+                mode: 'lines',
+                name: 'U Component (East)',
+                line: { color: '#3b82f6', width: 2 }
+            };
+            
+            const vTrace = {
+                x: time,
+                y: v,
+                mode: 'lines',
+                name: 'V Component (North)',
+                line: { color: '#10b981', width: 2 }
+            };
+            
+            Plotly.newPlot('timeseries-plot', [uTrace, vTrace], {
+                title: 'Velocity Time Series',
+                xaxis: { title: 'Time (hours)' },
+                yaxis: { title: 'Velocity (m/s)' },
+                showlegend: true,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function plotHodograph(u, v) {
+            const time = Array.from({length: u.length}, (_, i) => i);
+            
+            const hodographTrace = {
+                x: u,
+                y: v,
+                mode: 'lines+markers',
+                name: 'Velocity Vector',
+                line: { color: '#8b5cf6', width: 2 },
+                marker: { 
+                    color: time, 
+                    colorscale: 'Viridis', 
+                    size: 3, 
+                    showscale: true, 
+                    colorbar: { title: 'Time Index', len: 0.7 } 
+                }
+            };
+            
+            Plotly.newPlot('hodograph-plot', [hodographTrace], {
+                title: 'Velocity Hodograph',
+                xaxis: { title: 'U Velocity (m/s)' },
+                yaxis: { title: 'V Velocity (m/s)' },
+                showlegend: false,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function plotRotarySpectra(spectrumPlus, spectrumMinus) {
+            // Positive rotary spectrum (CCW)
+            const posTrace = {
+                x: spectrumPlus.frequencies,
+                y: spectrumPlus.power,
+                mode: 'lines',
+                name: 'CCW Power',
+                line: { color: '#10b981', width: 3 }
+            };
+            
+            Plotly.newPlot('positive-spectrum-plot', [posTrace], {
+                title: 'Positive Rotary Spectrum (CCW)',
+                xaxis: { title: 'Frequency (cph)', type: 'log' },
+                yaxis: { title: 'Power Spectral Density', type: 'log' },
+                showlegend: false,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+            
+            // Negative rotary spectrum (CW)
+            const negTrace = {
+                x: spectrumMinus.frequencies,
+                y: spectrumMinus.power,
+                mode: 'lines',
+                name: 'CW Power',
+                line: { color: '#ef4444', width: 3 }
+            };
+            
+            Plotly.newPlot('negative-spectrum-plot', [negTrace], {
+                title: 'Negative Rotary Spectrum (CW)',
+                xaxis: { title: 'Frequency (cph)', type: 'log' },
+                yaxis: { title: 'Power Spectral Density', type: 'log' },
+                showlegend: false,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function plotCombinedSpectrum(spectrumPlus, spectrumMinus) {
+            const posTrace = {
+                x: spectrumPlus.frequencies,
+                y: spectrumPlus.power,
+                mode: 'lines',
+                name: 'CCW (Positive)',
+                line: { color: '#10b981', width: 3 }
+            };
+            
+            const negTrace = {
+                x: spectrumMinus.frequencies,
+                y: spectrumMinus.power,
+                mode: 'lines',
+                name: 'CW (Negative)',
+                line: { color: '#ef4444', width: 3 }
+            };
+            
+            Plotly.newPlot('combined-spectrum-plot', [posTrace, negTrace], {
+                title: 'Combined Rotary Spectrum',
+                xaxis: { title: 'Frequency (cph)', type: 'log' },
+                yaxis: { title: 'Power Spectral Density', type: 'log' },
+                showlegend: true,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function plotRotaryWavelets(waveletPlus, waveletMinus) {
+            // Positive rotary wavelet (CCW)
+            const posWaveletTrace = {
+                x: waveletPlus.time,
+                y: waveletPlus.frequencies,
+                z: waveletPlus.wavelet,
+                type: 'heatmap',
+                colorscale: 'Viridis',
+                showscale: true,
+                colorbar: { title: 'Power', len: 0.7 }
+            };
+            
+            Plotly.newPlot('positive-wavelet-plot', [posWaveletTrace], {
+                title: 'Positive Rotary Wavelet (CCW)',
+                xaxis: { title: 'Time (hours)' },
+                yaxis: { title: 'Frequency (cph)', type: 'log' },
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+            
+            // Negative rotary wavelet (CW)
+            const negWaveletTrace = {
+                x: waveletMinus.time,
+                y: waveletMinus.frequencies,
+                z: waveletMinus.wavelet,
+                type: 'heatmap',
+                colorscale: 'Hot',
+                showscale: true,
+                colorbar: { title: 'Power', len: 0.7 }
+            };
+            
+            Plotly.newPlot('negative-wavelet-plot', [negWaveletTrace], {
+                title: 'Negative Rotary Wavelet (CW)',
+                xaxis: { title: 'Time (hours)' },
+                yaxis: { title: 'Frequency (cph)', type: 'log' },
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function plotGlobalWaveletSpectrum(waveletPlus, waveletMinus) {
+            // Calculate global wavelet spectrum (time-averaged)
+            const globalPlus = waveletPlus.frequencies.map((_, fi) => {
+                const sum = waveletPlus.wavelet[fi].reduce((a, b) => a + b, 0);
+                return sum / waveletPlus.wavelet[fi].length;
+            });
+            
+            const globalMinus = waveletMinus.frequencies.map((_, fi) => {
+                const sum = waveletMinus.wavelet[fi].reduce((a, b) => a + b, 0);
+                return sum / waveletMinus.wavelet[fi].length;
+            });
+            
+            const posTrace = {
+                x: waveletPlus.frequencies,
+                y: globalPlus,
+                mode: 'lines',
+                name: 'CCW Global',
+                line: { color: '#10b981', width: 3 }
+            };
+            
+            const negTrace = {
+                x: waveletMinus.frequencies,
+                y: globalMinus,
+                mode: 'lines',
+                name: 'CW Global',
+                line: { color: '#ef4444', width: 3 }
+            };
+            
+            Plotly.newPlot('global-wavelet-plot', [posTrace, negTrace], {
+                title: 'Global Wavelet Spectrum',
+                xaxis: { title: 'Frequency (cph)', type: 'log' },
+                yaxis: { title: 'Time-Averaged Power', type: 'log' },
+                showlegend: true,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function plotRotaryRatio(spectrumPlus, spectrumMinus) {
+            const ratio = spectrumMinus.power.map((p, i) => p / spectrumPlus.power[i]);
+            
+            const ratioTrace = {
+                x: spectrumPlus.frequencies,
+                y: ratio,
+                mode: 'lines',
+                name: 'CW/CCW Ratio',
+                line: { color: '#8b5cf6', width: 3 }
+            };
+            
+            // Add horizontal line at ratio = 1
+            const unityTrace = {
+                x: [spectrumPlus.frequencies[0], spectrumPlus.frequencies[spectrumPlus.frequencies.length - 1]],
+                y: [1, 1],
+                mode: 'lines',
+                name: 'Unity',
+                line: { color: '#64748b', width: 2, dash: 'dash' }
+            };
+            
+            Plotly.newPlot('rotary-ratio-plot', [ratioTrace, unityTrace], {
+                title: 'Rotary Ratio (CW/CCW)',
+                xaxis: { title: 'Frequency (cph)', type: 'log' },
+                yaxis: { title: 'Ratio', type: 'log' },
+                showlegend: true,
+                margin: { t: 40, r: 20, b: 40, l: 50 }
+            });
+        }
+
+        function generateSummaryStatistics(u, v, spectrumPlus, spectrumMinus, dt, samplingInterval) {
+            // Data properties
+            const dataStatsHTML = `
+                <p><strong>Data points:</strong> ${u.length}</p>
+                <p><strong>Duration:</strong> ${(u.length * dt).toFixed(1)} hours</p>
+                <p><strong>Sampling:</strong> ${samplingInterval} minutes</p>
+                <p><strong>Nyquist freq:</strong> ${(1/(2*dt)).toFixed(2)} cph</p>
+                <p><strong>U RMS:</strong> ${Math.sqrt(u.reduce((sum, val) => sum + val*val, 0)/u.length).toFixed(3)} m/s</p>
+                <p><strong>V RMS:</strong> ${Math.sqrt(v.reduce((sum, val) => sum + val*val, 0)/v.length).toFixed(3)} m/s</p>
+            `;
+            
+            // Find spectral peaks
+            const peakIndices = findSpectralPeaks(spectrumPlus.power, spectrumMinus.power);
+            let peaksHTML = '';
+            for (const idx of peakIndices.slice(0, 3)) {
+                const freq = spectrumPlus.frequencies[idx];
+                const period = 1/freq;
+                peaksHTML += `<p><strong>${freq.toFixed(3)} cph:</strong> T=${period.toFixed(1)}h</p>`;
+            }
+            
+            // Rotary properties
+            const totalPowerPlus = spectrumPlus.power.reduce((sum, p) => sum + p, 0);
+            const totalPowerMinus = spectrumMinus.power.reduce((sum, p) => sum + p, 0);
+            const totalPower = totalPowerPlus + totalPowerMinus;
+            const ccwFraction = totalPowerPlus / totalPower;
+            const cwFraction = totalPowerMinus / totalPower;
+            
+            const rotaryHTML = `
+                <p><strong>Total power:</strong> ${totalPower.toFixed(4)}</p>
+                <p><strong>CCW fraction:</strong> ${(ccwFraction*100).toFixed(1)}%</p>
+                <p><strong>CW fraction:</strong> ${(cwFraction*100).toFixed(1)}%</p>
+                <p><strong>Rotary ratio:</strong> ${(cwFraction/ccwFraction).toFixed(2)}</p>
+                <p><strong>Dominant sense:</strong> ${ccwFraction > cwFraction ? 'CCW' : 'CW'}</p>
+            `;
+            
+            document.getElementById('data-stats').innerHTML = dataStatsHTML;
+            document.getElementById('spectral-peaks').innerHTML = peaksHTML;
+            document.getElementById('rotary-properties').innerHTML = rotaryHTML;
+        }
+
+        function findSpectralPeaks(powerPlus, powerMinus) {
+            const combinedPower = powerPlus.map((p, i) => p + powerMinus[i]);
+            const peaks = [];
+            
+            for (let i = 1; i < combinedPower.length - 1; i++) {
+                if (combinedPower[i] > combinedPower[i-1] && combinedPower[i] > combinedPower[i+1]) {
+                    peaks.push(i);
+                }
+            }
+            
+            // Sort by power and return top peaks
+            return peaks.sort((a, b) => combinedPower[b] - combinedPower[a]);
+        }
+
+        // Initialize with manual input method
+        setInputMethod('manual');
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96b906bf67f58937',t:'MTc1NDU5MzMyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
