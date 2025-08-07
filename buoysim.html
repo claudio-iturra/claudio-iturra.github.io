@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ocean Buoy Movement Simulator</title>
+    <title>Coastal Ocean Buoy Trajectory Visualization</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .ocean-gradient {
@@ -54,43 +54,6 @@
             padding: 1rem;
         }
         
-        .buoy-trail {
-            opacity: 0.6;
-            stroke-width: 2;
-            fill: none;
-        }
-        
-        .wave-pattern {
-            opacity: 0.3;
-            stroke: #0ea5e9;
-            stroke-width: 1;
-            fill: none;
-        }
-        
-        .current-arrow {
-            stroke: #f59e0b;
-            stroke-width: 3;
-            fill: #f59e0b;
-        }
-        
-        .wind-arrow {
-            stroke: #10b981;
-            stroke-width: 2;
-            fill: #10b981;
-        }
-        
-        .status-indicator {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 8px;
-        }
-        
-        .status-running { background-color: #10b981; }
-        .status-paused { background-color: #f59e0b; }
-        .status-stopped { background-color: #ef4444; }
-        
         .parameter-slider {
             -webkit-appearance: none;
             appearance: none;
@@ -120,6 +83,36 @@
             border: none;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
+        
+        .depth-indicator {
+            background: linear-gradient(to bottom, #3b82f6, #1e40af, #1e3a8a);
+        }
+        
+        .mooring-radius {
+            stroke: #ef4444;
+            stroke-width: 2;
+            stroke-dasharray: 5,5;
+            fill: rgba(239, 68, 68, 0.1);
+        }
+        
+        .trajectory-path {
+            stroke: #10b981;
+            stroke-width: 3;
+            fill: none;
+            opacity: 0.8;
+        }
+        
+        .current-vectors {
+            stroke: #f59e0b;
+            stroke-width: 2;
+            opacity: 0.7;
+        }
+        
+        .wind-vectors {
+            stroke: #8b5cf6;
+            stroke-width: 2;
+            opacity: 0.7;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -127,12 +120,11 @@
     <nav class="fixed top-0 w-full bg-white/90 backdrop-blur-md shadow-sm z-50">
         <div class="max-w-7xl mx-auto px-6 py-4">
             <div class="flex justify-between items-center">
-                <h1 class="text-2xl font-bold text-gray-800">🌊 Ocean Buoy Simulator</h1>
+                <h1 class="text-2xl font-bold text-gray-800">🌊 Coastal Buoy Trajectory Analyzer</h1>
                 <div class="hidden md:flex space-x-6">
-                    <a href="#simulator" class="text-gray-600 hover:text-blue-600 transition-colors">Simulator</a>
+                    <a href="#visualization" class="text-gray-600 hover:text-blue-600 transition-colors">Visualization</a>
                     <a href="#parameters" class="text-gray-600 hover:text-blue-600 transition-colors">Parameters</a>
-                    <a href="#data" class="text-gray-600 hover:text-blue-600 transition-colors">Data</a>
-                    <a href="#about" class="text-gray-600 hover:text-blue-600 transition-colors">About</a>
+                    <a href="#analysis" class="text-gray-600 hover:text-blue-600 transition-colors">Analysis</a>
                 </div>
             </div>
         </div>
@@ -142,40 +134,40 @@
     <section class="pt-20 pb-12 ocean-gradient text-white">
         <div class="absolute inset-0 wave-animation opacity-20"></div>
         <div class="relative z-10 max-w-6xl mx-auto px-6 text-center">
-            <h1 class="text-4xl md:text-6xl font-bold mb-6">Ocean Buoy Movement Simulator</h1>
+            <h1 class="text-4xl md:text-6xl font-bold mb-6">Coastal Ocean Buoy Trajectory</h1>
             <p class="text-lg md:text-xl mb-8 text-blue-200 max-w-3xl mx-auto">
-                Advanced physics-based simulation of surface buoy dynamics with realistic ocean conditions, wave patterns, currents, and environmental forces by Claudio Iturra
+                Advanced visualization of moored surface buoy movement in 100m depth coastal waters with comprehensive oceanographic parameters by Claudio Iturra
             </p>
-            <a href="#simulator" class="inline-block bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-blue-50 transition-colors">
-                Start Simulation
+            <a href="#visualization" class="inline-block bg-white text-blue-600 px-8 py-3 rounded-full font-semibold hover:bg-blue-50 transition-colors">
+                View Trajectory
             </a>
         </div>
     </section>
 
-    <!-- Main Simulation Section -->
-    <section id="simulator" class="py-16">
+    <!-- Main Visualization Section -->
+    <section id="visualization" class="py-16">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold mb-4 text-gray-800">Real-Time Buoy Simulation</h2>
-                <p class="text-xl text-gray-600">Interactive ocean dynamics with customizable environmental parameters</p>
+                <h2 class="text-3xl font-bold mb-4 text-gray-800">Buoy Trajectory Visualization</h2>
+                <p class="text-xl text-gray-600">Real-time tracking of moored buoy movement in coastal waters</p>
             </div>
 
             <div class="grid lg:grid-cols-3 gap-8">
-                <!-- Simulation Canvas -->
+                <!-- Main Visualization Canvas -->
                 <div class="lg:col-span-2">
                     <div class="parameter-card rounded-2xl p-6 shadow-lg">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-gray-800">Ocean Surface View</h3>
+                            <h3 class="text-2xl font-bold text-gray-800">Coastal Ocean View (100m Depth)</h3>
                             <div class="flex items-center space-x-2">
                                 <span class="status-indicator" id="status-indicator"></span>
-                                <span id="simulation-status" class="font-semibold">Stopped</span>
+                                <span id="simulation-status" class="font-semibold">Ready</span>
                             </div>
                         </div>
                         
                         <div class="relative">
-                            <canvas id="simulation-canvas" class="simulation-canvas w-full" width="800" height="600"></canvas>
+                            <canvas id="trajectory-canvas" class="simulation-canvas w-full" width="900" height="700"></canvas>
                             
-                            <!-- Overlay Controls -->
+                            <!-- Legend Overlay -->
                             <div class="absolute top-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3">
                                 <div class="text-sm space-y-1">
                                     <div class="flex items-center">
@@ -183,25 +175,47 @@
                                         <span>Buoy Position</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <div class="w-4 h-1 bg-blue-400 mr-2"></div>
-                                        <span>Buoy Trail</span>
+                                        <div class="w-4 h-1 bg-green-500 mr-2"></div>
+                                        <span>Trajectory Path</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-1 bg-red-400 border-dashed border mr-2"></div>
+                                        <span>Mooring Radius</span>
                                     </div>
                                     <div class="flex items-center">
                                         <div class="w-4 h-1 bg-yellow-500 mr-2"></div>
-                                        <span>Ocean Current</span>
+                                        <span>Current Vectors</span>
                                     </div>
                                     <div class="flex items-center">
-                                        <div class="w-4 h-1 bg-green-500 mr-2"></div>
-                                        <span>Wind Direction</span>
+                                        <div class="w-4 h-1 bg-purple-500 mr-2"></div>
+                                        <span>Wind Vectors</span>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <div class="w-4 h-1 bg-blue-600 mr-2"></div>
+                                        <span>Depth Contours</span>
                                     </div>
                                 </div>
                             </div>
                             
-                            <!-- Time Display -->
+                            <!-- Depth and Position Info -->
                             <div class="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3">
                                 <div class="text-sm">
-                                    <div><strong>Simulation Time:</strong> <span id="sim-time">00:00:00</span></div>
-                                    <div><strong>Speed:</strong> <span id="time-scale">1x</span></div>
+                                    <div><strong>Water Depth:</strong> 100m</div>
+                                    <div><strong>Mooring Radius:</strong> <span id="mooring-radius-display">150m</span></div>
+                                    <div><strong>Current Position:</strong></div>
+                                    <div>X: <span id="buoy-x-pos">450m</span></div>
+                                    <div>Y: <span id="buoy-y-pos">350m</span></div>
+                                    <div><strong>Distance from Anchor:</strong> <span id="anchor-distance">0m</span></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Environmental Conditions -->
+                            <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-lg p-3">
+                                <div class="text-sm">
+                                    <div><strong>Sea State:</strong> <span id="sea-state-display">3</span></div>
+                                    <div><strong>Tidal Phase:</strong> <span id="tidal-phase">Rising</span></div>
+                                    <div><strong>Wave Height:</strong> <span id="wave-height-display">2.5m</span></div>
+                                    <div><strong>Current Speed:</strong> <span id="current-speed-display">0.8 m/s</span></div>
                                 </div>
                             </div>
                         </div>
@@ -209,30 +223,37 @@
                         <!-- Simulation Controls -->
                         <div class="mt-6 flex flex-wrap gap-3">
                             <button id="start-btn" onclick="startSimulation()" class="control-button bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition-colors">
-                                ▶️ Start
+                                ▶️ Start Tracking
                             </button>
                             <button id="pause-btn" onclick="pauseSimulation()" class="control-button bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition-colors">
                                 ⏸️ Pause
                             </button>
-                            <button id="stop-btn" onclick="stopSimulation()" class="control-button bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
-                                ⏹️ Stop
-                            </button>
                             <button onclick="resetSimulation()" class="control-button bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
                                 🔄 Reset
                             </button>
-                            <button onclick="toggleTrail()" class="control-button bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
-                                📍 Toggle Trail
+                            <button onclick="clearTrajectory()" class="control-button bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                                🗑️ Clear Path
+                            </button>
+                            <button onclick="exportTrajectory()" class="control-button bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
+                                📊 Export Data
                             </button>
                         </div>
 
-                        <!-- Time Scale Control -->
-                        <div class="mt-4 bg-gray-50 rounded-lg p-4">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Simulation Speed</label>
-                            <input type="range" id="time-scale-slider" min="0.1" max="5" step="0.1" value="1" class="parameter-slider w-full">
-                            <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                <span>0.1x</span>
-                                <span>1x</span>
-                                <span>5x</span>
+                        <!-- Time and Speed Controls -->
+                        <div class="mt-4 grid grid-cols-2 gap-4">
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Simulation Speed</label>
+                                <input type="range" id="time-scale" min="0.1" max="10" step="0.1" value="1" class="parameter-slider w-full">
+                                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                    <span>0.1x</span>
+                                    <span id="time-scale-value">1.0x</span>
+                                    <span>10x</span>
+                                </div>
+                            </div>
+                            <div class="bg-gray-50 rounded-lg p-4">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Simulation Time</label>
+                                <div class="text-2xl font-bold text-blue-600" id="sim-time">00:00:00</div>
+                                <div class="text-sm text-gray-500">Hours:Minutes:Seconds</div>
                             </div>
                         </div>
                     </div>
@@ -245,46 +266,25 @@
                         <h3 class="text-xl font-bold mb-4 text-gray-800">Buoy Status</h3>
                         <div class="data-display">
                             <div class="grid grid-cols-2 gap-2 text-sm">
-                                <div>Position X:</div>
-                                <div id="buoy-x">400.0 m</div>
-                                <div>Position Y:</div>
-                                <div id="buoy-y">300.0 m</div>
-                                <div>Velocity X:</div>
-                                <div id="velocity-x">0.0 m/s</div>
-                                <div>Velocity Y:</div>
-                                <div id="velocity-y">0.0 m/s</div>
-                                <div>Speed:</div>
-                                <div id="buoy-speed">0.0 m/s</div>
+                                <div>Latitude:</div>
+                                <div id="buoy-lat">40.7128°N</div>
+                                <div>Longitude:</div>
+                                <div id="buoy-lon">74.0060°W</div>
+                                <div>Velocity:</div>
+                                <div id="buoy-velocity">0.0 m/s</div>
                                 <div>Heading:</div>
                                 <div id="buoy-heading">0°</div>
+                                <div>Mooring Tension:</div>
+                                <div id="mooring-tension">0 N</div>
+                                <div>Anchor Distance:</div>
+                                <div id="anchor-dist">0.0 m</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Environmental Conditions -->
+                    <!-- Environmental Forces -->
                     <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800">Environment</h3>
-                        <div class="data-display">
-                            <div class="grid grid-cols-2 gap-2 text-sm">
-                                <div>Wave Height:</div>
-                                <div id="current-wave-height">2.0 m</div>
-                                <div>Wave Period:</div>
-                                <div id="current-wave-period">8.0 s</div>
-                                <div>Wind Speed:</div>
-                                <div id="current-wind-speed">10.0 m/s</div>
-                                <div>Wind Direction:</div>
-                                <div id="current-wind-dir">90°</div>
-                                <div>Current Speed:</div>
-                                <div id="current-speed">0.5 m/s</div>
-                                <div>Current Direction:</div>
-                                <div id="current-direction">45°</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Forces Analysis -->
-                    <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                        <h3 class="text-xl font-bold mb-4 text-gray-800">Forces Acting</h3>
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Environmental Forces</h3>
                         <div class="space-y-3">
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-gray-600">Wave Force:</span>
@@ -293,15 +293,6 @@
                                         <div id="wave-force-bar" class="h-2 bg-blue-500 rounded-full" style="width: 0%"></div>
                                     </div>
                                     <span id="wave-force-value" class="text-sm font-semibold">0 N</span>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Wind Force:</span>
-                                <div class="flex items-center">
-                                    <div class="w-16 h-2 bg-gray-200 rounded-full mr-2">
-                                        <div id="wind-force-bar" class="h-2 bg-green-500 rounded-full" style="width: 0%"></div>
-                                    </div>
-                                    <span id="wind-force-value" class="text-sm font-semibold">0 N</span>
                                 </div>
                             </div>
                             <div class="flex justify-between items-center">
@@ -314,13 +305,54 @@
                                 </div>
                             </div>
                             <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Drag Force:</span>
+                                <span class="text-sm text-gray-600">Wind Force:</span>
                                 <div class="flex items-center">
                                     <div class="w-16 h-2 bg-gray-200 rounded-full mr-2">
-                                        <div id="drag-force-bar" class="h-2 bg-red-500 rounded-full" style="width: 0%"></div>
+                                        <div id="wind-force-bar" class="h-2 bg-purple-500 rounded-full" style="width: 0%"></div>
                                     </div>
-                                    <span id="drag-force-value" class="text-sm font-semibold">0 N</span>
+                                    <span id="wind-force-value" class="text-sm font-semibold">0 N</span>
                                 </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Tidal Force:</span>
+                                <div class="flex items-center">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full mr-2">
+                                        <div id="tidal-force-bar" class="h-2 bg-green-500 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="tidal-force-value" class="text-sm font-semibold">0 N</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Mooring Force:</span>
+                                <div class="flex items-center">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full mr-2">
+                                        <div id="mooring-force-bar" class="h-2 bg-red-500 rounded-full" style="width: 0%"></div>
+                                    </div>
+                                    <span id="mooring-force-value" class="text-sm font-semibold">0 N</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trajectory Statistics -->
+                    <div class="parameter-card rounded-2xl p-6 shadow-lg">
+                        <h3 class="text-xl font-bold mb-4 text-gray-800">Trajectory Stats</h3>
+                        <div class="space-y-4">
+                            <div class="bg-blue-50 rounded-lg p-3">
+                                <div class="text-sm text-blue-600 font-medium">Total Path Length</div>
+                                <div class="text-xl font-bold text-blue-800" id="total-path-length">0.0 m</div>
+                            </div>
+                            <div class="bg-green-50 rounded-lg p-3">
+                                <div class="text-sm text-green-600 font-medium">Max Distance from Anchor</div>
+                                <div class="text-xl font-bold text-green-800" id="max-anchor-distance">0.0 m</div>
+                            </div>
+                            <div class="bg-yellow-50 rounded-lg p-3">
+                                <div class="text-sm text-yellow-600 font-medium">Average Speed</div>
+                                <div class="text-xl font-bold text-yellow-800" id="avg-speed">0.0 m/s</div>
+                            </div>
+                            <div class="bg-purple-50 rounded-lg p-3">
+                                <div class="text-sm text-purple-600 font-medium">Trajectory Points</div>
+                                <div class="text-xl font-bold text-purple-800" id="trajectory-points">0</div>
                             </div>
                         </div>
                     </div>
@@ -333,306 +365,336 @@
     <section id="parameters" class="py-16 bg-white">
         <div class="max-w-7xl mx-auto px-6">
             <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold mb-4 text-gray-800">Simulation Parameters</h2>
-                <p class="text-xl text-gray-600">Customize environmental conditions and buoy properties</p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-8">
-                <!-- Environmental Parameters -->
-                <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Environmental Conditions</h3>
-                    
-                    <!-- Wave Parameters -->
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold mb-4 text-blue-600">🌊 Wave Conditions</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Wave Height (m)</label>
-                                <input type="range" id="wave-height" min="0.5" max="8" step="0.1" value="2" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0.5m</span>
-                                    <span id="wave-height-value">2.0m</span>
-                                    <span>8m</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Wave Period (s)</label>
-                                <input type="range" id="wave-period" min="4" max="20" step="0.5" value="8" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>4s</span>
-                                    <span id="wave-period-value">8.0s</span>
-                                    <span>20s</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Wave Direction (°)</label>
-                                <input type="range" id="wave-direction" min="0" max="360" step="5" value="90" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0°</span>
-                                    <span id="wave-direction-value">90°</span>
-                                    <span>360°</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Wind Parameters -->
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold mb-4 text-green-600">💨 Wind Conditions</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Wind Speed (m/s)</label>
-                                <input type="range" id="wind-speed" min="0" max="30" step="0.5" value="10" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0 m/s</span>
-                                    <span id="wind-speed-value">10.0 m/s</span>
-                                    <span>30 m/s</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Wind Direction (°)</label>
-                                <input type="range" id="wind-direction" min="0" max="360" step="5" value="90" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0°</span>
-                                    <span id="wind-direction-value">90°</span>
-                                    <span>360°</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Wind Variability (%)</label>
-                                <input type="range" id="wind-variability" min="0" max="50" step="5" value="20" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0%</span>
-                                    <span id="wind-variability-value">20%</span>
-                                    <span>50%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Current Parameters -->
-                    <div>
-                        <h4 class="text-lg font-semibold mb-4 text-yellow-600">🌊 Ocean Current</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Current Speed (m/s)</label>
-                                <input type="range" id="current-speed-slider" min="0" max="3" step="0.1" value="0.5" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0 m/s</span>
-                                    <span id="current-speed-value">0.5 m/s</span>
-                                    <span>3 m/s</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Current Direction (°)</label>
-                                <input type="range" id="current-direction-slider" min="0" max="360" step="5" value="45" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0°</span>
-                                    <span id="current-direction-value">45°</span>
-                                    <span>360°</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Buoy Parameters -->
-                <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Buoy Properties</h3>
-                    
-                    <!-- Physical Properties -->
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold mb-4 text-red-600">⚓ Physical Properties</h4>
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Buoy Mass (kg)</label>
-                                <input type="range" id="buoy-mass" min="50" max="1000" step="10" value="200" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>50kg</span>
-                                    <span id="buoy-mass-value">200kg</span>
-                                    <span>1000kg</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Buoy Diameter (m)</label>
-                                <input type="range" id="buoy-diameter" min="0.5" max="5" step="0.1" value="2" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0.5m</span>
-                                    <span id="buoy-diameter-value">2.0m</span>
-                                    <span>5m</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Drag Coefficient</label>
-                                <input type="range" id="drag-coefficient" min="0.1" max="2" step="0.05" value="0.8" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>0.1</span>
-                                    <span id="drag-coefficient-value">0.8</span>
-                                    <span>2.0</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Mooring System -->
-                    <div class="mb-6">
-                        <h4 class="text-lg font-semibold mb-4 text-purple-600">⛓️ Mooring System</h4>
-                        <div class="space-y-4">
-                            <div class="flex items-center space-x-3">
-                                <input type="checkbox" id="enable-mooring" class="w-4 h-4 text-blue-600">
-                                <label for="enable-mooring" class="text-sm font-medium text-gray-700">Enable Mooring</label>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Chain Length (m)</label>
-                                <input type="range" id="chain-length" min="10" max="200" step="5" value="50" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>10m</span>
-                                    <span id="chain-length-value">50m</span>
-                                    <span>200m</span>
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-2">Anchor Weight (kg)</label>
-                                <input type="range" id="anchor-weight" min="100" max="5000" step="100" value="1000" class="parameter-slider w-full">
-                                <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>100kg</span>
-                                    <span id="anchor-weight-value">1000kg</span>
-                                    <span>5000kg</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Preset Scenarios -->
-                    <div>
-                        <h4 class="text-lg font-semibold mb-4 text-gray-600">📋 Preset Scenarios</h4>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="loadPreset('calm')" class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg hover:bg-blue-200 transition-colors text-sm">
-                                🌅 Calm Sea
-                            </button>
-                            <button onclick="loadPreset('moderate')" class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg hover:bg-yellow-200 transition-colors text-sm">
-                                🌊 Moderate Waves
-                            </button>
-                            <button onclick="loadPreset('rough')" class="bg-orange-100 text-orange-800 px-4 py-2 rounded-lg hover:bg-orange-200 transition-colors text-sm">
-                                ⛈️ Rough Sea
-                            </button>
-                            <button onclick="loadPreset('storm')" class="bg-red-100 text-red-800 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors text-sm">
-                                🌪️ Storm
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Data Analysis Section -->
-    <section id="data" class="py-16 bg-gray-50">
-        <div class="max-w-7xl mx-auto px-6">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold mb-4 text-gray-800">Data Analysis & Export</h2>
-                <p class="text-xl text-gray-600">Track buoy movement patterns and export simulation data</p>
-            </div>
-
-            <div class="grid lg:grid-cols-2 gap-8">
-                <!-- Movement Statistics -->
-                <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Movement Statistics</h3>
-                    <div class="space-y-4">
-                        <div class="bg-blue-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-blue-800 mb-2">Distance Traveled</h4>
-                            <div class="text-2xl font-bold text-blue-600" id="total-distance">0.0 m</div>
-                        </div>
-                        <div class="bg-green-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-green-800 mb-2">Maximum Speed</h4>
-                            <div class="text-2xl font-bold text-green-600" id="max-speed">0.0 m/s</div>
-                        </div>
-                        <div class="bg-yellow-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-yellow-800 mb-2">Average Speed</h4>
-                            <div class="text-2xl font-bold text-yellow-600" id="avg-speed">0.0 m/s</div>
-                        </div>
-                        <div class="bg-purple-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-purple-800 mb-2">Drift Range</h4>
-                            <div class="text-2xl font-bold text-purple-600" id="drift-range">0.0 m</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Data Export -->
-                <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Data Export</h3>
-                    <div class="space-y-4">
-                        <div class="bg-gray-50 rounded-lg p-4">
-                            <h4 class="font-semibold text-gray-800 mb-2">Recorded Data Points</h4>
-                            <div class="text-2xl font-bold text-gray-600" id="data-points">0</div>
-                        </div>
-                        <div class="space-y-3">
-                            <button onclick="exportCSV()" class="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
-                                📊 Export CSV Data
-                            </button>
-                            <button onclick="exportJSON()" class="w-full bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                                📋 Export JSON Data
-                            </button>
-                            <button onclick="generateReport()" class="w-full bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
-                                📄 Generate Report
-                            </button>
-                        </div>
-                        <div class="text-sm text-gray-600 mt-4">
-                            <p><strong>Data includes:</strong> Position, velocity, forces, environmental conditions, and timestamps</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- About Section -->
-    <section id="about" class="py-16 bg-white">
-        <div class="max-w-6xl mx-auto px-6">
-            <div class="text-center mb-12">
-                <h2 class="text-3xl font-bold mb-4 text-gray-800">Simulation Physics</h2>
-                <p class="text-xl text-gray-600">Understanding the forces and dynamics behind buoy movement</p>
+                <h2 class="text-3xl font-bold mb-4 text-gray-800">Coastal Ocean Parameters</h2>
+                <p class="text-xl text-gray-600">Configure environmental conditions for the 100m depth coastal environment</p>
             </div>
 
             <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Wave Parameters -->
                 <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <div class="text-4xl mb-4">🌊</div>
-                    <h3 class="text-xl font-bold mb-4 text-gray-800">Wave Forces</h3>
-                    <p class="text-gray-600">Simulates wave-induced forces using Airy wave theory and Morrison's equation for oscillatory motion and wave drift.</p>
+                    <h3 class="text-2xl font-bold mb-6 text-blue-600">🌊 Wave Conditions</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Significant Wave Height (m)</label>
+                            <input type="range" id="wave-height" min="0.5" max="8" step="0.1" value="2.5" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0.5m</span>
+                                <span id="wave-height-value">2.5m</span>
+                                <span>8m</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wave Period (s)</label>
+                            <input type="range" id="wave-period" min="4" max="20" step="0.5" value="8" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>4s</span>
+                                <span id="wave-period-value">8.0s</span>
+                                <span>20s</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wave Direction (°)</label>
+                            <input type="range" id="wave-direction" min="0" max="360" step="5" value="270" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0°</span>
+                                <span id="wave-direction-value">270°</span>
+                                <span>360°</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wave Steepness</label>
+                            <input type="range" id="wave-steepness" min="0.01" max="0.1" step="0.005" value="0.04" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0.01</span>
+                                <span id="wave-steepness-value">0.04</span>
+                                <span>0.1</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Current Parameters -->
                 <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <div class="text-4xl mb-4">💨</div>
-                    <h3 class="text-xl font-bold mb-4 text-gray-800">Wind Effects</h3>
-                    <p class="text-gray-600">Models wind forces on exposed buoy surfaces using drag coefficients and relative wind velocity calculations.</p>
+                    <h3 class="text-2xl font-bold mb-6 text-yellow-600">🌊 Current System</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Surface Current Speed (m/s)</label>
+                            <input type="range" id="surface-current" min="0" max="2" step="0.05" value="0.8" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0 m/s</span>
+                                <span id="surface-current-value">0.8 m/s</span>
+                                <span>2 m/s</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Direction (°)</label>
+                            <input type="range" id="current-direction" min="0" max="360" step="5" value="45" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0°</span>
+                                <span id="current-direction-value">45°</span>
+                                <span>360°</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Shear (1/s)</label>
+                            <input type="range" id="current-shear" min="0" max="0.02" step="0.001" value="0.005" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0</span>
+                                <span id="current-shear-value">0.005</span>
+                                <span>0.02</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tidal Current Amplitude (m/s)</label>
+                            <input type="range" id="tidal-current" min="0" max="1.5" step="0.05" value="0.6" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0 m/s</span>
+                                <span id="tidal-current-value">0.6 m/s</span>
+                                <span>1.5 m/s</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Environmental Parameters -->
                 <div class="parameter-card rounded-2xl p-6 shadow-lg">
-                    <div class="text-4xl mb-4">🌀</div>
-                    <h3 class="text-xl font-bold mb-4 text-gray-800">Ocean Currents</h3>
-                    <p class="text-gray-600">Incorporates steady and variable current effects with realistic velocity profiles and directional changes.</p>
+                    <h3 class="text-2xl font-bold mb-6 text-green-600">🌬️ Environmental</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wind Speed (m/s)</label>
+                            <input type="range" id="wind-speed" min="0" max="25" step="0.5" value="12" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0 m/s</span>
+                                <span id="wind-speed-value">12 m/s</span>
+                                <span>25 m/s</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wind Direction (°)</label>
+                            <input type="range" id="wind-direction" min="0" max="360" step="5" value="225" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0°</span>
+                                <span id="wind-direction-value">225°</span>
+                                <span>360°</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sea State (Beaufort)</label>
+                            <input type="range" id="sea-state" min="0" max="9" step="1" value="3" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0</span>
+                                <span id="sea-state-value">3</span>
+                                <span>9</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Tidal Range (m)</label>
+                            <input type="range" id="tidal-range" min="0.5" max="6" step="0.1" value="3.2" class="parameter-slider w-full">
+                            <div class="flex justify-between text-xs text-gray-500 mt-1">
+                                <span>0.5m</span>
+                                <span id="tidal-range-value">3.2m</span>
+                                <span>6m</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="mt-12 parameter-card rounded-2xl p-8 shadow-lg">
-                <h3 class="text-2xl font-bold mb-6 text-gray-800">Physics Equations</h3>
-                <div class="grid md:grid-cols-2 gap-8">
+            <!-- Mooring System Parameters -->
+            <div class="mt-8 parameter-card rounded-2xl p-6 shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-red-600">⚓ Mooring System (100m Depth)</h3>
+                <div class="grid lg:grid-cols-4 gap-6">
                     <div>
-                        <h4 class="text-lg font-semibold mb-3 text-blue-600">Motion Dynamics</h4>
-                        <div class="bg-gray-100 rounded-lg p-4 font-mono text-sm">
-                            <p>F = ma (Newton's Second Law)</p>
-                            <p>F_total = F_wave + F_wind + F_current + F_drag + F_mooring</p>
-                            <p>a = F_total / m</p>
-                            <p>v = v₀ + at</p>
-                            <p>x = x₀ + v₀t + ½at²</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Mooring Radius (m)</label>
+                        <input type="range" id="mooring-radius" min="50" max="300" step="5" value="150" class="parameter-slider w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>50m</span>
+                            <span id="mooring-radius-value">150m</span>
+                            <span>300m</span>
                         </div>
                     </div>
                     <div>
-                        <h4 class="text-lg font-semibold mb-3 text-green-600">Force Calculations</h4>
-                        <div class="bg-gray-100 rounded-lg p-4 font-mono text-sm">
-                            <p>F_drag = ½ρCdAv²</p>
-                            <p>F_wave = ρgAk(cosh(k(z+h))/cosh(kh))</p>
-                            <p>F_wind = ½ρ_air Cd_wind A_wind v_wind²</p>
-                            <p>F_current = ½ρCd_current A_sub v_current²</p>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Chain Length (m)</label>
+                        <input type="range" id="chain-length" min="120" max="200" step="5" value="150" class="parameter-slider w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>120m</span>
+                            <span id="chain-length-value">150m</span>
+                            <span>200m</span>
                         </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Anchor Weight (kg)</label>
+                        <input type="range" id="anchor-weight" min="1000" max="10000" step="100" value="5000" class="parameter-slider w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>1000kg</span>
+                            <span id="anchor-weight-value">5000kg</span>
+                            <span>10000kg</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Buoy Diameter (m)</label>
+                        <input type="range" id="buoy-diameter" min="1" max="6" step="0.1" value="3" class="parameter-slider w-full">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>1m</span>
+                            <span id="buoy-diameter-value">3.0m</span>
+                            <span>6m</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Preset Scenarios -->
+            <div class="mt-8 parameter-card rounded-2xl p-6 shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-gray-800">📋 Coastal Scenarios</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button onclick="loadPreset('calm')" class="bg-blue-100 text-blue-800 px-4 py-3 rounded-lg hover:bg-blue-200 transition-colors">
+                        🌅 Calm Coastal<br><span class="text-xs">Light winds, small waves</span>
+                    </button>
+                    <button onclick="loadPreset('moderate')" class="bg-green-100 text-green-800 px-4 py-3 rounded-lg hover:bg-green-200 transition-colors">
+                        🌊 Moderate Seas<br><span class="text-xs">Typical coastal conditions</span>
+                    </button>
+                    <button onclick="loadPreset('rough')" class="bg-orange-100 text-orange-800 px-4 py-3 rounded-lg hover:bg-orange-200 transition-colors">
+                        ⛈️ Rough Weather<br><span class="text-xs">Strong winds, large waves</span>
+                    </button>
+                    <button onclick="loadPreset('storm')" class="bg-red-100 text-red-800 px-4 py-3 rounded-lg hover:bg-red-200 transition-colors">
+                        🌪️ Storm Conditions<br><span class="text-xs">Extreme weather</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Analysis Section -->
+    <section id="analysis" class="py-16 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-bold mb-4 text-gray-800">Trajectory Analysis</h2>
+                <p class="text-xl text-gray-600">Detailed analysis of buoy movement patterns and environmental interactions</p>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Movement Analysis -->
+                <div class="parameter-card rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Movement Analysis</h3>
+                    <div class="space-y-6">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-blue-800 mb-2">Excursion Pattern</h4>
+                            <div class="grid grid-cols-2 gap-4 text-sm">
+                                <div>
+                                    <div class="text-gray-600">Maximum Excursion:</div>
+                                    <div class="font-bold text-blue-600" id="max-excursion">0.0 m</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Average Radius:</div>
+                                    <div class="font-bold text-blue-600" id="avg-radius">0.0 m</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Dominant Direction:</div>
+                                    <div class="font-bold text-blue-600" id="dominant-direction">N/A</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-600">Oscillation Period:</div>
+                                    <div class="font-bold text-blue-600" id="oscillation-period">N/A</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-green-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-green-800 mb-2">Force Balance</h4>
+                            <div class="space-y-2">
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Wave Dominance:</span>
+                                    <span class="font-bold text-green-600" id="wave-dominance">0%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Current Influence:</span>
+                                    <span class="font-bold text-green-600" id="current-influence">0%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Wind Effect:</span>
+                                    <span class="font-bold text-green-600" id="wind-effect">0%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-sm">Tidal Component:</span>
+                                    <span class="font-bold text-green-600" id="tidal-component">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Impact -->
+                <div class="parameter-card rounded-2xl p-6 shadow-lg">
+                    <h3 class="text-2xl font-bold mb-6 text-gray-800">Environmental Impact</h3>
+                    <div class="space-y-6">
+                        <div class="bg-yellow-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-yellow-800 mb-2">Coastal Effects</h4>
+                            <div class="text-sm space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Depth Influence:</span>
+                                    <span class="font-bold text-yellow-600" id="depth-influence">Moderate</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Shoaling Factor:</span>
+                                    <span class="font-bold text-yellow-600" id="shoaling-factor">1.2</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Bottom Friction:</span>
+                                    <span class="font-bold text-yellow-600" id="bottom-friction">Low</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Refraction Effect:</span>
+                                    <span class="font-bold text-yellow-600" id="refraction-effect">Minimal</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-purple-50 rounded-lg p-4">
+                            <h4 class="font-semibold text-purple-800 mb-2">Mooring Performance</h4>
+                            <div class="text-sm space-y-2">
+                                <div class="flex justify-between">
+                                    <span>Max Tension:</span>
+                                    <span class="font-bold text-purple-600" id="max-tension">0 N</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Avg Tension:</span>
+                                    <span class="font-bold text-purple-600" id="avg-tension">0 N</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Chain Utilization:</span>
+                                    <span class="font-bold text-purple-600" id="chain-utilization">0%</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Safety Factor:</span>
+                                    <span class="font-bold text-purple-600" id="safety-factor">High</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Export -->
+            <div class="mt-8 parameter-card rounded-2xl p-6 shadow-lg">
+                <h3 class="text-2xl font-bold mb-6 text-gray-800">Data Export & Reports</h3>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="text-center">
+                        <button onclick="exportTrajectoryCSV()" class="w-full bg-blue-600 text-white px-6 py-4 rounded-lg hover:bg-blue-700 transition-colors mb-2">
+                            📊 Export Trajectory CSV
+                        </button>
+                        <p class="text-sm text-gray-600">Position data with timestamps</p>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="exportForceData()" class="w-full bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 transition-colors mb-2">
+                            ⚡ Export Force Analysis
+                        </button>
+                        <p class="text-sm text-gray-600">Environmental forces breakdown</p>
+                    </div>
+                    <div class="text-center">
+                        <button onclick="generateReport()" class="w-full bg-purple-600 text-white px-6 py-4 rounded-lg hover:bg-purple-700 transition-colors mb-2">
+                            📄 Generate Report
+                        </button>
+                        <p class="text-sm text-gray-600">Comprehensive analysis report</p>
                     </div>
                 </div>
             </div>
@@ -643,7 +705,7 @@
     <footer class="bg-gray-900 text-white py-8">
         <div class="max-w-6xl mx-auto px-6 text-center">
             <p class="text-gray-400">
-                © 2024 Ocean Buoy Simulator. Advanced physics-based marine dynamics simulation.
+                © 2024 Coastal Buoy Trajectory Analyzer. Advanced oceanographic simulation for 100m depth coastal environments.
             </p>
         </div>
     </footer>
@@ -663,49 +725,63 @@
 
         // Buoy state
         let buoy = {
-            x: 400,
-            y: 300,
+            x: 450, // Canvas coordinates
+            y: 350,
             vx: 0,
             vy: 0,
-            mass: 200,
-            diameter: 2,
-            dragCoeff: 0.8,
-            trail: [],
-            maxTrailLength: 200,
-            showTrail: true
-        };
-
-        // Environmental parameters
-        let environment = {
-            waveHeight: 2.0,
-            wavePeriod: 8.0,
-            waveDirection: 90,
-            windSpeed: 10.0,
-            windDirection: 90,
-            windVariability: 20,
-            currentSpeed: 0.5,
-            currentDirection: 45,
-            waterDensity: 1025,
-            airDensity: 1.225
+            mass: 500, // kg
+            diameter: 3, // meters
+            dragCoeff: 1.2,
+            trajectory: [],
+            maxTrajectoryLength: 1000
         };
 
         // Mooring system
         let mooring = {
-            enabled: false,
-            anchorX: 400,
-            anchorY: 300,
-            chainLength: 50,
-            anchorWeight: 1000
+            anchorX: 450,
+            anchorY: 350,
+            radius: 150, // meters
+            chainLength: 150, // meters
+            anchorWeight: 5000, // kg
+            springConstant: 1000 // N/m
+        };
+
+        // Environmental parameters
+        let environment = {
+            // Wave parameters
+            waveHeight: 2.5,
+            wavePeriod: 8.0,
+            waveDirection: 270, // degrees
+            waveSteepness: 0.04,
+            
+            // Current parameters
+            surfaceCurrentSpeed: 0.8,
+            currentDirection: 45,
+            currentShear: 0.005,
+            tidalCurrentAmplitude: 0.6,
+            
+            // Environmental
+            windSpeed: 12,
+            windDirection: 225,
+            seaState: 3,
+            tidalRange: 3.2,
+            
+            // Constants
+            waterDepth: 100, // meters
+            waterDensity: 1025, // kg/m³
+            airDensity: 1.225 // kg/m³
         };
 
         // Data collection
-        let dataLog = [];
+        let trajectoryData = [];
+        let forceData = [];
         let statistics = {
-            totalDistance: 0,
-            maxSpeed: 0,
+            totalPathLength: 0,
+            maxAnchorDistance: 0,
             avgSpeed: 0,
-            driftRange: 0,
-            lastPosition: { x: 400, y: 300 }
+            lastPosition: { x: 450, y: 350 },
+            maxTension: 0,
+            avgTension: 0
         };
 
         // Initialize simulation
@@ -713,31 +789,25 @@
             initializeSimulation();
             setupEventListeners();
             updateParameterDisplays();
+            drawVisualization();
         });
 
         function initializeSimulation() {
-            simulation.canvas = document.getElementById('simulation-canvas');
+            simulation.canvas = document.getElementById('trajectory-canvas');
             simulation.ctx = simulation.canvas.getContext('2d');
             
-            // Set initial buoy position
-            buoy.x = simulation.canvas.width / 2;
-            buoy.y = simulation.canvas.height / 2;
-            mooring.anchorX = buoy.x;
-            mooring.anchorY = buoy.y;
-            
-            // Initial draw
-            drawSimulation();
-            updateDisplays();
+            // Set initial status
+            updateSimulationStatus('Ready', 'bg-gray-400');
         }
 
         function setupEventListeners() {
             // Parameter sliders
             const sliders = [
-                'wave-height', 'wave-period', 'wave-direction',
-                'wind-speed', 'wind-direction', 'wind-variability',
-                'current-speed-slider', 'current-direction-slider',
-                'buoy-mass', 'buoy-diameter', 'drag-coefficient',
-                'chain-length', 'anchor-weight', 'time-scale-slider'
+                'wave-height', 'wave-period', 'wave-direction', 'wave-steepness',
+                'surface-current', 'current-direction', 'current-shear', 'tidal-current',
+                'wind-speed', 'wind-direction', 'sea-state', 'tidal-range',
+                'mooring-radius', 'chain-length', 'anchor-weight', 'buoy-diameter',
+                'time-scale'
             ];
 
             sliders.forEach(id => {
@@ -746,9 +816,6 @@
                     slider.addEventListener('input', updateParameters);
                 }
             });
-
-            // Mooring checkbox
-            document.getElementById('enable-mooring').addEventListener('change', updateParameters);
         }
 
         function updateParameters() {
@@ -756,26 +823,31 @@
             environment.waveHeight = parseFloat(document.getElementById('wave-height').value);
             environment.wavePeriod = parseFloat(document.getElementById('wave-period').value);
             environment.waveDirection = parseFloat(document.getElementById('wave-direction').value);
+            environment.waveSteepness = parseFloat(document.getElementById('wave-steepness').value);
+            
+            environment.surfaceCurrentSpeed = parseFloat(document.getElementById('surface-current').value);
+            environment.currentDirection = parseFloat(document.getElementById('current-direction').value);
+            environment.currentShear = parseFloat(document.getElementById('current-shear').value);
+            environment.tidalCurrentAmplitude = parseFloat(document.getElementById('tidal-current').value);
+            
             environment.windSpeed = parseFloat(document.getElementById('wind-speed').value);
             environment.windDirection = parseFloat(document.getElementById('wind-direction').value);
-            environment.windVariability = parseFloat(document.getElementById('wind-variability').value);
-            environment.currentSpeed = parseFloat(document.getElementById('current-speed-slider').value);
-            environment.currentDirection = parseFloat(document.getElementById('current-direction-slider').value);
-
-            // Update buoy parameters
-            buoy.mass = parseFloat(document.getElementById('buoy-mass').value);
-            buoy.diameter = parseFloat(document.getElementById('buoy-diameter').value);
-            buoy.dragCoeff = parseFloat(document.getElementById('drag-coefficient').value);
-
+            environment.seaState = parseFloat(document.getElementById('sea-state').value);
+            environment.tidalRange = parseFloat(document.getElementById('tidal-range').value);
+            
             // Update mooring parameters
-            mooring.enabled = document.getElementById('enable-mooring').checked;
+            mooring.radius = parseFloat(document.getElementById('mooring-radius').value);
             mooring.chainLength = parseFloat(document.getElementById('chain-length').value);
             mooring.anchorWeight = parseFloat(document.getElementById('anchor-weight').value);
-
+            buoy.diameter = parseFloat(document.getElementById('buoy-diameter').value);
+            
             // Update time scale
-            simulation.timeScale = parseFloat(document.getElementById('time-scale-slider').value);
+            simulation.timeScale = parseFloat(document.getElementById('time-scale').value);
 
             updateParameterDisplays();
+            if (!simulation.running) {
+                drawVisualization();
+            }
         }
 
         function updateParameterDisplays() {
@@ -783,16 +855,29 @@
             document.getElementById('wave-height-value').textContent = environment.waveHeight.toFixed(1) + 'm';
             document.getElementById('wave-period-value').textContent = environment.wavePeriod.toFixed(1) + 's';
             document.getElementById('wave-direction-value').textContent = environment.waveDirection.toFixed(0) + '°';
+            document.getElementById('wave-steepness-value').textContent = environment.waveSteepness.toFixed(3);
+            
+            document.getElementById('surface-current-value').textContent = environment.surfaceCurrentSpeed.toFixed(1) + ' m/s';
+            document.getElementById('current-direction-value').textContent = environment.currentDirection.toFixed(0) + '°';
+            document.getElementById('current-shear-value').textContent = environment.currentShear.toFixed(3);
+            document.getElementById('tidal-current-value').textContent = environment.tidalCurrentAmplitude.toFixed(1) + ' m/s';
+            
             document.getElementById('wind-speed-value').textContent = environment.windSpeed.toFixed(1) + ' m/s';
             document.getElementById('wind-direction-value').textContent = environment.windDirection.toFixed(0) + '°';
-            document.getElementById('wind-variability-value').textContent = environment.windVariability.toFixed(0) + '%';
-            document.getElementById('current-speed-value').textContent = environment.currentSpeed.toFixed(1) + ' m/s';
-            document.getElementById('current-direction-value').textContent = environment.currentDirection.toFixed(0) + '°';
-            document.getElementById('buoy-mass-value').textContent = buoy.mass.toFixed(0) + 'kg';
-            document.getElementById('buoy-diameter-value').textContent = buoy.diameter.toFixed(1) + 'm';
-            document.getElementById('drag-coefficient-value').textContent = buoy.dragCoeff.toFixed(2);
+            document.getElementById('sea-state-value').textContent = environment.seaState.toFixed(0);
+            document.getElementById('tidal-range-value').textContent = environment.tidalRange.toFixed(1) + 'm';
+            
+            document.getElementById('mooring-radius-value').textContent = mooring.radius.toFixed(0) + 'm';
             document.getElementById('chain-length-value').textContent = mooring.chainLength.toFixed(0) + 'm';
             document.getElementById('anchor-weight-value').textContent = mooring.anchorWeight.toFixed(0) + 'kg';
+            document.getElementById('buoy-diameter-value').textContent = buoy.diameter.toFixed(1) + 'm';
+            document.getElementById('time-scale-value').textContent = simulation.timeScale.toFixed(1) + 'x';
+            
+            // Update display values
+            document.getElementById('mooring-radius-display').textContent = mooring.radius.toFixed(0) + 'm';
+            document.getElementById('wave-height-display').textContent = environment.waveHeight.toFixed(1) + 'm';
+            document.getElementById('current-speed-display').textContent = environment.surfaceCurrentSpeed.toFixed(1) + ' m/s';
+            document.getElementById('sea-state-display').textContent = environment.seaState.toFixed(0);
         }
 
         function startSimulation() {
@@ -800,7 +885,7 @@
                 simulation.running = true;
                 simulation.paused = false;
                 simulation.lastTime = performance.now();
-                updateSimulationStatus('Running', 'status-running');
+                updateSimulationStatus('Running', 'bg-green-500');
                 animate();
             }
         }
@@ -808,66 +893,58 @@
         function pauseSimulation() {
             if (simulation.running && !simulation.paused) {
                 simulation.paused = true;
-                updateSimulationStatus('Paused', 'status-paused');
+                updateSimulationStatus('Paused', 'bg-yellow-500');
             } else if (simulation.paused) {
                 simulation.paused = false;
                 simulation.lastTime = performance.now();
-                updateSimulationStatus('Running', 'status-running');
+                updateSimulationStatus('Running', 'bg-green-500');
                 animate();
             }
         }
 
-        function stopSimulation() {
+        function resetSimulation() {
             simulation.running = false;
             simulation.paused = false;
+            simulation.time = 0;
+            
             if (simulation.animationId) {
                 cancelAnimationFrame(simulation.animationId);
             }
-            updateSimulationStatus('Stopped', 'status-stopped');
-        }
-
-        function resetSimulation() {
-            stopSimulation();
             
-            // Reset buoy position and velocity
-            buoy.x = simulation.canvas.width / 2;
-            buoy.y = simulation.canvas.height / 2;
+            // Reset buoy position
+            buoy.x = mooring.anchorX;
+            buoy.y = mooring.anchorY;
             buoy.vx = 0;
             buoy.vy = 0;
-            buoy.trail = [];
-            
-            // Reset anchor position
-            mooring.anchorX = buoy.x;
-            mooring.anchorY = buoy.y;
-            
-            // Reset simulation time
-            simulation.time = 0;
+            buoy.trajectory = [];
             
             // Reset statistics
-            statistics.totalDistance = 0;
-            statistics.maxSpeed = 0;
+            statistics.totalPathLength = 0;
+            statistics.maxAnchorDistance = 0;
             statistics.avgSpeed = 0;
-            statistics.driftRange = 0;
             statistics.lastPosition = { x: buoy.x, y: buoy.y };
+            statistics.maxTension = 0;
+            statistics.avgTension = 0;
             
-            // Clear data log
-            dataLog = [];
+            // Clear data
+            trajectoryData = [];
+            forceData = [];
             
-            drawSimulation();
+            updateSimulationStatus('Ready', 'bg-gray-400');
             updateDisplays();
+            drawVisualization();
         }
 
-        function toggleTrail() {
-            buoy.showTrail = !buoy.showTrail;
-            if (!buoy.showTrail) {
-                buoy.trail = [];
-            }
+        function clearTrajectory() {
+            buoy.trajectory = [];
+            trajectoryData = [];
+            drawVisualization();
         }
 
         function updateSimulationStatus(status, className) {
             document.getElementById('simulation-status').textContent = status;
             const indicator = document.getElementById('status-indicator');
-            indicator.className = 'status-indicator ' + className;
+            indicator.className = 'status-indicator w-3 h-3 rounded-full ' + className;
         }
 
         function animate(currentTime) {
@@ -883,8 +960,8 @@
             // Update displays
             updateDisplays();
             
-            // Draw simulation
-            drawSimulation();
+            // Draw visualization
+            drawVisualization();
             
             // Log data
             logData();
@@ -896,7 +973,7 @@
             // Calculate forces
             const forces = calculateForces();
             
-            // Apply Newton's second law: F = ma
+            // Apply Newton's second law
             const ax = forces.totalX / buoy.mass;
             const ay = forces.totalY / buoy.mass;
             
@@ -905,28 +982,34 @@
             buoy.vy += ay * dt;
             
             // Update position
-            const newX = buoy.x + buoy.vx * dt;
-            const newY = buoy.y + buoy.vy * dt;
+            const newX = buoy.x + buoy.vx * dt * 10; // Scale for visualization
+            const newY = buoy.y + buoy.vy * dt * 10;
             
-            // Boundary conditions
-            if (newX >= 10 && newX <= simulation.canvas.width - 10) {
+            // Check mooring constraints
+            const dx = newX - mooring.anchorX;
+            const dy = newY - mooring.anchorY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance <= mooring.radius) {
                 buoy.x = newX;
-            } else {
-                buoy.vx *= -0.5; // Bounce with energy loss
-            }
-            
-            if (newY >= 10 && newY <= simulation.canvas.height - 10) {
                 buoy.y = newY;
             } else {
-                buoy.vy *= -0.5; // Bounce with energy loss
+                // Constrain to mooring radius
+                const angle = Math.atan2(dy, dx);
+                buoy.x = mooring.anchorX + mooring.radius * Math.cos(angle);
+                buoy.y = mooring.anchorY + mooring.radius * Math.sin(angle);
+                
+                // Adjust velocity (tangential component only)
+                const radialVx = buoy.vx * Math.cos(angle);
+                const radialVy = buoy.vy * Math.sin(angle);
+                buoy.vx -= radialVx * Math.cos(angle);
+                buoy.vy -= radialVy * Math.sin(angle);
             }
             
-            // Update trail
-            if (buoy.showTrail) {
-                buoy.trail.push({ x: buoy.x, y: buoy.y, time: simulation.time });
-                if (buoy.trail.length > buoy.maxTrailLength) {
-                    buoy.trail.shift();
-                }
+            // Add to trajectory
+            buoy.trajectory.push({ x: buoy.x, y: buoy.y, time: simulation.time });
+            if (buoy.trajectory.length > buoy.maxTrajectoryLength) {
+                buoy.trajectory.shift();
             }
             
             // Update statistics
@@ -936,75 +1019,83 @@
         function calculateForces() {
             const forces = {
                 waveX: 0, waveY: 0,
-                windX: 0, windY: 0,
                 currentX: 0, currentY: 0,
-                dragX: 0, dragY: 0,
+                windX: 0, windY: 0,
+                tidalX: 0, tidalY: 0,
                 mooringX: 0, mooringY: 0,
                 totalX: 0, totalY: 0
             };
 
-            // Wave forces (simplified Airy wave theory)
+            // Wave forces (using Airy wave theory)
             const waveFreq = 2 * Math.PI / environment.wavePeriod;
+            const waveNumber = waveFreq * waveFreq / 9.81; // Deep water approximation
             const waveAmplitude = environment.waveHeight / 2;
             const wavePhase = waveFreq * simulation.time;
             const waveDir = environment.waveDirection * Math.PI / 180;
             
-            const waveForce = waveAmplitude * Math.sin(wavePhase) * buoy.diameter * 100;
-            forces.waveX = waveForce * Math.cos(waveDir);
-            forces.waveY = waveForce * Math.sin(waveDir);
-
-            // Wind forces
-            const windDir = environment.windDirection * Math.PI / 180;
-            const windVariation = 1 + (Math.random() - 0.5) * environment.windVariability / 100;
-            const effectiveWindSpeed = environment.windSpeed * windVariation;
-            const windArea = Math.PI * (buoy.diameter / 2) * (buoy.diameter / 2) * 0.5; // Exposed area
-            const windForce = 0.5 * environment.airDensity * 0.6 * windArea * effectiveWindSpeed * effectiveWindSpeed;
+            // Morrison equation for wave forces
+            const waveVelocity = waveAmplitude * waveFreq * Math.cos(wavePhase);
+            const waveAcceleration = -waveAmplitude * waveFreq * waveFreq * Math.sin(wavePhase);
             
-            forces.windX = windForce * Math.cos(windDir);
-            forces.windY = windForce * Math.sin(windDir);
+            const dragForce = 0.5 * environment.waterDensity * 1.2 * buoy.diameter * Math.abs(waveVelocity) * waveVelocity;
+            const inertiaForce = environment.waterDensity * Math.PI * (buoy.diameter/2) * (buoy.diameter/2) * waveAcceleration;
+            
+            const totalWaveForce = (dragForce + inertiaForce) * environment.waveHeight;
+            forces.waveX = totalWaveForce * Math.cos(waveDir);
+            forces.waveY = totalWaveForce * Math.sin(waveDir);
 
             // Current forces
             const currentDir = environment.currentDirection * Math.PI / 180;
-            const relativeVx = environment.currentSpeed * Math.cos(currentDir) - buoy.vx;
-            const relativeVy = environment.currentSpeed * Math.sin(currentDir) - buoy.vy;
+            const tidalPhase = 2 * Math.PI * simulation.time / (12.42 * 3600); // 12.42 hour tidal cycle
+            const tidalCurrent = environment.tidalCurrentAmplitude * Math.sin(tidalPhase);
+            const totalCurrentSpeed = environment.surfaceCurrentSpeed + tidalCurrent;
+            
+            const relativeVx = totalCurrentSpeed * Math.cos(currentDir) - buoy.vx;
+            const relativeVy = totalCurrentSpeed * Math.sin(currentDir) - buoy.vy;
             const relativeSpeed = Math.sqrt(relativeVx * relativeVx + relativeVy * relativeVy);
             
             if (relativeSpeed > 0) {
-                const submergedArea = Math.PI * (buoy.diameter / 2) * (buoy.diameter / 2) * 0.8;
-                const currentForce = 0.5 * environment.waterDensity * 1.2 * submergedArea * relativeSpeed;
+                const submergedArea = Math.PI * (buoy.diameter / 2) * (buoy.diameter / 2);
+                const currentForce = 0.5 * environment.waterDensity * 1.0 * submergedArea * relativeSpeed;
                 forces.currentX = currentForce * (relativeVx / relativeSpeed);
                 forces.currentY = currentForce * (relativeVy / relativeSpeed);
             }
 
-            // Drag forces (opposing motion)
-            const speed = Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy);
-            if (speed > 0) {
-                const dragArea = Math.PI * (buoy.diameter / 2) * (buoy.diameter / 2);
-                const dragForce = 0.5 * environment.waterDensity * buoy.dragCoeff * dragArea * speed;
-                forces.dragX = -dragForce * (buoy.vx / speed);
-                forces.dragY = -dragForce * (buoy.vy / speed);
-            }
+            // Wind forces
+            const windDir = environment.windDirection * Math.PI / 180;
+            const exposedArea = Math.PI * (buoy.diameter / 2) * (buoy.diameter / 2) * 0.3; // Exposed area above water
+            const windForce = 0.5 * environment.airDensity * 0.8 * exposedArea * environment.windSpeed * environment.windSpeed;
+            
+            forces.windX = windForce * Math.cos(windDir);
+            forces.windY = windForce * Math.sin(windDir);
+
+            // Tidal forces (additional tidal effects)
+            const tidalForce = environment.tidalRange * 100 * Math.cos(tidalPhase);
+            forces.tidalX = tidalForce * Math.cos(0); // Assume tidal flow in x-direction
+            forces.tidalY = 0;
 
             // Mooring forces
-            if (mooring.enabled) {
-                const dx = buoy.x - mooring.anchorX;
-                const dy = buoy.y - mooring.anchorY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance > mooring.chainLength) {
-                    // Chain is taut - apply restoring force
-                    const excess = distance - mooring.chainLength;
-                    const springConstant = mooring.anchorWeight * 10; // Simplified spring model
-                    const mooringForce = springConstant * excess;
-                    
-                    forces.mooringX = -mooringForce * (dx / distance);
-                    forces.mooringY = -mooringForce * (dy / distance);
-                }
+            const dx = buoy.x - mooring.anchorX;
+            const dy = buoy.y - mooring.anchorY;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 0) {
+                // Spring-like restoring force
+                const mooringForce = mooring.springConstant * distance / mooring.radius;
+                forces.mooringX = -mooringForce * (dx / distance);
+                forces.mooringY = -mooringForce * (dy / distance);
             }
 
+            // Apply sea state multiplier
+            const seaStateMultiplier = 1 + (environment.seaState - 3) * 0.3;
+            forces.waveX *= seaStateMultiplier;
+            forces.waveY *= seaStateMultiplier;
+            forces.currentX *= seaStateMultiplier;
+            forces.currentY *= seaStateMultiplier;
+
             // Total forces
-            forces.totalX = forces.waveX + forces.windX + forces.currentX + forces.dragX + forces.mooringX;
-            forces.totalY = forces.waveY + forces.windY + forces.currentY + forces.dragY + forces.mooringY;
+            forces.totalX = forces.waveX + forces.currentX + forces.windX + forces.tidalX + forces.mooringX;
+            forces.totalY = forces.waveY + forces.currentY + forces.windY + forces.tidalY + forces.mooringY;
 
             return forces;
         }
@@ -1012,97 +1103,149 @@
         function updateStatistics() {
             const currentSpeed = Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy);
             
-            // Update max speed
-            if (currentSpeed > statistics.maxSpeed) {
-                statistics.maxSpeed = currentSpeed;
-            }
-            
-            // Update total distance
+            // Update path length
             const dx = buoy.x - statistics.lastPosition.x;
             const dy = buoy.y - statistics.lastPosition.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
-            statistics.totalDistance += distance;
+            statistics.totalPathLength += distance;
             statistics.lastPosition = { x: buoy.x, y: buoy.y };
+            
+            // Update max anchor distance
+            const anchorDx = buoy.x - mooring.anchorX;
+            const anchorDy = buoy.y - mooring.anchorY;
+            const anchorDistance = Math.sqrt(anchorDx * anchorDx + anchorDy * anchorDy);
+            if (anchorDistance > statistics.maxAnchorDistance) {
+                statistics.maxAnchorDistance = anchorDistance;
+            }
             
             // Update average speed
             if (simulation.time > 0) {
-                statistics.avgSpeed = statistics.totalDistance / simulation.time;
-            }
-            
-            // Update drift range
-            const driftX = buoy.x - mooring.anchorX;
-            const driftY = buoy.y - mooring.anchorY;
-            const driftDistance = Math.sqrt(driftX * driftX + driftY * driftY);
-            if (driftDistance > statistics.driftRange) {
-                statistics.driftRange = driftDistance;
+                statistics.avgSpeed = statistics.totalPathLength / simulation.time;
             }
         }
 
-        function drawSimulation() {
+        function updateDisplays() {
+            // Update simulation time
+            const hours = Math.floor(simulation.time / 3600);
+            const minutes = Math.floor((simulation.time % 3600) / 60);
+            const seconds = Math.floor(simulation.time % 60);
+            document.getElementById('sim-time').textContent = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Update buoy position
+            document.getElementById('buoy-x-pos').textContent = (buoy.x * 0.5).toFixed(1) + 'm'; // Scale to meters
+            document.getElementById('buoy-y-pos').textContent = (buoy.y * 0.5).toFixed(1) + 'm';
+            
+            const anchorDx = buoy.x - mooring.anchorX;
+            const anchorDy = buoy.y - mooring.anchorY;
+            const anchorDistance = Math.sqrt(anchorDx * anchorDx + anchorDy * anchorDy) * 0.5; // Scale to meters
+            document.getElementById('anchor-distance').textContent = anchorDistance.toFixed(1) + 'm';
+            
+            // Update buoy status
+            const speed = Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy);
+            document.getElementById('buoy-velocity').textContent = speed.toFixed(2) + ' m/s';
+            
+            const heading = Math.atan2(buoy.vy, buoy.vx) * 180 / Math.PI;
+            document.getElementById('buoy-heading').textContent = ((heading + 360) % 360).toFixed(0) + '°';
+            
+            // Update forces
+            const forces = calculateForces();
+            updateForceDisplay('wave-force', Math.sqrt(forces.waveX * forces.waveX + forces.waveY * forces.waveY));
+            updateForceDisplay('current-force', Math.sqrt(forces.currentX * forces.currentX + forces.currentY * forces.currentY));
+            updateForceDisplay('wind-force', Math.sqrt(forces.windX * forces.windX + forces.windY * forces.windY));
+            updateForceDisplay('tidal-force', Math.sqrt(forces.tidalX * forces.tidalX + forces.tidalY * forces.tidalY));
+            updateForceDisplay('mooring-force', Math.sqrt(forces.mooringX * forces.mooringX + forces.mooringY * forces.mooringY));
+            
+            // Update statistics
+            document.getElementById('total-path-length').textContent = (statistics.totalPathLength * 0.5).toFixed(1) + ' m';
+            document.getElementById('max-anchor-distance').textContent = (statistics.maxAnchorDistance * 0.5).toFixed(1) + ' m';
+            document.getElementById('avg-speed').textContent = statistics.avgSpeed.toFixed(2) + ' m/s';
+            document.getElementById('trajectory-points').textContent = buoy.trajectory.length.toString();
+            
+            // Update tidal phase
+            const tidalPhase = 2 * Math.PI * simulation.time / (12.42 * 3600);
+            const tidalHeight = (environment.tidalRange / 2) * Math.sin(tidalPhase);
+            const phase = tidalHeight > 0 ? 'Rising' : 'Falling';
+            document.getElementById('tidal-phase').textContent = phase;
+        }
+
+        function updateForceDisplay(prefix, force) {
+            const maxForce = 2000; // Normalize to this value
+            const percentage = Math.min((force / maxForce) * 100, 100);
+            
+            document.getElementById(prefix + '-bar').style.width = percentage + '%';
+            document.getElementById(prefix + '-value').textContent = force.toFixed(0) + ' N';
+        }
+
+        function drawVisualization() {
             const ctx = simulation.ctx;
             const canvas = simulation.canvas;
             
-            // Clear canvas with ocean background
+            // Clear canvas with ocean gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             gradient.addColorStop(0, '#0ea5e9');
-            gradient.addColorStop(0.5, '#0284c7');
-            gradient.addColorStop(1, '#0369a1');
+            gradient.addColorStop(0.3, '#0284c7');
+            gradient.addColorStop(0.7, '#0369a1');
+            gradient.addColorStop(1, '#075985');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // Draw depth contours
+            drawDepthContours(ctx, canvas);
+            
+            // Draw current vectors
+            drawCurrentVectors(ctx, canvas);
+            
+            // Draw wind vectors
+            drawWindVectors(ctx, canvas);
+            
             // Draw wave patterns
-            drawWaves(ctx, canvas);
-            
-            // Draw current arrows
-            drawCurrentArrows(ctx, canvas);
-            
-            // Draw wind arrows
-            drawWindArrows(ctx, canvas);
+            drawWavePatterns(ctx, canvas);
             
             // Draw mooring system
-            if (mooring.enabled) {
-                drawMooring(ctx);
-            }
+            drawMooringSystem(ctx);
             
-            // Draw buoy trail
-            if (buoy.showTrail && buoy.trail.length > 1) {
-                drawTrail(ctx);
-            }
+            // Draw trajectory
+            drawTrajectory(ctx);
             
             // Draw buoy
             drawBuoy(ctx);
+            
+            // Draw scale and compass
+            drawScaleAndCompass(ctx, canvas);
         }
 
-        function drawWaves(ctx, canvas) {
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+        function drawDepthContours(ctx, canvas) {
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.3)';
             ctx.lineWidth = 1;
+            ctx.setLineDash([5, 5]);
             
-            const waveFreq = 2 * Math.PI / environment.wavePeriod;
-            const waveLength = 50;
-            const amplitude = environment.waveHeight * 5;
-            
-            for (let y = 0; y < canvas.height; y += 40) {
+            // Draw depth contour lines (representing 100m depth with variations)
+            const contours = [20, 40, 60, 80, 100];
+            contours.forEach((depth, index) => {
+                const y = canvas.height - (depth / 100) * canvas.height * 0.8;
                 ctx.beginPath();
-                for (let x = 0; x <= canvas.width; x += 5) {
-                    const waveY = y + amplitude * Math.sin(waveFreq * simulation.time + x / waveLength);
-                    if (x === 0) {
-                        ctx.moveTo(x, waveY);
-                    } else {
-                        ctx.lineTo(x, waveY);
-                    }
-                }
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
                 ctx.stroke();
-            }
+                
+                // Depth labels
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.6)';
+                ctx.font = '12px Arial';
+                ctx.fillText(`${depth}m`, 10, y - 5);
+            });
+            
+            ctx.setLineDash([]);
         }
 
-        function drawCurrentArrows(ctx, canvas) {
+        function drawCurrentVectors(ctx, canvas) {
             ctx.strokeStyle = '#f59e0b';
-            ctx.fillStyle = '#f59e0b';
             ctx.lineWidth = 2;
             
             const currentDir = environment.currentDirection * Math.PI / 180;
-            const arrowLength = environment.currentSpeed * 20;
+            const arrowLength = environment.surfaceCurrentSpeed * 30;
             
+            // Draw current vectors at regular intervals
             for (let x = 100; x < canvas.width; x += 150) {
                 for (let y = 100; y < canvas.height; y += 150) {
                     const endX = x + arrowLength * Math.cos(currentDir);
@@ -1133,16 +1276,16 @@
             }
         }
 
-        function drawWindArrows(ctx, canvas) {
-            ctx.strokeStyle = '#10b981';
-            ctx.fillStyle = '#10b981';
+        function drawWindVectors(ctx, canvas) {
+            ctx.strokeStyle = '#8b5cf6';
             ctx.lineWidth = 2;
             
             const windDir = environment.windDirection * Math.PI / 180;
             const arrowLength = environment.windSpeed * 2;
             
-            for (let x = 50; x < canvas.width; x += 200) {
-                const y = 30;
+            // Draw wind vectors at top of canvas
+            for (let x = 80; x < canvas.width; x += 200) {
+                const y = 40;
                 const endX = x + arrowLength * Math.cos(windDir);
                 const endY = y + arrowLength * Math.sin(windDir);
                 
@@ -1170,85 +1313,143 @@
             }
         }
 
-        function drawMooring(ctx) {
+        function drawWavePatterns(ctx, canvas) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1;
+            
+            const waveFreq = 2 * Math.PI / environment.wavePeriod;
+            const waveLength = 60;
+            const amplitude = environment.waveHeight * 8;
+            
+            for (let y = 50; y < canvas.height; y += 60) {
+                ctx.beginPath();
+                for (let x = 0; x <= canvas.width; x += 5) {
+                    const waveY = y + amplitude * Math.sin(waveFreq * simulation.time + x / waveLength);
+                    if (x === 0) {
+                        ctx.moveTo(x, waveY);
+                    } else {
+                        ctx.lineTo(x, waveY);
+                    }
+                }
+                ctx.stroke();
+            }
+        }
+
+        function drawMooringSystem(ctx) {
+            // Draw mooring radius circle
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.globalAlpha = 0.5;
+            ctx.beginPath();
+            ctx.arc(mooring.anchorX, mooring.anchorY, mooring.radius, 0, 2 * Math.PI);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.globalAlpha = 1.0;
+            
             // Draw anchor
             ctx.fillStyle = '#374151';
             ctx.beginPath();
-            ctx.arc(mooring.anchorX, mooring.anchorY, 8, 0, 2 * Math.PI);
+            ctx.arc(mooring.anchorX, mooring.anchorY, 12, 0, 2 * Math.PI);
             ctx.fill();
             
-            // Draw chain
+            // Draw anchor symbol
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(mooring.anchorX - 8, mooring.anchorY - 8);
+            ctx.lineTo(mooring.anchorX + 8, mooring.anchorY + 8);
+            ctx.moveTo(mooring.anchorX + 8, mooring.anchorY - 8);
+            ctx.lineTo(mooring.anchorX - 8, mooring.anchorY + 8);
+            ctx.stroke();
+            
+            // Draw mooring line
             const dx = buoy.x - mooring.anchorX;
             const dy = buoy.y - mooring.anchorY;
             const distance = Math.sqrt(dx * dx + dy * dy);
             
-            if (distance > 0) {
-                ctx.strokeStyle = distance > mooring.chainLength ? '#ef4444' : '#6b7280';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.moveTo(mooring.anchorX, mooring.anchorY);
-                ctx.lineTo(buoy.x, buoy.y);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
+            ctx.strokeStyle = distance > mooring.radius * 0.9 ? '#ef4444' : '#6b7280';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([8, 4]);
+            ctx.beginPath();
+            ctx.moveTo(mooring.anchorX, mooring.anchorY);
+            ctx.lineTo(buoy.x, buoy.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
         }
 
-        function drawTrail(ctx) {
-            if (buoy.trail.length < 2) return;
+        function drawTrajectory(ctx) {
+            if (buoy.trajectory.length < 2) return;
             
-            ctx.strokeStyle = '#60a5fa';
-            ctx.lineWidth = 2;
-            ctx.globalAlpha = 0.6;
+            ctx.strokeStyle = '#10b981';
+            ctx.lineWidth = 3;
+            ctx.globalAlpha = 0.8;
             
             ctx.beginPath();
-            ctx.moveTo(buoy.trail[0].x, buoy.trail[0].y);
+            ctx.moveTo(buoy.trajectory[0].x, buoy.trajectory[0].y);
             
-            for (let i = 1; i < buoy.trail.length; i++) {
-                ctx.lineTo(buoy.trail[i].x, buoy.trail[i].y);
+            for (let i = 1; i < buoy.trajectory.length; i++) {
+                ctx.lineTo(buoy.trajectory[i].x, buoy.trajectory[i].y);
             }
             
             ctx.stroke();
             ctx.globalAlpha = 1.0;
+            
+            // Draw trajectory points
+            ctx.fillStyle = '#10b981';
+            for (let i = 0; i < buoy.trajectory.length; i += 10) {
+                ctx.beginPath();
+                ctx.arc(buoy.trajectory[i].x, buoy.trajectory[i].y, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            }
         }
 
         function drawBuoy(ctx) {
             // Buoy shadow
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
             ctx.beginPath();
-            ctx.ellipse(buoy.x + 2, buoy.y + 2, buoy.diameter * 8, buoy.diameter * 6, 0, 0, 2 * Math.PI);
+            ctx.ellipse(buoy.x + 3, buoy.y + 3, buoy.diameter * 6, buoy.diameter * 4, 0, 0, 2 * Math.PI);
             ctx.fill();
             
             // Buoy body
             ctx.fillStyle = '#ef4444';
             ctx.strokeStyle = '#dc2626';
-            ctx.lineWidth = 2;
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.arc(buoy.x, buoy.y, buoy.diameter * 8, 0, 2 * Math.PI);
+            ctx.arc(buoy.x, buoy.y, buoy.diameter * 6, 0, 2 * Math.PI);
             ctx.fill();
             ctx.stroke();
             
             // Buoy highlight
             ctx.fillStyle = '#fca5a5';
             ctx.beginPath();
-            ctx.arc(buoy.x - 3, buoy.y - 3, buoy.diameter * 3, 0, 2 * Math.PI);
+            ctx.arc(buoy.x - 4, buoy.y - 4, buoy.diameter * 2, 0, 2 * Math.PI);
             ctx.fill();
             
+            // Buoy identification
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('B1', buoy.x, buoy.y + 4);
+            
             // Velocity vector
-            if (Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy) > 0.1) {
+            const speed = Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy);
+            if (speed > 0.05) {
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 3;
+                ctx.lineWidth = 4;
+                const vectorLength = speed * 50;
+                const endX = buoy.x + (buoy.vx / speed) * vectorLength;
+                const endY = buoy.y + (buoy.vy / speed) * vectorLength;
+                
                 ctx.beginPath();
                 ctx.moveTo(buoy.x, buoy.y);
-                ctx.lineTo(buoy.x + buoy.vx * 20, buoy.y + buoy.vy * 20);
+                ctx.lineTo(endX, endY);
                 ctx.stroke();
                 
                 // Arrow head
                 const angle = Math.atan2(buoy.vy, buoy.vx);
-                const headLength = 8;
+                const headLength = 10;
                 const headAngle = Math.PI / 6;
-                const endX = buoy.x + buoy.vx * 20;
-                const endY = buoy.y + buoy.vy * 20;
                 
                 ctx.beginPath();
                 ctx.moveTo(endX, endY);
@@ -1265,69 +1466,72 @@
             }
         }
 
-        function updateDisplays() {
-            // Update simulation time
-            const hours = Math.floor(simulation.time / 3600);
-            const minutes = Math.floor((simulation.time % 3600) / 60);
-            const seconds = Math.floor(simulation.time % 60);
-            document.getElementById('sim-time').textContent = 
-                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        function drawScaleAndCompass(ctx, canvas) {
+            // Draw scale
+            ctx.strokeStyle = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.font = '12px Arial';
             
-            document.getElementById('time-scale').textContent = simulation.timeScale.toFixed(1) + 'x';
+            const scaleX = canvas.width - 150;
+            const scaleY = canvas.height - 30;
+            const scaleLength = 100; // 50 meters at current scale
             
-            // Update buoy status
-            document.getElementById('buoy-x').textContent = buoy.x.toFixed(1) + ' m';
-            document.getElementById('buoy-y').textContent = buoy.y.toFixed(1) + ' m';
-            document.getElementById('velocity-x').textContent = buoy.vx.toFixed(2) + ' m/s';
-            document.getElementById('velocity-y').textContent = buoy.vy.toFixed(2) + ' m/s';
+            ctx.beginPath();
+            ctx.moveTo(scaleX, scaleY);
+            ctx.lineTo(scaleX + scaleLength, scaleY);
+            ctx.moveTo(scaleX, scaleY - 5);
+            ctx.lineTo(scaleX, scaleY + 5);
+            ctx.moveTo(scaleX + scaleLength, scaleY - 5);
+            ctx.lineTo(scaleX + scaleLength, scaleY + 5);
+            ctx.stroke();
             
-            const speed = Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy);
-            document.getElementById('buoy-speed').textContent = speed.toFixed(2) + ' m/s';
+            ctx.textAlign = 'center';
+            ctx.fillText('50m', scaleX + scaleLength / 2, scaleY - 10);
             
-            const heading = Math.atan2(buoy.vy, buoy.vx) * 180 / Math.PI;
-            document.getElementById('buoy-heading').textContent = ((heading + 360) % 360).toFixed(0) + '°';
+            // Draw compass
+            const compassX = canvas.width - 50;
+            const compassY = 50;
+            const compassRadius = 25;
             
-            // Update environmental conditions
-            document.getElementById('current-wave-height').textContent = environment.waveHeight.toFixed(1) + ' m';
-            document.getElementById('current-wave-period').textContent = environment.wavePeriod.toFixed(1) + ' s';
-            document.getElementById('current-wind-speed').textContent = environment.windSpeed.toFixed(1) + ' m/s';
-            document.getElementById('current-wind-dir').textContent = environment.windDirection.toFixed(0) + '°';
-            document.getElementById('current-speed').textContent = environment.currentSpeed.toFixed(1) + ' m/s';
-            document.getElementById('current-direction').textContent = environment.currentDirection.toFixed(0) + '°';
+            ctx.strokeStyle = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.lineWidth = 2;
             
-            // Update force displays
-            const forces = calculateForces();
-            updateForceDisplay('wave-force', Math.sqrt(forces.waveX * forces.waveX + forces.waveY * forces.waveY));
-            updateForceDisplay('wind-force', Math.sqrt(forces.windX * forces.windX + forces.windY * forces.windY));
-            updateForceDisplay('current-force', Math.sqrt(forces.currentX * forces.currentX + forces.currentY * forces.currentY));
-            updateForceDisplay('drag-force', Math.sqrt(forces.dragX * forces.dragX + forces.dragY * forces.dragY));
+            ctx.beginPath();
+            ctx.arc(compassX, compassY, compassRadius, 0, 2 * Math.PI);
+            ctx.stroke();
             
-            // Update statistics
-            document.getElementById('total-distance').textContent = statistics.totalDistance.toFixed(1) + ' m';
-            document.getElementById('max-speed').textContent = statistics.maxSpeed.toFixed(2) + ' m/s';
-            document.getElementById('avg-speed').textContent = statistics.avgSpeed.toFixed(2) + ' m/s';
-            document.getElementById('drift-range').textContent = statistics.driftRange.toFixed(1) + ' m';
-            document.getElementById('data-points').textContent = dataLog.length.toString();
-        }
-
-        function updateForceDisplay(prefix, force) {
-            const maxForce = 1000; // Normalize to this value
-            const percentage = Math.min((force / maxForce) * 100, 100);
+            // North arrow
+            ctx.fillStyle = '#ef4444';
+            ctx.beginPath();
+            ctx.moveTo(compassX, compassY - compassRadius + 5);
+            ctx.lineTo(compassX - 5, compassY - 10);
+            ctx.lineTo(compassX + 5, compassY - 10);
+            ctx.closePath();
+            ctx.fill();
             
-            document.getElementById(prefix + '-bar').style.width = percentage + '%';
-            document.getElementById(prefix + '-value').textContent = force.toFixed(0) + ' N';
+            ctx.fillStyle = '#ffffff';
+            ctx.font = '12px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('N', compassX, compassY - compassRadius - 10);
         }
 
         function logData() {
-            if (simulation.time % 1 < 0.1) { // Log every second
+            if (simulation.time % 5 < 0.1) { // Log every 5 seconds
                 const forces = calculateForces();
-                dataLog.push({
+                const anchorDx = buoy.x - mooring.anchorX;
+                const anchorDy = buoy.y - mooring.anchorY;
+                const anchorDistance = Math.sqrt(anchorDx * anchorDx + anchorDy * anchorDy);
+                
+                trajectoryData.push({
                     time: simulation.time,
-                    position: { x: buoy.x, y: buoy.y },
-                    velocity: { x: buoy.vx, y: buoy.vy },
-                    forces: forces,
-                    environment: { ...environment },
-                    speed: Math.sqrt(buoy.vx * buoy.vx + buoy.vy * buoy.vy)
+                    x: buoy.x * 0.5, // Convert to meters
+                    y: buoy.y * 0.5,
+                    vx: buoy.vx,
+                    vy: buoy.vy,
+                    anchorDistance: anchorDistance * 0.5,
+                    forces: forces
                 });
             }
         }
@@ -1336,26 +1540,32 @@
             switch (type) {
                 case 'calm':
                     setParameters({
-                        waveHeight: 0.5,
+                        waveHeight: 0.8,
                         wavePeriod: 6,
-                        windSpeed: 3,
-                        currentSpeed: 0.2
+                        windSpeed: 5,
+                        surfaceCurrentSpeed: 0.3,
+                        seaState: 1,
+                        tidalRange: 1.5
                     });
                     break;
                 case 'moderate':
                     setParameters({
-                        waveHeight: 2,
+                        waveHeight: 2.5,
                         wavePeriod: 8,
-                        windSpeed: 10,
-                        currentSpeed: 0.5
+                        windSpeed: 12,
+                        surfaceCurrentSpeed: 0.8,
+                        seaState: 3,
+                        tidalRange: 3.2
                     });
                     break;
                 case 'rough':
                     setParameters({
-                        waveHeight: 4,
+                        waveHeight: 4.5,
                         wavePeriod: 10,
-                        windSpeed: 18,
-                        currentSpeed: 1.0
+                        windSpeed: 20,
+                        surfaceCurrentSpeed: 1.2,
+                        seaState: 6,
+                        tidalRange: 4.5
                     });
                     break;
                 case 'storm':
@@ -1363,101 +1573,112 @@
                         waveHeight: 7,
                         wavePeriod: 12,
                         windSpeed: 25,
-                        currentSpeed: 1.5
+                        surfaceCurrentSpeed: 1.8,
+                        seaState: 8,
+                        tidalRange: 5.5
                     });
                     break;
             }
         }
 
         function setParameters(params) {
-            if (params.waveHeight !== undefined) {
-                document.getElementById('wave-height').value = params.waveHeight;
-            }
-            if (params.wavePeriod !== undefined) {
-                document.getElementById('wave-period').value = params.wavePeriod;
-            }
-            if (params.windSpeed !== undefined) {
-                document.getElementById('wind-speed').value = params.windSpeed;
-            }
-            if (params.currentSpeed !== undefined) {
-                document.getElementById('current-speed-slider').value = params.currentSpeed;
-            }
-            
+            Object.keys(params).forEach(key => {
+                const elementId = key.replace(/([A-Z])/g, '-$1').toLowerCase();
+                const element = document.getElementById(elementId);
+                if (element) {
+                    element.value = params[key];
+                }
+            });
             updateParameters();
         }
 
-        function exportCSV() {
-            if (dataLog.length === 0) {
-                alert('No data to export. Run the simulation first.');
+        function exportTrajectoryCSV() {
+            if (trajectoryData.length === 0) {
+                alert('No trajectory data to export. Run the simulation first.');
                 return;
             }
             
-            let csv = 'Time,X,Y,VX,VY,Speed,Wave_Force_X,Wave_Force_Y,Wind_Force_X,Wind_Force_Y,Current_Force_X,Current_Force_Y\n';
+            let csv = 'Time,X,Y,VX,VY,Anchor_Distance,Wave_Force,Current_Force,Wind_Force\n';
             
-            dataLog.forEach(entry => {
-                csv += `${entry.time.toFixed(2)},${entry.position.x.toFixed(2)},${entry.position.y.toFixed(2)},`;
-                csv += `${entry.velocity.x.toFixed(4)},${entry.velocity.y.toFixed(4)},${entry.speed.toFixed(4)},`;
-                csv += `${entry.forces.waveX.toFixed(2)},${entry.forces.waveY.toFixed(2)},`;
-                csv += `${entry.forces.windX.toFixed(2)},${entry.forces.windY.toFixed(2)},`;
-                csv += `${entry.forces.currentX.toFixed(2)},${entry.forces.currentY.toFixed(2)}\n`;
+            trajectoryData.forEach(entry => {
+                const waveForce = Math.sqrt(entry.forces.waveX * entry.forces.waveX + entry.forces.waveY * entry.forces.waveY);
+                const currentForce = Math.sqrt(entry.forces.currentX * entry.forces.currentX + entry.forces.currentY * entry.forces.currentY);
+                const windForce = Math.sqrt(entry.forces.windX * entry.forces.windX + entry.forces.windY * entry.forces.windY);
+                
+                csv += `${entry.time.toFixed(2)},${entry.x.toFixed(2)},${entry.y.toFixed(2)},`;
+                csv += `${entry.vx.toFixed(4)},${entry.vy.toFixed(4)},${entry.anchorDistance.toFixed(2)},`;
+                csv += `${waveForce.toFixed(2)},${currentForce.toFixed(2)},${windForce.toFixed(2)}\n`;
             });
             
-            downloadFile(csv, 'buoy_simulation_data.csv', 'text/csv');
+            downloadFile(csv, 'buoy_trajectory_data.csv', 'text/csv');
         }
 
-        function exportJSON() {
-            if (dataLog.length === 0) {
-                alert('No data to export. Run the simulation first.');
+        function exportForceData() {
+            if (trajectoryData.length === 0) {
+                alert('No force data to export. Run the simulation first.');
                 return;
             }
             
-            const exportData = {
+            const forceAnalysis = {
                 metadata: {
                     exportTime: new Date().toISOString(),
                     simulationDuration: simulation.time,
-                    dataPoints: dataLog.length,
-                    buoyProperties: { ...buoy },
+                    dataPoints: trajectoryData.length,
                     environmentalConditions: { ...environment },
                     mooringSystem: { ...mooring }
                 },
                 statistics: { ...statistics },
-                data: dataLog
+                forceData: trajectoryData.map(entry => ({
+                    time: entry.time,
+                    forces: entry.forces
+                }))
             };
             
-            downloadFile(JSON.stringify(exportData, null, 2), 'buoy_simulation_data.json', 'application/json');
+            downloadFile(JSON.stringify(forceAnalysis, null, 2), 'buoy_force_analysis.json', 'application/json');
         }
 
         function generateReport() {
-            if (dataLog.length === 0) {
+            if (trajectoryData.length === 0) {
                 alert('No data to generate report. Run the simulation first.');
                 return;
             }
             
             const report = `
-OCEAN BUOY SIMULATION REPORT
-============================
+COASTAL BUOY TRAJECTORY ANALYSIS REPORT
+======================================
 
 Simulation Parameters:
 - Duration: ${(simulation.time / 3600).toFixed(2)} hours
-- Buoy Mass: ${buoy.mass} kg
+- Water Depth: 100 meters
 - Buoy Diameter: ${buoy.diameter} m
+- Mooring Radius: ${mooring.radius} m
+- Chain Length: ${mooring.chainLength} m
+
+Environmental Conditions:
 - Wave Height: ${environment.waveHeight} m
 - Wave Period: ${environment.wavePeriod} s
 - Wind Speed: ${environment.windSpeed} m/s
-- Current Speed: ${environment.currentSpeed} m/s
+- Current Speed: ${environment.surfaceCurrentSpeed} m/s
+- Sea State: ${environment.seaState}
+- Tidal Range: ${environment.tidalRange} m
 
-Movement Statistics:
-- Total Distance: ${statistics.totalDistance.toFixed(1)} m
-- Maximum Speed: ${statistics.maxSpeed.toFixed(2)} m/s
+Trajectory Statistics:
+- Total Path Length: ${(statistics.totalPathLength * 0.5).toFixed(1)} m
+- Maximum Excursion: ${(statistics.maxAnchorDistance * 0.5).toFixed(1)} m
 - Average Speed: ${statistics.avgSpeed.toFixed(2)} m/s
-- Maximum Drift: ${statistics.driftRange.toFixed(1)} m
+- Trajectory Points: ${buoy.trajectory.length}
 
-Data Points Collected: ${dataLog.length}
+Mooring Performance:
+- Maximum Distance from Anchor: ${(statistics.maxAnchorDistance * 0.5).toFixed(1)} m
+- Mooring Utilization: ${((statistics.maxAnchorDistance / mooring.radius) * 100).toFixed(1)}%
+- Safety Factor: ${(mooring.radius / statistics.maxAnchorDistance).toFixed(2)}
+
+Data Points Collected: ${trajectoryData.length}
 
 Generated on: ${new Date().toLocaleString()}
             `;
             
-            downloadFile(report, 'buoy_simulation_report.txt', 'text/plain');
+            downloadFile(report, 'coastal_buoy_trajectory_report.txt', 'text/plain');
         }
 
         function downloadFile(content, filename, contentType) {
@@ -1486,5 +1707,5 @@ Generated on: ${new Date().toLocaleString()}
             });
         });
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96b918ab068988a6',t:'MTc1NDU5NDA2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96b9307506bd88ab',t:'MTc1NDU5NTAzNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
