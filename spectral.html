@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Series Spectral Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fftjs@0.0.1/lib/fft.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '📊';
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            font-size: 3rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.4rem;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+        
+        .header .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.75;
+        }
+        
+        .main-layout {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 0;
+            min-height: 1000px;
+        }
+        
+        .input-panel {
+            background: #f8fafc;
+            padding: 30px;
+            border-right: 1px solid #e2e8f0;
+            overflow-y: auto;
+        }
+        
+        .input-section {
+            margin-bottom: 25px;
+            padding: 25px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .data-input {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+        
+        .data-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+        }
+        
+        .input-help {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+        
+        .param-group {
+            margin-bottom: 18px;
+        }
+        
+        .param-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .param-group input, .param-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .param-group input:focus, .param-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.12);
+        }
+        
+        .param-unit {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 5px;
+            font-style: italic;
+        }
+        
+        .preset-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .preset-btn {
+            padding: 12px 16px;
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .preset-btn:hover {
+            background: #e2e8f0;
+            border-color: #94a3b8;
+            transform: translateY(-2px);
+        }
+        
+        .analyze-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 25px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+        
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .analyze-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .results-area {
+            display: flex;
+            flex-direction: column;
+            background: white;
+        }
+        
+        .stats-dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f0f4ff;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 22px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+        
+        .stat-card.primary {
+            border-left: 4px solid #667eea;
+        }
+        
+        .stat-card.secondary {
+            border-left: 4px solid #10b981;
+        }
+        
+        .stat-card.tertiary {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .stat-card.quaternary {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            font-weight: 500;
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 5px;
+        }
+        
+        .stat-unit {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 400;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 25px;
+            padding: 30px;
+            height: calc(100vh - 350px);
+            min-height: 800px;
+        }
+        
+        .chart-box {
+            background: #fafafa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+        }
+        
+        .chart-box.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .chart-header {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 20px;
+            text-align: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .chart-content {
+            flex: 1;
+            position: relative;
+        }
+        
+        .export-controls {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        
+        .export-btn {
+            padding: 10px 18px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            font-weight: 500;
+        }
+        
+        .export-btn:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+        
+        .peak-table {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-top: 15px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+        }
+        
+        .peak-table table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .peak-table th {
+            background: #f8fafc;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .peak-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .peak-table tr:hover {
+            background: #f8fafc;
+        }
+        
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-panel {
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .charts-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(4, 400px);
+            }
+            
+            .chart-box.full-width {
+                grid-column: 1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .stats-dashboard {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Spectral Analysis Tool</h1>
+            <p>Advanced Time Series Frequency Analysis by Claudio Iturra</p>
+            <div class="subtitle">FFT • Power Spectral Density • Peak Detection • Cycles per Day</div>
+        </div>
+        
+        <div class="main-layout">
+            <div class="input-panel">
+                <div class="input-section">
+                    <div class="section-title">
+                        📈 Time Series Data
+                    </div>
+                    <textarea 
+                        class="data-input" 
+                        id="timeSeriesData" 
+                        placeholder="Paste your time series data here...
+Examples:
+1.2, 1.5, 1.8, 2.1, 1.9, 1.6, 1.3, 1.0, 0.8, 1.1, 1.4, 1.7
+OR
+1.2
+1.5
+1.8
+2.1
+OR
+2023-01-01 00:00, 1.2
+2023-01-01 01:00, 1.5
+2023-01-01 02:00, 1.8"></textarea>
+                    <div class="input-help">
+                        Supported formats: Comma-separated values, line-separated values, or timestamp,value pairs. 
+                        Automatically detects format and handles missing values.
+                    </div>
+                    <div class="preset-section">
+                        <button class="preset-btn" onclick="loadSampleData('tidal')">🌊 Tidal Signal</button>
+                        <button class="preset-btn" onclick="loadSampleData('temperature')">🌡️ Temperature</button>
+                        <button class="preset-btn" onclick="loadSampleData('wind')">💨 Wind Speed</button>
+                        <button class="preset-btn" onclick="loadSampleData('mixed')">🔄 Mixed Signal</button>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        ⏱️ Temporal Parameters
+                    </div>
+                    <div class="param-group">
+                        <label for="temporalResolution">Temporal Resolution</label>
+                        <input type="number" id="temporalResolution" value="60" step="1" min="1" max="1440">
+                        <div class="param-unit">minutes between data points</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="startTime">Start Time (Optional)</label>
+                        <input type="datetime-local" id="startTime">
+                        <div class="param-unit">for timestamp labeling</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="dataUnits">Data Units</label>
+                        <input type="text" id="dataUnits" value="m/s" placeholder="e.g., m/s, °C, m">
+                        <div class="param-unit">for axis labeling</div>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        🔧 Analysis Parameters
+                    </div>
+                    <div class="param-group">
+                        <label for="windowFunction">Window Function</label>
+                        <select id="windowFunction">
+                            <option value="hanning">Hanning</option>
+                            <option value="hamming">Hamming</option>
+                            <option value="blackman">Blackman</option>
+                            <option value="bartlett">Bartlett</option>
+                            <option value="rectangular">Rectangular</option>
+                        </select>
+                        <div class="param-unit">reduces spectral leakage</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="detrend">Detrend Method</label>
+                        <select id="detrend">
+                            <option value="linear">Linear</option>
+                            <option value="constant">Remove Mean</option>
+                            <option value="none">None</option>
+                        </select>
+                        <div class="param-unit">removes trends before analysis</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="zeroPadding">Zero Padding Factor</label>
+                        <select id="zeroPadding">
+                            <option value="1">None (1x)</option>
+                            <option value="2" selected>2x</option>
+                            <option value="4">4x</option>
+                            <option value="8">8x</option>
+                        </select>
+                        <div class="param-unit">improves frequency resolution</div>
+                    </div>
+                    <div class="param-group">
+                        <label for="peakThreshold">Peak Detection Threshold</label>
+                        <input type="number" id="peakThreshold" value="0.1" step="0.01" min="0.01" max="1">
+                        <div class="param-unit">relative to maximum power</div>
+                    </div>
+                </div>
+                
+                <div class="input-section">
+                    <div class="section-title">
+                        📊 Display Options
+                    </div>
+                    <div class="param-group">
+                        <label for="frequencyUnits">Frequency Units</label>
+                        <select id="frequencyUnits">
+                            <option value="cpd" selected>Cycles per Day</option>
+                            <option value="cph">Cycles per Hour</option>
+                            <option value="hz">Hz (cycles/second)</option>
+                            <option value="period_hours">Period (hours)</option>
+                            <option value="period_days">Period (days)</option>
+                        </select>
+                    </div>
+                    <div class="param-group">
+                        <label for="powerScale">Power Scale</label>
+                        <select id="powerScale">
+                            <option value="linear">Linear</option>
+                            <option value="log" selected>Logarithmic</option>
+                        </select>
+                    </div>
+                    <div class="param-group">
+                        <label for="maxFrequency">Maximum Frequency to Display</label>
+                        <input type="number" id="maxFrequency" value="10" step="0.5" min="0.1" max="100">
+                        <div class="param-unit">cycles per day</div>
+                    </div>
+                </div>
+                
+                <button class="analyze-btn" id="analyzeBtn" onclick="performSpectralAnalysis()">
+                    🔬 Analyze Spectrum
+                </button>
+                
+                <div id="statusMessage"></div>
+            </div>
+            
+            <div class="results-area">
+                <div class="stats-dashboard" id="statsDashboard">
+                    <!-- Statistics will be populated here -->
+                </div>
+                
+                <div class="charts-container">
+                    <div class="chart-box">
+                        <div class="chart-header">Time Series Data</div>
+                        <div class="chart-content">
+                            <canvas id="timeSeriesChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box">
+                        <div class="chart-header">Power Spectral Density</div>
+                        <div class="chart-content">
+                            <canvas id="spectrumChart"></canvas>
+                        </div>
+                        <div class="export-controls">
+                            <button class="export-btn" onclick="exportSpectrum()">📊 Export Spectrum</button>
+                            <button class="export-btn" onclick="exportPeaks()">🎯 Export Peaks</button>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box full-width">
+                        <div class="chart-header">Detected Spectral Peaks</div>
+                        <div class="chart-content">
+                            <div class="peak-table" id="peakTable">
+                                <!-- Peak table will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-box">
+                        <div class="chart-header">Cumulative Power</div>
+                        <div class="chart-content">
+                            <canvas id="cumulativeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timeSeriesChart = null;
+        let spectrumChart = null;
+        let cumulativeChart = null;
+        let analysisResults = null;
+        
+        // FFT implementation (simplified)
+        function fft(signal) {
+            const N = signal.length;
+            if (N <= 1) return signal;
+            
+            // Ensure power of 2
+            const nextPow2 = Math.pow(2, Math.ceil(Math.log2(N)));
+            const paddedSignal = [...signal];
+            while (paddedSignal.length < nextPow2) {
+                paddedSignal.push(0);
+            }
+            
+            return fftRecursive(paddedSignal.map(x => ({real: x, imag: 0})));
+        }
+        
+        function fftRecursive(x) {
+            const N = x.length;
+            if (N <= 1) return x;
+            
+            const even = fftRecursive(x.filter((_, i) => i % 2 === 0));
+            const odd = fftRecursive(x.filter((_, i) => i % 2 === 1));
+            
+            const result = new Array(N);
+            for (let k = 0; k < N/2; k++) {
+                const t = {
+                    real: Math.cos(-2 * Math.PI * k / N) * odd[k].real - Math.sin(-2 * Math.PI * k / N) * odd[k].imag,
+                    imag: Math.sin(-2 * Math.PI * k / N) * odd[k].real + Math.cos(-2 * Math.PI * k / N) * odd[k].imag
+                };
+                result[k] = {
+                    real: even[k].real + t.real,
+                    imag: even[k].imag + t.imag
+                };
+                result[k + N/2] = {
+                    real: even[k].real - t.real,
+                    imag: even[k].imag - t.imag
+                };
+            }
+            return result;
+        }
+        
+        function loadSampleData(type) {
+            const samples = {
+                'tidal': generateTidalData(),
+                'temperature': generateTemperatureData(),
+                'wind': generateWindData(),
+                'mixed': generateMixedSignal()
+            };
+            
+            document.getElementById('timeSeriesData').value = samples[type];
+            
+            // Set appropriate parameters for each sample
+            const params = {
+                'tidal': { resolution: 60, units: 'm/s' },
+                'temperature': { resolution: 30, units: '°C' },
+                'wind': { resolution: 10, units: 'm/s' },
+                'mixed': { resolution: 60, units: 'units' }
+            };
+            
+            document.getElementById('temporalResolution').value = params[type].resolution;
+            document.getElementById('dataUnits').value = params[type].units;
+        }
+        
+        function generateTidalData() {
+            const data = [];
+            const hours = 168; // 7 days
+            const dt = 1; // hourly
+            
+            for (let i = 0; i < hours; i++) {
+                const t = i * dt;
+                // M2 (12.42h) + M4 (6.21h) + S2 (12h) tidal components
+                const m2 = 1.5 * Math.cos(2 * Math.PI * t / 12.42);
+                const m4 = 0.3 * Math.cos(2 * Math.PI * t / 6.21 + Math.PI/4);
+                const s2 = 0.4 * Math.cos(2 * Math.PI * t / 12 + Math.PI/3);
+                const noise = 0.1 * (Math.random() - 0.5);
+                
+                data.push((m2 + m4 + s2 + noise).toFixed(3));
+            }
+            
+            return data.join('\n');
+        }
+        
+        function generateTemperatureData() {
+            const data = [];
+            const hours = 720; // 30 days
+            const dt = 0.5; // 30 minutes
+            
+            for (let i = 0; i < hours; i++) {
+                const t = i * dt;
+                // Daily cycle + weekly cycle + trend
+                const daily = 5 * Math.cos(2 * Math.PI * t / 24 - Math.PI/2);
+                const weekly = 2 * Math.cos(2 * Math.PI * t / (24 * 7));
+                const trend = 0.01 * t;
+                const noise = 0.5 * (Math.random() - 0.5);
+                
+                const temp = 20 + daily + weekly + trend + noise;
+                data.push(temp.toFixed(2));
+            }
+            
+            return data.join('\n');
+        }
+        
+        function generateWindData() {
+            const data = [];
+            const points = 1440; // 10 days at 10-minute intervals
+            
+            for (let i = 0; i < points; i++) {
+                const t = i * 10 / 60; // hours
+                // Diurnal cycle + synoptic variations + turbulence
+                const diurnal = 3 * Math.cos(2 * Math.PI * t / 24 + Math.PI);
+                const synoptic = 2 * Math.cos(2 * Math.PI * t / (24 * 3) + Math.PI/6);
+                const turbulence = 1.5 * (Math.random() - 0.5);
+                
+                const wind = Math.max(0, 8 + diurnal + synoptic + turbulence);
+                data.push(wind.toFixed(2));
+            }
+            
+            return data.join('\n');
+        }
+        
+        function generateMixedSignal() {
+            const data = [];
+            const points = 1000;
+            
+            for (let i = 0; i < points; i++) {
+                const t = i;
+                // Multiple frequency components
+                const f1 = Math.cos(2 * Math.PI * t / 50); // 20 cycles per 1000 points
+                const f2 = 0.5 * Math.cos(2 * Math.PI * t / 25 + Math.PI/4); // 40 cycles
+                const f3 = 0.3 * Math.cos(2 * Math.PI * t / 12.5 + Math.PI/2); // 80 cycles
+                const noise = 0.2 * (Math.random() - 0.5);
+                
+                data.push((f1 + f2 + f3 + noise).toFixed(4));
+            }
+            
+            return data.join('\n');
+        }
+        
+        function parseTimeSeriesData(dataText) {
+            const lines = dataText.trim().split('\n');
+            const values = [];
+            const timestamps = [];
+            
+            for (let line of lines) {
+                line = line.trim();
+                if (!line) continue;
+                
+                // Check if line contains comma (timestamp,value or value,value,...)
+                if (line.includes(',')) {
+                    const parts = line.split(',');
+                    if (parts.length === 2 && isNaN(parts[0])) {
+                        // timestamp,value format
+                        timestamps.push(parts[0].trim());
+                        values.push(parseFloat(parts[1].trim()));
+                    } else {
+                        // comma-separated values
+                        for (let part of parts) {
+                            const val = parseFloat(part.trim());
+                            if (!isNaN(val)) values.push(val);
+                        }
+                    }
+                } else {
+                    // Single value per line
+                    const val = parseFloat(line);
+                    if (!isNaN(val)) values.push(val);
+                }
+            }
+            
+            return { values, timestamps };
+        }
+        
+        function applyWindow(data, windowType) {
+            const N = data.length;
+            const windowed = new Array(N);
+            
+            for (let i = 0; i < N; i++) {
+                let w = 1;
+                const n = i / (N - 1);
+                
+                switch (windowType) {
+                    case 'hanning':
+                        w = 0.5 * (1 - Math.cos(2 * Math.PI * n));
+                        break;
+                    case 'hamming':
+                        w = 0.54 - 0.46 * Math.cos(2 * Math.PI * n);
+                        break;
+                    case 'blackman':
+                        w = 0.42 - 0.5 * Math.cos(2 * Math.PI * n) + 0.08 * Math.cos(4 * Math.PI * n);
+                        break;
+                    case 'bartlett':
+                        w = 1 - Math.abs(2 * n - 1);
+                        break;
+                    case 'rectangular':
+                    default:
+                        w = 1;
+                        break;
+                }
+                
+                windowed[i] = data[i] * w;
+            }
+            
+            return windowed;
+        }
+        
+        function detrend(data, method) {
+            const N = data.length;
+            const detrended = [...data];
+            
+            if (method === 'constant') {
+                const mean = data.reduce((sum, val) => sum + val, 0) / N;
+                for (let i = 0; i < N; i++) {
+                    detrended[i] -= mean;
+                }
+            } else if (method === 'linear') {
+                // Linear least squares fit
+                const sumX = N * (N - 1) / 2;
+                const sumX2 = N * (N - 1) * (2 * N - 1) / 6;
+                const sumY = data.reduce((sum, val) => sum + val, 0);
+                const sumXY = data.reduce((sum, val, i) => sum + i * val, 0);
+                
+                const slope = (N * sumXY - sumX * sumY) / (N * sumX2 - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / N;
+                
+                for (let i = 0; i < N; i++) {
+                    detrended[i] -= (slope * i + intercept);
+                }
+            }
+            
+            return detrended;
+        }
+        
+        function findPeaks(spectrum, frequencies, threshold) {
+            const peaks = [];
+            const maxPower = Math.max(...spectrum);
+            const minPower = maxPower * threshold;
+            
+            for (let i = 1; i < spectrum.length - 1; i++) {
+                if (spectrum[i] > spectrum[i-1] && 
+                    spectrum[i] > spectrum[i+1] && 
+                    spectrum[i] > minPower) {
+                    
+                    // Parabolic interpolation for better frequency estimate
+                    const y1 = spectrum[i-1];
+                    const y2 = spectrum[i];
+                    const y3 = spectrum[i+1];
+                    
+                    const a = (y1 - 2*y2 + y3) / 2;
+                    const b = (y3 - y1) / 2;
+                    
+                    let peakIndex = i;
+                    if (a !== 0) {
+                        const offset = -b / (2 * a);
+                        peakIndex = i + offset;
+                    }
+                    
+                    const frequency = frequencies[Math.floor(peakIndex)] + 
+                                    (frequencies[1] - frequencies[0]) * (peakIndex - Math.floor(peakIndex));
+                    
+                    peaks.push({
+                        frequency: frequency,
+                        power: spectrum[i],
+                        index: i,
+                        amplitude: Math.sqrt(spectrum[i])
+                    });
+                }
+            }
+            
+            // Sort by power (descending)
+            peaks.sort((a, b) => b.power - a.power);
+            
+            return peaks;
+        }
+        
+        function convertFrequency(freq, fromUnit, toUnit, temporalResolution) {
+            // Convert everything to Hz first
+            let freqHz = freq;
+            
+            if (fromUnit === 'cpd') {
+                freqHz = freq / (24 * 3600); // cycles/day to Hz
+            } else if (fromUnit === 'cph') {
+                freqHz = freq / 3600; // cycles/hour to Hz
+            }
+            
+            // Convert from Hz to target unit
+            if (toUnit === 'cpd') {
+                return freqHz * 24 * 3600;
+            } else if (toUnit === 'cph') {
+                return freqHz * 3600;
+            } else if (toUnit === 'hz') {
+                return freqHz;
+            } else if (toUnit === 'period_hours') {
+                return freqHz > 0 ? 1 / (freqHz * 3600) : Infinity;
+            } else if (toUnit === 'period_days') {
+                return freqHz > 0 ? 1 / (freqHz * 24 * 3600) : Infinity;
+            }
+            
+            return freq;
+        }
+        
+        function performSpectralAnalysis() {
+            const dataText = document.getElementById('timeSeriesData').value.trim();
+            if (!dataText) {
+                showMessage('Please enter time series data.', 'error');
+                return;
+            }
+            
+            try {
+                // Parse data
+                const { values } = parseTimeSeriesData(dataText);
+                if (values.length < 4) {
+                    showMessage('Need at least 4 data points for spectral analysis.', 'error');
+                    return;
+                }
+                
+                // Get parameters
+                const temporalResolution = parseFloat(document.getElementById('temporalResolution').value);
+                const windowFunction = document.getElementById('windowFunction').value;
+                const detrendMethod = document.getElementById('detrend').value;
+                const zeroPadding = parseInt(document.getElementById('zeroPadding').value);
+                const peakThreshold = parseFloat(document.getElementById('peakThreshold').value);
+                const frequencyUnits = document.getElementById('frequencyUnits').value;
+                const powerScale = document.getElementById('powerScale').value;
+                const maxFrequency = parseFloat(document.getElementById('maxFrequency').value);
+                
+                showMessage('Analyzing spectrum...', 'info');
+                
+                // Preprocess data
+                let processedData = [...values];
+                
+                // Remove NaN values
+                processedData = processedData.filter(val => !isNaN(val));
+                
+                // Detrend
+                if (detrendMethod !== 'none') {
+                    processedData = detrend(processedData, detrendMethod);
+                }
+                
+                // Apply window
+                processedData = applyWindow(processedData, windowFunction);
+                
+                // Zero padding
+                const originalLength = processedData.length;
+                const paddedLength = originalLength * zeroPadding;
+                while (processedData.length < paddedLength) {
+                    processedData.push(0);
+                }
+                
+                // Perform FFT
+                const fftResult = fft(processedData);
+                
+                // Calculate power spectral density
+                const N = fftResult.length;
+                const spectrum = new Array(Math.floor(N/2));
+                const dt = temporalResolution * 60; // seconds
+                const df = 1 / (N * dt); // frequency resolution in Hz
+                
+                for (let i = 0; i < spectrum.length; i++) {
+                    const real = fftResult[i].real;
+                    const imag = fftResult[i].imag;
+                    spectrum[i] = (real * real + imag * imag) / (N * N);
+                    
+                    // Scale for one-sided spectrum (except DC and Nyquist)
+                    if (i > 0 && i < spectrum.length - 1) {
+                        spectrum[i] *= 2;
+                    }
+                }
+                
+                // Create frequency array
+                const frequencies = new Array(spectrum.length);
+                for (let i = 0; i < frequencies.length; i++) {
+                    frequencies[i] = i * df;
+                }
+                
+                // Convert frequencies to desired units
+                const displayFrequencies = frequencies.map(f => 
+                    convertFrequency(f, 'hz', frequencyUnits, temporalResolution)
+                );
+                
+                // Find peaks
+                const peaks = findPeaks(spectrum, displayFrequencies, peakThreshold);
+                
+                // Store results
+                analysisResults = {
+                    originalData: values,
+                    processedData: processedData.slice(0, originalLength),
+                    spectrum: spectrum,
+                    frequencies: displayFrequencies,
+                    peaks: peaks,
+                    parameters: {
+                        temporalResolution,
+                        windowFunction,
+                        detrendMethod,
+                        zeroPadding,
+                        frequencyUnits,
+                        powerScale,
+                        originalLength,
+                        paddedLength: N
+                    }
+                };
+                
+                // Update displays
+                updateStatistics();
+                createTimeSeriesChart();
+                createSpectrumChart();
+                createCumulativeChart();
+                createPeakTable();
+                
+                showMessage(`Analysis complete! Found ${peaks.length} significant peaks.`, 'success');
+                
+            } catch (error) {
+                console.error('Analysis error:', error);
+                showMessage(`Analysis failed: ${error.message}`, 'error');
+            }
+        }
+        
+        function updateStatistics() {
+            if (!analysisResults) return;
+            
+            const { originalData, spectrum, frequencies, peaks, parameters } = analysisResults;
+            
+            // Calculate statistics
+            const dataStats = {
+                mean: originalData.reduce((sum, val) => sum + val, 0) / originalData.length,
+                std: 0,
+                min: Math.min(...originalData),
+                max: Math.max(...originalData)
+            };
+            
+            // Standard deviation
+            const variance = originalData.reduce((sum, val) => sum + Math.pow(val - dataStats.mean, 2), 0) / originalData.length;
+            dataStats.std = Math.sqrt(variance);
+            
+            // Spectral statistics
+            const totalPower = spectrum.reduce((sum, val) => sum + val, 0);
+            const maxPower = Math.max(...spectrum);
+            const dominantFreqIndex = spectrum.indexOf(maxPower);
+            const dominantFreq = frequencies[dominantFreqIndex];
+            
+            // Frequency resolution
+            const freqResolution = frequencies[1] - frequencies[0];
+            
+            // Nyquist frequency
+            const nyquistFreq = frequencies[frequencies.length - 1];
+            
+            const statsDiv = document.getElementById('statsDashboard');
+            const units = document.getElementById('dataUnits').value;
+            const freqUnits = getFrequencyUnitLabel();
+            
+            statsDiv.innerHTML = `
+                <div class="stat-card primary">
+                    <div class="stat-label">Data Points</div>
+                    <div class="stat-value">${originalData.length}</div>
+                    <div class="stat-unit">samples</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-label">Mean Value</div>
+                    <div class="stat-value">${dataStats.mean.toFixed(3)}</div>
+                    <div class="stat-unit">${units}</div>
+                </div>
+                <div class="stat-card primary">
+                    <div class="stat-label">Std Deviation</div>
+                    <div class="stat-value">${dataStats.std.toFixed(3)}</div>
+                    <div class="stat-unit">${units}</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Freq Resolution</div>
+                    <div class="stat-value">${freqResolution.toFixed(4)}</div>
+                    <div class="stat-unit">${freqUnits}</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Nyquist Frequency</div>
+                    <div class="stat-value">${nyquistFreq.toFixed(3)}</div>
+                    <div class="stat-unit">${freqUnits}</div>
+                </div>
+                <div class="stat-card secondary">
+                    <div class="stat-label">Dominant Frequency</div>
+                    <div class="stat-value">${dominantFreq.toFixed(4)}</div>
+                    <div class="stat-unit">${freqUnits}</div>
+                </div>
+                <div class="stat-card tertiary">
+                    <div class="stat-label">Total Power</div>
+                    <div class="stat-value">${totalPower.toExponential(2)}</div>
+                    <div class="stat-unit">${units}²</div>
+                </div>
+                <div class="stat-card tertiary">
+                    <div class="stat-label">Max Power</div>
+                    <div class="stat-value">${maxPower.toExponential(2)}</div>
+                    <div class="stat-unit">${units}²</div>
+                </div>
+                <div class="stat-card quaternary">
+                    <div class="stat-label">Detected Peaks</div>
+                    <div class="stat-value">${peaks.length}</div>
+                    <div class="stat-unit">peaks</div>
+                </div>
+                <div class="stat-card quaternary">
+                    <div class="stat-label">Zero Padding</div>
+                    <div class="stat-value">${parameters.zeroPadding}x</div>
+                    <div class="stat-unit">factor</div>
+                </div>
+            `;
+        }
+        
+        function getFrequencyUnitLabel() {
+            const unit = document.getElementById('frequencyUnits').value;
+            const labels = {
+                'cpd': 'cycles/day',
+                'cph': 'cycles/hour',
+                'hz': 'Hz',
+                'period_hours': 'hours',
+                'period_days': 'days'
+            };
+            return labels[unit] || 'Hz';
+        }
+        
+        function createTimeSeriesChart() {
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            
+            if (timeSeriesChart) {
+                timeSeriesChart.destroy();
+            }
+            
+            const { originalData, processedData, parameters } = analysisResults;
+            const temporalResolution = parameters.temporalResolution;
+            const units = document.getElementById('dataUnits').value;
+            
+            // Create time axis
+            const timePoints = originalData.map((_, i) => i * temporalResolution / 60); // hours
+            
+            timeSeriesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [
+                        {
+                            label: 'Original Data',
+                            data: originalData,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 1,
+                            fill: false
+                        },
+                        {
+                            label: 'Processed Data',
+                            data: processedData,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 1,
+                            fill: false,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Time (hours)' },
+                            grid: { alpha: 0.3 }
+                        },
+                        y: {
+                            title: { display: true, text: `Value (${units})` },
+                            grid: { alpha: 0.3 }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createSpectrumChart() {
+            const ctx = document.getElementById('spectrumChart').getContext('2d');
+            
+            if (spectrumChart) {
+                spectrumChart.destroy();
+            }
+            
+            const { spectrum, frequencies, peaks } = analysisResults;
+            const powerScale = document.getElementById('powerScale').value;
+            const maxFreq = parseFloat(document.getElementById('maxFrequency').value);
+            const freqUnits = getFrequencyUnitLabel();
+            const units = document.getElementById('dataUnits').value;
+            
+            // Filter data for display range
+            const displayIndices = frequencies.map((f, i) => f <= maxFreq ? i : -1).filter(i => i >= 0);
+            const displayFreqs = displayIndices.map(i => frequencies[i]);
+            const displaySpectrum = displayIndices.map(i => spectrum[i]);
+            
+            // Peak markers
+            const peakData = peaks
+                .filter(peak => peak.frequency <= maxFreq)
+                .map(peak => ({
+                    x: peak.frequency,
+                    y: peak.power
+                }));
+            
+            spectrumChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: displayFreqs,
+                    datasets: [
+                        {
+                            label: 'Power Spectral Density',
+                            data: displaySpectrum,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: true
+                        },
+                        {
+                            label: 'Detected Peaks',
+                            data: peakData,
+                            borderColor: '#ef4444',
+                            backgroundColor: '#ef4444',
+                            borderWidth: 0,
+                            pointRadius: 6,
+                            pointHoverRadius: 8,
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: `Frequency (${freqUnits})` },
+                            grid: { alpha: 0.3 }
+                        },
+                        y: {
+                            title: { display: true, text: `Power (${units}²)` },
+                            type: powerScale === 'log' ? 'logarithmic' : 'linear',
+                            grid: { alpha: 0.3 }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createCumulativeChart() {
+            const ctx = document.getElementById('cumulativeChart').getContext('2d');
+            
+            if (cumulativeChart) {
+                cumulativeChart.destroy();
+            }
+            
+            const { spectrum, frequencies } = analysisResults;
+            const maxFreq = parseFloat(document.getElementById('maxFrequency').value);
+            const freqUnits = getFrequencyUnitLabel();
+            
+            // Calculate cumulative power
+            const totalPower = spectrum.reduce((sum, val) => sum + val, 0);
+            const cumulative = [];
+            let cumulativeSum = 0;
+            
+            for (let i = 0; i < spectrum.length && frequencies[i] <= maxFreq; i++) {
+                cumulativeSum += spectrum[i];
+                cumulative.push(cumulativeSum / totalPower * 100);
+            }
+            
+            const displayFreqs = frequencies.slice(0, cumulative.length);
+            
+            cumulativeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: displayFreqs,
+                    datasets: [
+                        {
+                            label: 'Cumulative Power',
+                            data: cumulative,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderWidth: 3,
+                            pointRadius: 0,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: `Frequency (${freqUnits})` },
+                            grid: { alpha: 0.3 }
+                        },
+                        y: {
+                            title: { display: true, text: 'Cumulative Power (%)' },
+                            grid: { alpha: 0.3 },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createPeakTable() {
+            const { peaks } = analysisResults;
+            const freqUnits = getFrequencyUnitLabel();
+            const units = document.getElementById('dataUnits').value;
+            
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>Frequency</th>
+                            <th>Period</th>
+                            <th>Power</th>
+                            <th>Amplitude</th>
+                            <th>% of Max</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            const maxPower = peaks.length > 0 ? peaks[0].power : 1;
+            
+            peaks.slice(0, 20).forEach((peak, index) => {
+                const period = peak.frequency > 0 ? 1 / peak.frequency : Infinity;
+                const periodStr = period === Infinity ? '∞' : period.toFixed(3);
+                const powerPercent = (peak.power / maxPower * 100).toFixed(1);
+                
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${peak.frequency.toFixed(4)} ${freqUnits}</td>
+                        <td>${periodStr}</td>
+                        <td>${peak.power.toExponential(3)}</td>
+                        <td>${peak.amplitude.toFixed(4)} ${units}</td>
+                        <td>${powerPercent}%</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            
+            document.getElementById('peakTable').innerHTML = tableHTML;
+        }
+        
+        function exportSpectrum() {
+            if (!analysisResults) {
+                showMessage('No analysis results to export.', 'error');
+                return;
+            }
+            
+            const { spectrum, frequencies } = analysisResults;
+            const freqUnits = getFrequencyUnitLabel();
+            const units = document.getElementById('dataUnits').value;
+            
+            let csvContent = `Frequency (${freqUnits}),Power (${units}²)\n`;
+            
+            for (let i = 0; i < spectrum.length; i++) {
+                csvContent += `${frequencies[i]},${spectrum[i]}\n`;
+            }
+            
+            downloadCSV(csvContent, 'spectrum_analysis.csv');
+        }
+        
+        function exportPeaks() {
+            if (!analysisResults) {
+                showMessage('No analysis results to export.', 'error');
+                return;
+            }
+            
+            const { peaks } = analysisResults;
+            const freqUnits = getFrequencyUnitLabel();
+            const units = document.getElementById('dataUnits').value;
+            
+            let csvContent = `Rank,Frequency (${freqUnits}),Period,Power (${units}²),Amplitude (${units})\n`;
+            
+            peaks.forEach((peak, index) => {
+                const period = peak.frequency > 0 ? 1 / peak.frequency : 'Infinity';
+                csvContent += `${index + 1},${peak.frequency},${period},${peak.power},${peak.amplitude}\n`;
+            });
+            
+            downloadCSV(csvContent, 'spectral_peaks.csv');
+        }
+        
+        function downloadCSV(content, filename) {
+            const blob = new Blob([content], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function showMessage(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            const className = type === 'error' ? 'error-message' : 
+                            type === 'success' ? 'success-message' : 'info-message';
+            
+            statusDiv.innerHTML = `<div class="${className}">${message}</div>`;
+            
+            if (type !== 'error') {
+                setTimeout(() => {
+                    statusDiv.innerHTML = '';
+                }, 5000);
+            }
+        }
+        
+        // Load sample data on page load
+        loadSampleData('tidal');
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96b8c837607888ab',t:'MTc1NDU5MDc2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
