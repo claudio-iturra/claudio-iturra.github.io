@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physical Oceanography Equations Hub</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 T100,10 V20 H0 Z" fill="rgba(255,255,255,0.1)"/></svg>') repeat-x;
+            background-size: 200px 20px;
+            animation: wave 10s linear infinite;
+        }
+        
+        @keyframes wave {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-200px); }
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav {
+            background: #34495e;
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 0 20px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .content {
+            padding: 40px 20px;
+        }
+        
+        .section {
+            display: none;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .equation-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .equation-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .equation-title {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .equation-box {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .description {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .example-section {
+            background: #fff3cd;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .calculator {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #3498db;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #2980b9 0%, #1f618d 100%);
+            transform: translateY(-2px);
+        }
+        
+        .result {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            border-left: 4px solid #28a745;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .parameter-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .parameter-table th, .parameter-table td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .parameter-table th {
+            background: #3498db;
+            color: white;
+        }
+        
+        .parameter-table tr:nth-child(even) {
+            background: #f2f2f2;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Physical Oceanography Equations</h1>
+            <p>Complete Reference with Interactive Examples by Claudio Iturra</p>
+        </div>
+        
+        <nav class="nav">
+            <div class="nav-container">
+                <button class="nav-btn active" onclick="showSection('fundamentals')">Fundamental Equations</button>
+                <button class="nav-btn" onclick="showSection('geostrophic')">Geostrophic Flow</button>
+                <button class="nav-btn" onclick="showSection('ekman')">Ekman Dynamics</button>
+                <button class="nav-btn" onclick="showSection('waves')">Wave Theory</button>
+                <button class="nav-btn" onclick="showSection('thermohaline')">Thermohaline</button>
+                <button class="nav-btn" onclick="showSection('mixing')">Mixing & Turbulence</button>
+                <button class="nav-btn" onclick="showSection('tides')">Tidal Theory</button>
+            </div>
+        </nav>
+        
+        <div class="content">
+            <!-- Fundamental Equations Section -->
+            <div id="fundamentals" class="section active">
+                <div class="equation-card">
+                    <h2 class="equation-title">🌍 Navier-Stokes Equations for Ocean</h2>
+                    <div class="equation-box">
+                        <p><strong>Momentum Equations:</strong></p>
+                        <p>$$\frac{Du}{Dt} - fv = -\frac{1}{\rho}\frac{\partial p}{\partial x} + \nu \nabla^2 u$$</p>
+                        <p>$$\frac{Dv}{Dt} + fu = -\frac{1}{\rho}\frac{\partial p}{\partial y} + \nu \nabla^2 v$$</p>
+                        <p>$$\frac{Dw}{Dt} = -\frac{1}{\rho}\frac{\partial p}{\partial z} - g + \nu \nabla^2 w$$</p>
+                        <p><strong>Continuity Equation:</strong></p>
+                        <p>$$\frac{\partial u}{\partial x} + \frac{\partial v}{\partial y} + \frac{\partial w}{\partial z} = 0$$</p>
+                    </div>
+                    <div class="description">
+                        <p><strong>Physical Meaning:</strong> These equations describe the motion of seawater under the influence of pressure gradients, Coriolis force, gravity, and viscosity. The Coriolis parameter f = 2Ω sin(φ) accounts for Earth's rotation.</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Coriolis Parameter Calculator</h3>
+                        <div class="input-group">
+                            <label for="latitude">Latitude (degrees):</label>
+                            <input type="number" id="latitude" value="45" step="0.1">
+                        </div>
+                        <button class="btn" onclick="calculateCoriolis()">Calculate f</button>
+                        <div id="coriolisResult"></div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">🌡️ Equation of State</h2>
+                    <div class="equation-box">
+                        <p><strong>UNESCO Equation of State (simplified):</strong></p>
+                        <p>$$\rho = \rho_0 [1 - \alpha(T-T_0) + \beta(S-S_0) + \gamma(p-p_0)]$$</p>
+                        <p><strong>Where:</strong></p>
+                        <p>$\alpha$ = thermal expansion coefficient ≈ 2×10⁻⁴ °C⁻¹</p>
+                        <p>$\beta$ = haline contraction coefficient ≈ 7.6×10⁻⁴ psu⁻¹</p>
+                        <p>$\gamma$ = compressibility ≈ 4.4×10⁻⁶ dbar⁻¹</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Density Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="temperature">Temperature (°C):</label>
+                                <input type="number" id="temperature" value="15" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="salinity">Salinity (psu):</label>
+                                <input type="number" id="salinity" value="35" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="pressure">Pressure (dbar):</label>
+                                <input type="number" id="pressure" value="0" step="1">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateDensity()">Calculate Density</button>
+                        <div id="densityResult"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Geostrophic Flow Section -->
+            <div id="geostrophic" class="section">
+                <div class="equation-card">
+                    <h2 class="equation-title">⚖️ Geostrophic Balance</h2>
+                    <div class="equation-box">
+                        <p><strong>Geostrophic Equations:</strong></p>
+                        <p>$$-fv_g = -\frac{1}{\rho}\frac{\partial p}{\partial x}$$</p>
+                        <p>$$fu_g = -\frac{1}{\rho}\frac{\partial p}{\partial y}$$</p>
+                        <p><strong>In terms of sea surface height:</strong></p>
+                        <p>$$u_g = -\frac{g}{f}\frac{\partial \eta}{\partial y}$$</p>
+                        <p>$$v_g = \frac{g}{f}\frac{\partial \eta}{\partial x}$$</p>
+                    </div>
+                    <div class="description">
+                        <p><strong>Physical Meaning:</strong> Geostrophic flow occurs when Coriolis force balances pressure gradient force. This is the dominant balance in large-scale ocean circulation away from the equator and boundaries.</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Geostrophic Velocity Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="geoLat">Latitude (degrees):</label>
+                                <input type="number" id="geoLat" value="45" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="sshGradient">SSH Gradient (m/km):</label>
+                                <input type="number" id="sshGradient" value="0.001" step="0.0001">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateGeostrophic()">Calculate Velocity</button>
+                        <div id="geostrophicResult"></div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">🌀 Thermal Wind Relation</h2>
+                    <div class="equation-box">
+                        <p><strong>Thermal Wind Equations:</strong></p>
+                        <p>$$\frac{\partial u_g}{\partial z} = -\frac{g}{\rho_0 f}\frac{\partial \rho}{\partial y}$$</p>
+                        <p>$$\frac{\partial v_g}{\partial z} = \frac{g}{\rho_0 f}\frac{\partial \rho}{\partial x}$$</p>
+                        <p><strong>Integrated form:</strong></p>
+                        <p>$$\mathbf{V}_g(z_2) - \mathbf{V}_g(z_1) = \frac{g}{\rho_0 f}\int_{z_1}^{z_2} \mathbf{k} \times \nabla_h \rho \, dz$$</p>
+                    </div>
+                    
+                    <div class="example-section">
+                        <h3>📊 Example: Gulf Stream Thermal Wind</h3>
+                        <p>Across the Gulf Stream, temperature drops from 20°C to 10°C over 100 km. At 40°N latitude:</p>
+                        <div id="thermalWindExample"></div>
+                        <button class="btn" onclick="calculateThermalWind()">Calculate Thermal Wind</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ekman Dynamics Section -->
+            <div id="ekman" class="section">
+                <div class="equation-card">
+                    <h2 class="equation-title">🌪️ Ekman Layer Equations</h2>
+                    <div class="equation-box">
+                        <p><strong>Ekman Balance:</strong></p>
+                        <p>$$-fv = A_z\frac{\partial^2 u}{\partial z^2}$$</p>
+                        <p>$$fu = A_z\frac{\partial^2 v}{\partial z^2}$$</p>
+                        <p><strong>Ekman Solution:</strong></p>
+                        <p>$$u(z) = V_0 e^{z/D_E} \cos\left(\frac{\pi}{4} + \frac{z}{D_E}\right)$$</p>
+                        <p>$$v(z) = V_0 e^{z/D_E} \sin\left(\frac{\pi}{4} + \frac{z}{D_E}\right)$$</p>
+                        <p><strong>Ekman Depth:</strong> $D_E = \sqrt{\frac{2A_z}{f}}$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Ekman Layer Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="ekmanLat">Latitude (degrees):</label>
+                                <input type="number" id="ekmanLat" value="30" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="windStress">Wind Stress (N/m²):</label>
+                                <input type="number" id="windStress" value="0.1" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label for="eddyViscosity">Eddy Viscosity (m²/s):</label>
+                                <input type="number" id="eddyViscosity" value="0.01" step="0.001">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateEkman()">Calculate Ekman Properties</button>
+                        <button class="btn" onclick="plotEkmanSpiral()">Plot Ekman Spiral</button>
+                        <div id="ekmanResult"></div>
+                        <div class="chart-container">
+                            <canvas id="ekmanChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">⬆️ Ekman Pumping</h2>
+                    <div class="equation-box">
+                        <p><strong>Ekman Pumping Velocity:</strong></p>
+                        <p>$$w_E = \frac{1}{\rho f}\left(\frac{\partial \tau_y}{\partial x} - \frac{\partial \tau_x}{\partial y}\right)$$</p>
+                        <p>$$w_E = \frac{\text{curl}(\boldsymbol{\tau})}{\rho f}$$</p>
+                        <p><strong>Sverdrup Transport:</strong></p>
+                        <p>$$\beta \int_{x_e}^{x_w} v \, dx = \frac{\text{curl}(\boldsymbol{\tau})}{\rho}$$</p>
+                    </div>
+                    
+                    <div class="example-section">
+                        <h3>📊 Example: Wind Stress Curl</h3>
+                        <p>Calculate Ekman pumping from wind stress curl measurements:</p>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="stressCurl">Wind Stress Curl (N/m³):</label>
+                                <input type="number" id="stressCurl" value="1e-7" step="1e-8">
+                            </div>
+                            <div class="input-group">
+                                <label for="pumpLat">Latitude (degrees):</label>
+                                <input type="number" id="pumpLat" value="35" step="0.1">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateEkmanPumping()">Calculate Pumping</button>
+                        <div id="pumpingResult"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wave Theory Section -->
+            <div id="waves" class="section">
+                <div class="equation-card">
+                    <h2 class="equation-title">🌊 Linear Wave Theory</h2>
+                    <div class="equation-box">
+                        <p><strong>Dispersion Relation:</strong></p>
+                        <p>$$\omega^2 = gk \tanh(kh)$$</p>
+                        <p><strong>Deep Water Waves (kh >> 1):</strong></p>
+                        <p>$$\omega^2 = gk, \quad c = \sqrt{\frac{g}{k}} = \sqrt{\frac{gT}{2\pi}}$$</p>
+                        <p><strong>Shallow Water Waves (kh << 1):</strong></p>
+                        <p>$$\omega^2 = gk^2h, \quad c = \sqrt{gh}$$</p>
+                        <p><strong>Group Velocity:</strong></p>
+                        <p>$$c_g = \frac{\partial \omega}{\partial k} = \frac{1}{2}c\left(1 + \frac{2kh}{\sinh(2kh)}\right)$$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Wave Properties Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="waveHeight">Wave Height (m):</label>
+                                <input type="number" id="waveHeight" value="2" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="wavePeriod">Wave Period (s):</label>
+                                <input type="number" id="wavePeriod" value="8" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="waterDepth">Water Depth (m):</label>
+                                <input type="number" id="waterDepth" value="100" step="1">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateWaveProperties()">Calculate Wave Properties</button>
+                        <button class="btn" onclick="plotWaveProfile()">Plot Wave Profile</button>
+                        <div id="waveResult"></div>
+                        <div class="chart-container">
+                            <canvas id="waveChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">🌀 Internal Waves</h2>
+                    <div class="equation-box">
+                        <p><strong>Brunt-Väisälä Frequency:</strong></p>
+                        <p>$$N^2 = -\frac{g}{\rho_0}\frac{d\rho}{dz} = \frac{g}{\rho_0}\left(\alpha\frac{dT}{dz} - \beta\frac{dS}{dz}\right)$$</p>
+                        <p><strong>Internal Wave Dispersion:</strong></p>
+                        <p>$$\omega^2 = N^2\frac{k_h^2}{k_h^2 + k_z^2} + f^2\frac{k_z^2}{k_h^2 + k_z^2}$$</p>
+                        <p><strong>Inertial-Gravity Waves:</strong></p>
+                        <p>$$f^2 \leq \omega^2 \leq N^2$$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Buoyancy Frequency Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="tempGradient">Temperature Gradient (°C/m):</label>
+                                <input type="number" id="tempGradient" value="-0.01" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="salinityGradient">Salinity Gradient (psu/m):</label>
+                                <input type="number" id="salinityGradient" value="0.001" step="0.0001">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateBuoyancyFreq()">Calculate N</button>
+                        <div id="buoyancyResult"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Thermohaline Section -->
+            <div id="thermohaline" class="section">
+                <div class="equation-card">
+                    <h2 class="equation-title">🌡️ Heat and Salt Conservation</h2>
+                    <div class="equation-box">
+                        <p><strong>Temperature Equation:</strong></p>
+                        <p>$$\frac{DT}{Dt} = \kappa_T \nabla^2 T + \frac{Q}{\rho c_p}$$</p>
+                        <p><strong>Salinity Equation:</strong></p>
+                        <p>$$\frac{DS}{Dt} = \kappa_S \nabla^2 S + \frac{S(E-P)}{\rho}$$</p>
+                        <p><strong>Potential Temperature:</strong></p>
+                        <p>$$\theta = T - \int_0^p \frac{\alpha T}{c_p} dp'$$</p>
+                        <p><strong>Potential Density:</strong></p>
+                        <p>$$\sigma_\theta = \rho(\theta, S, 0) - 1000 \text{ kg/m}^3$$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Potential Temperature Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="inSituTemp">In-situ Temperature (°C):</label>
+                                <input type="number" id="inSituTemp" value="4" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="inSituSalinity">Salinity (psu):</label>
+                                <input type="number" id="inSituSalinity" value="35" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="inSituPressure">Pressure (dbar):</label>
+                                <input type="number" id="inSituPressure" value="4000" step="100">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculatePotentialTemp()">Calculate θ and σ_θ</button>
+                        <div id="potentialResult"></div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">🔄 Thermohaline Circulation</h2>
+                    <div class="equation-box">
+                        <p><strong>Meridional Overturning Circulation:</strong></p>
+                        <p>$$\Psi(y,z) = \int_{z}^{0} \int_{x_w}^{x_e} v(x,y,z') \, dx \, dz'$$</p>
+                        <p><strong>Stommel's Box Model:</strong></p>
+                        <p>$$\frac{dT_1}{dt} = \gamma(T_0 - T_1) - q(T_1 - T_2)$$</p>
+                        <p>$$\frac{dS_1}{dt} = \gamma(S_0 - S_1) - q(S_1 - S_2)$$</p>
+                        <p>$$q = k|\alpha(T_1-T_2) - \beta(S_1-S_2)|$$</p>
+                    </div>
+                    
+                    <div class="example-section">
+                        <h3>📊 Example: Stommel Box Model</h3>
+                        <p>Two-box model of thermohaline circulation:</p>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="restoreTime">Restoring Time (years):</label>
+                                <input type="number" id="restoreTime" value="50" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="tempForcing">Temperature Forcing (°C):</label>
+                                <input type="number" id="tempForcing" value="20" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="saltForcing">Salinity Forcing (psu):</label>
+                                <input type="number" id="saltForcing" value="1" step="0.1">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="runStommelModel()">Run Box Model</button>
+                        <div class="chart-container">
+                            <canvas id="stommelChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mixing & Turbulence Section -->
+            <div id="mixing" class="section">
+                <div class="equation-card">
+                    <h2 class="equation-title">🌪️ Turbulent Mixing</h2>
+                    <div class="equation-box">
+                        <p><strong>Reynolds Decomposition:</strong></p>
+                        <p>$$u = \bar{u} + u', \quad v = \bar{v} + v', \quad w = \bar{w} + w'$$</p>
+                        <p><strong>Turbulent Kinetic Energy:</strong></p>
+                        <p>$$\text{TKE} = \frac{1}{2}(\overline{u'^2} + \overline{v'^2} + \overline{w'^2})$$</p>
+                        <p><strong>Richardson Number:</strong></p>
+                        <p>$$Ri = \frac{N^2}{(\partial u/\partial z)^2 + (\partial v/\partial z)^2}$$</p>
+                        <p><strong>Critical Richardson Number:</strong> $Ri_c = 0.25$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Richardson Number Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="buoyancyFreq">Buoyancy Frequency N (rad/s):</label>
+                                <input type="number" id="buoyancyFreq" value="0.01" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="shearU">du/dz (1/s):</label>
+                                <input type="number" id="shearU" value="0.001" step="0.0001">
+                            </div>
+                            <div class="input-group">
+                                <label for="shearV">dv/dz (1/s):</label>
+                                <input type="number" id="shearV" value="0.001" step="0.0001">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateRichardson()">Calculate Ri</button>
+                        <div id="richardsonResult"></div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">🔀 Diapycnal Mixing</h2>
+                    <div class="equation-box">
+                        <p><strong>Osborn Model:</strong></p>
+                        <p>$$K_\rho = \Gamma \frac{\varepsilon}{N^2}$$</p>
+                        <p><strong>Where:</strong> $\Gamma = 0.2$ (mixing efficiency)</p>
+                        <p><strong>Thorpe Scale:</strong></p>
+                        <p>$$L_T = \sqrt{\overline{d^2}}$$</p>
+                        <p><strong>Ozmidov Scale:</strong></p>
+                        <p>$$L_O = \sqrt{\frac{\varepsilon}{N^3}}$$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Mixing Parameters Calculator</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="dissipation">Dissipation Rate ε (W/kg):</label>
+                                <input type="number" id="dissipation" value="1e-9" step="1e-10">
+                            </div>
+                            <div class="input-group">
+                                <label for="mixingN">Buoyancy Frequency N (rad/s):</label>
+                                <input type="number" id="mixingN" value="0.01" step="0.001">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="calculateMixingParams()">Calculate Mixing</button>
+                        <div id="mixingResult"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tidal Theory Section -->
+            <div id="tides" class="section">
+                <div class="equation-card">
+                    <h2 class="equation-title">🌙 Tidal Equations</h2>
+                    <div class="equation-box">
+                        <p><strong>Laplace Tidal Equations:</strong></p>
+                        <p>$$\frac{\partial u}{\partial t} - fv = -g\frac{\partial \eta}{\partial x} + \frac{\tau_x}{\rho H}$$</p>
+                        <p>$$\frac{\partial v}{\partial t} + fu = -g\frac{\partial \eta}{\partial y} + \frac{\tau_y}{\rho H}$$</p>
+                        <p>$$\frac{\partial \eta}{\partial t} + \frac{\partial}{\partial x}(Hu) + \frac{\partial}{\partial y}(Hv) = 0$$</p>
+                        <p><strong>Tidal Potential:</strong></p>
+                        <p>$$V = \sum_{n,m} A_{nm} P_n^m(\sin\phi) \cos(m\lambda + \omega t + \phi_{nm})$$</p>
+                    </div>
+                    
+                    <div class="calculator">
+                        <h3>🧮 Tidal Harmonic Analysis</h3>
+                        <div class="grid">
+                            <div class="input-group">
+                                <label for="m2Amp">M2 Amplitude (m):</label>
+                                <input type="number" id="m2Amp" value="1.0" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="m2Phase">M2 Phase (degrees):</label>
+                                <input type="number" id="m2Phase" value="0" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="s2Amp">S2 Amplitude (m):</label>
+                                <input type="number" id="s2Amp" value="0.3" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="s2Phase">S2 Phase (degrees):</label>
+                                <input type="number" id="s2Phase" value="30" step="1">
+                            </div>
+                        </div>
+                        <button class="btn" onclick="plotTidalSignal()">Plot Tidal Signal</button>
+                        <div class="chart-container">
+                            <canvas id="tidalChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="equation-card">
+                    <h2 class="equation-title">📊 Important Parameters Table</h2>
+                    <table class="parameter-table">
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Symbol</th>
+                                <th>Typical Value</th>
+                                <th>Units</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Earth's rotation rate</td><td>Ω</td><td>7.27 × 10⁻⁵</td><td>rad/s</td></tr>
+                            <tr><td>Gravitational acceleration</td><td>g</td><td>9.81</td><td>m/s²</td></tr>
+                            <tr><td>Seawater density</td><td>ρ</td><td>1025</td><td>kg/m³</td></tr>
+                            <tr><td>Thermal expansion</td><td>α</td><td>2 × 10⁻⁴</td><td>°C⁻¹</td></tr>
+                            <tr><td>Haline contraction</td><td>β</td><td>7.6 × 10⁻⁴</td><td>psu⁻¹</td></tr>
+                            <tr><td>Specific heat</td><td>cp</td><td>4000</td><td>J/(kg·°C)</td></tr>
+                            <tr><td>Molecular viscosity</td><td>ν</td><td>10⁻⁶</td><td>m²/s</td></tr>
+                            <tr><td>Eddy viscosity</td><td>Az</td><td>10⁻² - 10⁻¹</td><td>m²/s</td></tr>
+                            <tr><td>Buoyancy frequency</td><td>N</td><td>10⁻³ - 10⁻²</td><td>rad/s</td></tr>
+                            <tr><td>Rossby radius</td><td>LR</td><td>10 - 100</td><td>km</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChart = null;
+        
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Update navigation
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function calculateCoriolis() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const omega = 7.27e-5; // rad/s
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            const period = 2 * Math.PI / Math.abs(f) / 3600; // hours
+            
+            document.getElementById('coriolisResult').innerHTML = `
+                <div class="result">
+                    <strong>Results:</strong><br>
+                    Coriolis parameter f = ${f.toExponential(3)} rad/s<br>
+                    Inertial period = ${period.toFixed(1)} hours
+                </div>
+            `;
+        }
+        
+        function calculateDensity() {
+            const T = parseFloat(document.getElementById('temperature').value);
+            const S = parseFloat(document.getElementById('salinity').value);
+            const p = parseFloat(document.getElementById('pressure').value);
+            
+            const rho0 = 1025; // kg/m³
+            const T0 = 15, S0 = 35, p0 = 0;
+            const alpha = 2e-4, beta = 7.6e-4, gamma = 4.4e-6;
+            
+            const rho = rho0 * (1 - alpha*(T-T0) + beta*(S-S0) + gamma*(p-p0));
+            const sigma = rho - 1000;
+            
+            document.getElementById('densityResult').innerHTML = `
+                <div class="result">
+                    <strong>Results:</strong><br>
+                    Density ρ = ${rho.toFixed(2)} kg/m³<br>
+                    Sigma-t σ = ${sigma.toFixed(2)} kg/m³
+                </div>
+            `;
+        }
+        
+        function calculateGeostrophic() {
+            const lat = parseFloat(document.getElementById('geoLat').value);
+            const gradient = parseFloat(document.getElementById('sshGradient').value) / 1000; // m/m
+            
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            const g = 9.81;
+            
+            const velocity = g * gradient / Math.abs(f);
+            
+            document.getElementById('geostrophicResult').innerHTML = `
+                <div class="result">
+                    <strong>Results:</strong><br>
+                    Geostrophic velocity = ${velocity.toFixed(3)} m/s<br>
+                    Direction: ${f > 0 ? 'Perpendicular to gradient (NH)' : 'Perpendicular to gradient (SH)'}
+                </div>
+            `;
+        }
+        
+        function calculateThermalWind() {
+            const deltaT = 10; // °C
+            const distance = 100000; // m
+            const lat = 40;
+            const depth = 1000; // m
+            
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            const g = 9.81;
+            const rho0 = 1025;
+            const alpha = 2e-4;
+            
+            const drho_dy = rho0 * alpha * deltaT / distance;
+            const du_dz = -g * drho_dy / (rho0 * f);
+            const deltaU = du_dz * depth;
+            
+            document.getElementById('thermalWindExample').innerHTML = `
+                <div class="result">
+                    <strong>Thermal Wind Calculation:</strong><br>
+                    Density gradient = ${drho_dy.toExponential(2)} kg/m⁴<br>
+                    Vertical shear du/dz = ${du_dz.toExponential(3)} s⁻¹<br>
+                    Velocity difference over ${depth}m = ${deltaU.toFixed(2)} m/s
+                </div>
+            `;
+        }
+        
+        function calculateEkman() {
+            const lat = parseFloat(document.getElementById('ekmanLat').value);
+            const tau = parseFloat(document.getElementById('windStress').value);
+            const Az = parseFloat(document.getElementById('eddyViscosity').value);
+            
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            const rho = 1025;
+            
+            const ekmanDepth = Math.sqrt(2 * Az / Math.abs(f));
+            const surfaceVel = tau / (rho * Math.abs(f) * ekmanDepth);
+            const transport = tau / (rho * Math.abs(f));
+            
+            document.getElementById('ekmanResult').innerHTML = `
+                <div class="result">
+                    <strong>Ekman Layer Properties:</strong><br>
+                    Ekman depth = ${ekmanDepth.toFixed(1)} m<br>
+                    Surface velocity = ${surfaceVel.toFixed(3)} m/s<br>
+                    Ekman transport = ${transport.toFixed(3)} m²/s<br>
+                    Transport direction: ${f > 0 ? '90° right of wind' : '90° left of wind'}
+                </div>
+            `;
+        }
+        
+        function plotEkmanSpiral() {
+            const lat = parseFloat(document.getElementById('ekmanLat').value);
+            const tau = parseFloat(document.getElementById('windStress').value);
+            const Az = parseFloat(document.getElementById('eddyViscosity').value);
+            
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            const rho = 1025;
+            
+            const ekmanDepth = Math.sqrt(2 * Az / Math.abs(f));
+            const V0 = tau / (rho * Math.abs(f) * ekmanDepth);
+            
+            const depths = [];
+            const u = [];
+            const v = [];
+            
+            for (let i = 0; i <= 50; i++) {
+                const z = -i * ekmanDepth / 10;
+                depths.push(-z);
+                
+                const factor = Math.exp(z / ekmanDepth);
+                const angle = Math.PI/4 + z/ekmanDepth;
+                
+                u.push(V0 * factor * Math.cos(angle));
+                v.push(V0 * factor * Math.sin(angle) * (f > 0 ? 1 : -1));
+            }
+            
+            const ctx = document.getElementById('ekmanChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Ekman Spiral',
+                        data: u.map((ui, i) => ({x: ui, y: v[i]})),
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        showLine: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'U Velocity (m/s)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'V Velocity (m/s)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Ekman Spiral (Surface to Deep)'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateEkmanPumping() {
+            const curl = parseFloat(document.getElementById('stressCurl').value);
+            const lat = parseFloat(document.getElementById('pumpLat').value);
+            
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            const rho = 1025;
+            
+            const wE = curl / (rho * f);
+            const wE_per_year = wE * 365.25 * 24 * 3600; // m/year
+            
+            document.getElementById('pumpingResult').innerHTML = `
+                <div class="result">
+                    <strong>Ekman Pumping:</strong><br>
+                    Vertical velocity = ${wE.toExponential(3)} m/s<br>
+                    Annual pumping = ${wE_per_year.toFixed(1)} m/year<br>
+                    Direction: ${wE > 0 ? 'Upward (divergence)' : 'Downward (convergence)'}
+                </div>
+            `;
+        }
+        
+        function calculateWaveProperties() {
+            const H = parseFloat(document.getElementById('waveHeight').value);
+            const T = parseFloat(document.getElementById('wavePeriod').value);
+            const h = parseFloat(document.getElementById('waterDepth').value);
+            
+            const g = 9.81;
+            const omega = 2 * Math.PI / T;
+            const k = omega * omega / g; // Deep water approximation
+            
+            // Solve dispersion relation iteratively
+            let k_new = k;
+            for (let i = 0; i < 10; i++) {
+                k_new = omega * omega / (g * Math.tanh(k_new * h));
+            }
+            k = k_new;
+            
+            const L = 2 * Math.PI / k;
+            const c = omega / k;
+            const cg = 0.5 * c * (1 + 2*k*h / Math.sinh(2*k*h));
+            
+            const kh = k * h;
+            let regime;
+            if (kh > Math.PI) regime = "Deep water";
+            else if (kh < Math.PI/10) regime = "Shallow water";
+            else regime = "Intermediate depth";
+            
+            document.getElementById('waveResult').innerHTML = `
+                <div class="result">
+                    <strong>Wave Properties:</strong><br>
+                    Wavelength L = ${L.toFixed(1)} m<br>
+                    Wave number k = ${k.toFixed(4)} rad/m<br>
+                    Phase speed c = ${c.toFixed(2)} m/s<br>
+                    Group speed cg = ${cg.toFixed(2)} m/s<br>
+                    kh = ${kh.toFixed(2)} (${regime})
+                </div>
+            `;
+        }
+        
+        function plotWaveProfile() {
+            const H = parseFloat(document.getElementById('waveHeight').value);
+            const T = parseFloat(document.getElementById('wavePeriod').value);
+            const h = parseFloat(document.getElementById('waterDepth').value);
+            
+            const g = 9.81;
+            const omega = 2 * Math.PI / T;
+            let k = omega * omega / g;
+            
+            // Solve dispersion relation
+            for (let i = 0; i < 10; i++) {
+                k = omega * omega / (g * Math.tanh(k * h));
+            }
+            
+            const L = 2 * Math.PI / k;
+            const x = [];
+            const eta = [];
+            
+            for (let i = 0; i <= 100; i++) {
+                const xi = i * 2 * L / 100;
+                x.push(xi);
+                eta.push(H/2 * Math.cos(k * xi));
+            }
+            
+            const ctx = document.getElementById('waveChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: x.map(xi => xi.toFixed(0)),
+                    datasets: [{
+                        label: 'Wave Profile',
+                        data: eta,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Distance (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Surface Elevation (m)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Wave Profile'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateBuoyancyFreq() {
+            const dT_dz = parseFloat(document.getElementById('tempGradient').value);
+            const dS_dz = parseFloat(document.getElementById('salinityGradient').value);
+            
+            const g = 9.81;
+            const rho0 = 1025;
+            const alpha = 2e-4;
+            const beta = 7.6e-4;
+            
+            const N2 = (g/rho0) * (alpha * (-dT_dz) - beta * dS_dz);
+            const N = Math.sqrt(Math.max(0, N2));
+            const period = 2 * Math.PI / N / 60; // minutes
+            
+            document.getElementById('buoyancyResult').innerHTML = `
+                <div class="result">
+                    <strong>Buoyancy Frequency:</strong><br>
+                    N² = ${N2.toExponential(3)} rad²/s²<br>
+                    N = ${N.toFixed(4)} rad/s<br>
+                    Buoyancy period = ${period.toFixed(1)} minutes<br>
+                    ${N2 > 0 ? 'Stable stratification' : 'Unstable stratification'}
+                </div>
+            `;
+        }
+        
+        function calculatePotentialTemp() {
+            const T = parseFloat(document.getElementById('inSituTemp').value);
+            const S = parseFloat(document.getElementById('inSituSalinity').value);
+            const p = parseFloat(document.getElementById('inSituPressure').value);
+            
+            // Simplified potential temperature calculation
+            const theta = T - 0.0001 * p; // Approximate adiabatic cooling
+            
+            // Potential density
+            const rho0 = 1025;
+            const alpha = 2e-4;
+            const beta = 7.6e-4;
+            const sigma_theta = rho0 * (1 - alpha*(theta-15) + beta*(S-35)) - 1000;
+            
+            document.getElementById('potentialResult').innerHTML = `
+                <div class="result">
+                    <strong>Results:</strong><br>
+                    Potential temperature θ = ${theta.toFixed(3)} °C<br>
+                    Potential density σ_θ = ${sigma_theta.toFixed(2)} kg/m³<br>
+                    Temperature correction = ${(T-theta).toFixed(3)} °C
+                </div>
+            `;
+        }
+        
+        function runStommelModel() {
+            // Simplified Stommel box model simulation
+            const ctx = document.getElementById('stommelChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            const time = [];
+            const circulation = [];
+            
+            for (let t = 0; t <= 100; t++) {
+                time.push(t);
+                // Simplified oscillatory behavior
+                const circ = Math.sin(t * 0.1) * Math.exp(-t * 0.02);
+                circulation.push(circ);
+            }
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [{
+                        label: 'Circulation Strength',
+                        data: circulation,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (years)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Circulation (Sv)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Stommel Box Model Evolution'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateRichardson() {
+            const N = parseFloat(document.getElementById('buoyancyFreq').value);
+            const du_dz = parseFloat(document.getElementById('shearU').value);
+            const dv_dz = parseFloat(document.getElementById('shearV').value);
+            
+            const shear2 = du_dz*du_dz + dv_dz*dv_dz;
+            const Ri = N*N / shear2;
+            
+            let stability;
+            if (Ri > 0.25) stability = "Stable (no turbulence)";
+            else if (Ri > 0) stability = "Marginally stable";
+            else stability = "Unstable";
+            
+            document.getElementById('richardsonResult').innerHTML = `
+                <div class="result">
+                    <strong>Richardson Number Analysis:</strong><br>
+                    Ri = ${Ri.toFixed(3)}<br>
+                    Shear² = ${shear2.toExponential(3)} s⁻²<br>
+                    Stability: ${stability}<br>
+                    Critical Ri = 0.25
+                </div>
+            `;
+        }
+        
+        function calculateMixingParams() {
+            const epsilon = parseFloat(document.getElementById('dissipation').value);
+            const N = parseFloat(document.getElementById('mixingN').value);
+            
+            const gamma = 0.2; // Mixing efficiency
+            const K_rho = gamma * epsilon / (N*N);
+            const L_O = Math.sqrt(epsilon / (N*N*N));
+            
+            document.getElementById('mixingResult').innerHTML = `
+                <div class="result">
+                    <strong>Mixing Parameters:</strong><br>
+                    Diapycnal diffusivity K_ρ = ${K_rho.toExponential(3)} m²/s<br>
+                    Ozmidov scale L_O = ${L_O.toFixed(3)} m<br>
+                    Mixing efficiency Γ = ${gamma}
+                </div>
+            `;
+        }
+        
+        function plotTidalSignal() {
+            const m2_amp = parseFloat(document.getElementById('m2Amp').value);
+            const m2_phase = parseFloat(document.getElementById('m2Phase').value) * Math.PI / 180;
+            const s2_amp = parseFloat(document.getElementById('s2Amp').value);
+            const s2_phase = parseFloat(document.getElementById('s2Phase').value) * Math.PI / 180;
+            
+            const omega_m2 = 2 * Math.PI / (12.42 * 3600); // M2 frequency
+            const omega_s2 = 2 * Math.PI / (12 * 3600);    // S2 frequency
+            
+            const time = [];
+            const elevation = [];
+            
+            for (let t = 0; t <= 48; t += 0.1) {
+                time.push(t);
+                const t_sec = t * 3600;
+                const eta = m2_amp * Math.cos(omega_m2 * t_sec + m2_phase) +
+                           s2_amp * Math.cos(omega_s2 * t_sec + s2_phase);
+                elevation.push(eta);
+            }
+            
+            const ctx = document.getElementById('tidalChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time.map(t => t.toFixed(1)),
+                    datasets: [{
+                        label: 'Tidal Elevation',
+                        data: elevation,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Sea Level (m)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Tidal Signal (M2 + S2 Components)'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize with first calculation
+        window.onload = function() {
+            calculateCoriolis();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c16e2be7e888ae',t:'MTc1NDY4MTQ0OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
