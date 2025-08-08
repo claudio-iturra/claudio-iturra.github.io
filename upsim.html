@@ -1,0 +1,1066 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Upwelling Circulation Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 30%, #0284c7 70%, #0ea5e9 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.2);
+            padding: 40px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #38bdf8, #0ea5e9, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 1400px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .controls-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .controls-section h2 {
+            color: #0c4a6e;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            border-bottom: 4px solid #0ea5e9;
+            padding-bottom: 15px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #0c4a6e;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group select, .control-group input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        
+        .control-group select:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            background: white;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+        }
+        
+        .range-container {
+            position: relative;
+        }
+        
+        .range-value {
+            position: absolute;
+            right: 10px;
+            top: -35px;
+            background: #0ea5e9;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        
+        .simulate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0c4a6e, #0ea5e9);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+            margin-top: 20px;
+        }
+        
+        .simulate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(14, 165, 233, 0.4);
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .preset-btn {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .visualization-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .viz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .viz-header h2 {
+            color: #0c4a6e;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 700px;
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        
+        .parameters-display {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .parameter-card {
+            background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #0ea5e9;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        
+        .parameter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .parameter-card h4 {
+            color: #0c4a6e;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .parameter-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0ea5e9;
+            margin-bottom: 5px;
+        }
+        
+        .parameter-unit {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .upwelling-info {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border: 2px solid #7dd3fc;
+            color: #0c4a6e;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .upwelling-info h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-section {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .preset-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Upwelling Circulation Simulator</h1>
+            <p>Advanced simulation of coastal upwelling dynamics with complete physical oceanography parameter control. Visualize Ekman transport, cold water upwelling, thermal front formation, and nutrient transport in real-time. Explore how wind stress, Coriolis effects, stratification, and bathymetry drive coastal upwelling circulation patterns by Claudio Iturra.</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-section">
+                <h2>🎛️ Physical Oceanography Controls</h2>
+                
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset('strong')">💨 Strong Upwelling</button>
+                    <button class="preset-btn" onclick="loadPreset('weak')">🌬️ Weak Upwelling</button>
+                    <button class="preset-btn" onclick="loadPreset('relaxation')">😌 Relaxation</button>
+                    <button class="preset-btn" onclick="loadPreset('seasonal')">🔄 Seasonal</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="wind-stress">💨 Alongshore Wind Stress</label>
+                    <div class="range-container">
+                        <input type="range" id="wind-stress" min="-0.3" max="0.3" step="0.01" value="0.15" onchange="updateSimulation()">
+                        <div class="range-value" id="wind-stress-value">0.15 N/m²</div>
+                    </div>
+                    <div class="help-text">Positive = upwelling-favorable winds, Negative = downwelling winds</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="latitude">🌍 Latitude (Coriolis Parameter)</label>
+                    <div class="range-container">
+                        <input type="range" id="latitude" min="10" max="60" step="1" value="37" onchange="updateSimulation()">
+                        <div class="range-value" id="latitude-value">37°N</div>
+                    </div>
+                    <div class="help-text">Controls Coriolis effect strength and Ekman transport</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="stratification">⚖️ Water Column Stratification</label>
+                    <div class="range-container">
+                        <input type="range" id="stratification" min="0.5" max="5" step="0.1" value="2" onchange="updateSimulation()">
+                        <div class="range-value" id="stratification-value">2.0 s⁻²</div>
+                    </div>
+                    <div class="help-text">Buoyancy frequency - controls vertical mixing resistance</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="shelf-slope">🏔️ Continental Shelf Slope</label>
+                    <div class="range-container">
+                        <input type="range" id="shelf-slope" min="0.001" max="0.05" step="0.001" value="0.01" onchange="updateSimulation()">
+                        <div class="range-value" id="shelf-slope-value">0.010</div>
+                    </div>
+                    <div class="help-text">Bathymetric slope affecting upwelling intensity</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="mixed-layer-depth">🌊 Mixed Layer Depth</label>
+                    <div class="range-container">
+                        <input type="range" id="mixed-layer-depth" min="10" max="80" step="5" value="25" onchange="updateSimulation()">
+                        <div class="range-value" id="mixed-layer-depth-value">25 m</div>
+                    </div>
+                    <div class="help-text">Surface mixed layer thickness</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="thermocline-strength">🌡️ Thermocline Strength</label>
+                    <div class="range-container">
+                        <input type="range" id="thermocline-strength" min="0.05" max="0.5" step="0.01" value="0.2" onchange="updateSimulation()">
+                        <div class="range-value" id="thermocline-strength-value">0.20 °C/m</div>
+                    </div>
+                    <div class="help-text">Temperature gradient strength in thermocline</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="background-current">🌀 Background Current Velocity</label>
+                    <div class="range-container">
+                        <input type="range" id="background-current" min="0" max="1" step="0.05" value="0.2" onchange="updateSimulation()">
+                        <div class="range-value" id="background-current-value">0.20 m/s</div>
+                    </div>
+                    <div class="help-text">Alongshore background circulation</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="surface-temp">🌡️ Offshore Surface Temperature</label>
+                    <div class="range-container">
+                        <input type="range" id="surface-temp" min="12" max="24" step="0.5" value="18" onchange="updateSimulation()">
+                        <div class="range-value" id="surface-temp-value">18°C</div>
+                    </div>
+                    <div class="help-text">Warm offshore surface water temperature</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="deep-temp">🌡️ Deep Water Temperature</label>
+                    <div class="range-container">
+                        <input type="range" id="deep-temp" min="4" max="12" step="0.5" value="8" onchange="updateSimulation()">
+                        <div class="range-value" id="deep-temp-value">8°C</div>
+                    </div>
+                    <div class="help-text">Cold deep water temperature for upwelling</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="nutrient-concentration">🧪 Deep Water Nutrients</label>
+                    <div class="range-container">
+                        <input type="range" id="nutrient-concentration" min="5" max="40" step="1" value="25" onchange="updateSimulation()">
+                        <div class="range-value" id="nutrient-concentration-value">25 μM</div>
+                    </div>
+                    <div class="help-text">Nitrate concentration in upwelled water</div>
+                </div>
+                
+                <button class="simulate-btn" onclick="updateSimulation()">🔄 Update Upwelling Simulation</button>
+            </div>
+            
+            <div class="visualization-section">
+                <div class="viz-header">
+                    <h2>📊 Coastal Upwelling Cross-Section</h2>
+                    <div id="upwelling-info" class="upwelling-info">
+                        <h3>Upwelling Dynamics</h3>
+                        <p id="upwelling-description">Adjust parameters to see upwelling circulation and cold front formation</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="upwelling-chart"></canvas>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(to right, #3b82f6, #1e40af);"></div>
+                        <span>Cold Upwelled Water</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(to right, #ef4444, #dc2626);"></div>
+                        <span>Warm Surface Water</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(to right, #10b981, #059669);"></div>
+                        <span>High Nutrients</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #6b7280;"></div>
+                        <span>Velocity Vectors</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="parameters-display">
+            <h2 style="text-align: center; color: #0c4a6e; margin-bottom: 30px; font-size: 2rem;">📈 Calculated Upwelling Parameters</h2>
+            
+            <div class="parameters-grid">
+                <div class="parameter-card">
+                    <h4>⬆️ Upwelling Velocity</h4>
+                    <div class="parameter-value" id="calc-upwelling-velocity">-</div>
+                    <div class="parameter-unit">m/day</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🌊 Ekman Transport</h4>
+                    <div class="parameter-value" id="calc-ekman-transport">-</div>
+                    <div class="parameter-unit">m²/s</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>❄️ Cold Front Strength</h4>
+                    <div class="parameter-value" id="calc-front-strength">-</div>
+                    <div class="parameter-unit">°C/km</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>📊 Temperature Gradient</h4>
+                    <div class="parameter-value" id="calc-temp-gradient">-</div>
+                    <div class="parameter-unit">°C/m</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🧪 Nutrient Flux</h4>
+                    <div class="parameter-value" id="calc-nutrient-flux">-</div>
+                    <div class="parameter-unit">μM⋅m/day</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🌀 Coastal Jet Velocity</h4>
+                    <div class="parameter-value" id="calc-jet-velocity">-</div>
+                    <div class="parameter-unit">m/s</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🔄 Mixing Intensity</h4>
+                    <div class="parameter-value" id="calc-mixing-intensity">-</div>
+                    <div class="parameter-unit">index</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>⚖️ Stratification Index</h4>
+                    <div class="parameter-value" id="calc-stratification-index">-</div>
+                    <div class="parameter-unit">s⁻²</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let upwellingChart;
+        
+        // Initialize range value displays
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRangeValues();
+            updateSimulation();
+        });
+        
+        function updateRangeValues() {
+            const ranges = ['wind-stress', 'latitude', 'stratification', 'shelf-slope', 'mixed-layer-depth', 
+                           'thermocline-strength', 'background-current', 'surface-temp', 'deep-temp', 'nutrient-concentration'];
+            
+            ranges.forEach(id => {
+                const range = document.getElementById(id);
+                const valueDisplay = document.getElementById(id + '-value');
+                let value = range.value;
+                let unit = '';
+                
+                switch(id) {
+                    case 'wind-stress':
+                        unit = ' N/m²';
+                        break;
+                    case 'latitude':
+                        unit = '°N';
+                        break;
+                    case 'stratification':
+                        unit = ' s⁻²';
+                        break;
+                    case 'shelf-slope':
+                        unit = '';
+                        value = parseFloat(value).toFixed(3);
+                        break;
+                    case 'mixed-layer-depth':
+                        unit = ' m';
+                        break;
+                    case 'thermocline-strength':
+                        unit = ' °C/m';
+                        break;
+                    case 'background-current':
+                        unit = ' m/s';
+                        break;
+                    case 'surface-temp':
+                    case 'deep-temp':
+                        unit = '°C';
+                        break;
+                    case 'nutrient-concentration':
+                        unit = ' μM';
+                        break;
+                }
+                
+                valueDisplay.textContent = value + unit;
+                
+                range.addEventListener('input', function() {
+                    let displayValue = this.value;
+                    if (id === 'shelf-slope') {
+                        displayValue = parseFloat(this.value).toFixed(3);
+                    }
+                    valueDisplay.textContent = displayValue + unit;
+                });
+            });
+        }
+        
+        function loadPreset(presetType) {
+            switch(presetType) {
+                case 'strong':
+                    document.getElementById('wind-stress').value = 0.25;
+                    document.getElementById('latitude').value = 42;
+                    document.getElementById('stratification').value = 3.5;
+                    document.getElementById('shelf-slope').value = 0.015;
+                    document.getElementById('mixed-layer-depth').value = 20;
+                    document.getElementById('thermocline-strength').value = 0.3;
+                    document.getElementById('background-current').value = 0.4;
+                    document.getElementById('surface-temp').value = 20;
+                    document.getElementById('deep-temp').value = 6;
+                    document.getElementById('nutrient-concentration').value = 35;
+                    break;
+                    
+                case 'weak':
+                    document.getElementById('wind-stress').value = 0.08;
+                    document.getElementById('latitude').value = 30;
+                    document.getElementById('stratification').value = 1.5;
+                    document.getElementById('shelf-slope').value = 0.005;
+                    document.getElementById('mixed-layer-depth').value = 35;
+                    document.getElementById('thermocline-strength').value = 0.15;
+                    document.getElementById('background-current').value = 0.15;
+                    document.getElementById('surface-temp').value = 18;
+                    document.getElementById('deep-temp').value = 10;
+                    document.getElementById('nutrient-concentration').value = 15;
+                    break;
+                    
+                case 'relaxation':
+                    document.getElementById('wind-stress').value = -0.05;
+                    document.getElementById('latitude').value = 37;
+                    document.getElementById('stratification').value = 1.0;
+                    document.getElementById('shelf-slope').value = 0.008;
+                    document.getElementById('mixed-layer-depth').value = 45;
+                    document.getElementById('thermocline-strength').value = 0.1;
+                    document.getElementById('background-current').value = 0.1;
+                    document.getElementById('surface-temp').value = 22;
+                    document.getElementById('deep-temp').value = 12;
+                    document.getElementById('nutrient-concentration').value = 8;
+                    break;
+                    
+                case 'seasonal':
+                    document.getElementById('wind-stress').value = 0.18;
+                    document.getElementById('latitude').value = 36;
+                    document.getElementById('stratification').value = 2.5;
+                    document.getElementById('shelf-slope').value = 0.012;
+                    document.getElementById('mixed-layer-depth').value = 25;
+                    document.getElementById('thermocline-strength').value = 0.25;
+                    document.getElementById('background-current').value = 0.3;
+                    document.getElementById('surface-temp').value = 19;
+                    document.getElementById('deep-temp').value = 8;
+                    document.getElementById('nutrient-concentration').value = 28;
+                    break;
+            }
+            
+            updateRangeValues();
+            updateSimulation();
+        }
+        
+        function calculateUpwellingDynamics() {
+            // Get all parameters
+            const windStress = parseFloat(document.getElementById('wind-stress').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const stratification = parseFloat(document.getElementById('stratification').value);
+            const shelfSlope = parseFloat(document.getElementById('shelf-slope').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixed-layer-depth').value);
+            const thermoclineStrength = parseFloat(document.getElementById('thermocline-strength').value);
+            const backgroundCurrent = parseFloat(document.getElementById('background-current').value);
+            const surfaceTemp = parseFloat(document.getElementById('surface-temp').value);
+            const deepTemp = parseFloat(document.getElementById('deep-temp').value);
+            const nutrientConc = parseFloat(document.getElementById('nutrient-concentration').value);
+            
+            // Physical constants
+            const f = 2 * 7.2921e-5 * Math.sin(latitude * Math.PI / 180); // Coriolis parameter
+            const rho = 1025; // Seawater density kg/m³
+            const g = 9.81; // Gravity
+            
+            // Calculate Ekman transport
+            const ekmanTransport = windStress / (rho * f);
+            
+            // Calculate upwelling velocity (simplified)
+            const upwellingVelocity = Math.abs(ekmanTransport) * shelfSlope * 86400; // m/day
+            
+            // Calculate coastal jet velocity (geostrophic balance)
+            const tempGradient = (surfaceTemp - deepTemp) / 100; // °C/m
+            const densityGradient = tempGradient * 0.2; // Simplified thermal expansion
+            const jetVelocity = backgroundCurrent + (g * densityGradient * 50) / f;
+            
+            // Calculate cold front strength
+            const frontStrength = Math.abs(upwellingVelocity) * tempGradient * 1000; // °C/km
+            
+            // Calculate nutrient flux
+            const nutrientFlux = upwellingVelocity * nutrientConc;
+            
+            // Calculate mixing intensity
+            const mixingIntensity = Math.min(1, Math.abs(windStress) * 5 + Math.abs(ekmanTransport) * 2);
+            
+            return {
+                ekmanTransport,
+                upwellingVelocity,
+                jetVelocity,
+                frontStrength,
+                tempGradient,
+                nutrientFlux,
+                mixingIntensity,
+                stratification,
+                f
+            };
+        }
+        
+        function generateUpwellingField() {
+            const dynamics = calculateUpwellingDynamics();
+            
+            // Create spatial grid (cross-shore vs depth)
+            const crossShorePoints = 50; // 0 to 50 km offshore
+            const depthPoints = 50; // 0 to 200 m depth
+            
+            const temperatures = [];
+            const velocitiesU = []; // Cross-shore velocity
+            const velocitiesW = []; // Vertical velocity
+            const nutrients = [];
+            
+            const windStress = parseFloat(document.getElementById('wind-stress').value);
+            const surfaceTemp = parseFloat(document.getElementById('surface-temp').value);
+            const deepTemp = parseFloat(document.getElementById('deep-temp').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixed-layer-depth').value);
+            const thermoclineStrength = parseFloat(document.getElementById('thermocline-strength').value);
+            const nutrientConc = parseFloat(document.getElementById('nutrient-concentration').value);
+            
+            for (let i = 0; i < crossShorePoints; i++) {
+                const distance = i * 1; // km offshore
+                const tempRow = [];
+                const velURow = [];
+                const velWRow = [];
+                const nutrientRow = [];
+                
+                for (let j = 0; j < depthPoints; j++) {
+                    const depth = j * 4; // meters
+                    
+                    // Temperature field with upwelling
+                    let temp;
+                    if (windStress > 0) { // Upwelling conditions
+                        // Cold water upwelling near coast
+                        const upwellingEffect = Math.exp(-distance / 10) * Math.exp(-Math.pow(depth - 30, 2) / 800);
+                        const thermoclineDepth = mixedLayerDepth + distance * 0.5; // Shoaling thermocline
+                        
+                        if (depth < mixedLayerDepth) {
+                            temp = surfaceTemp - upwellingEffect * (surfaceTemp - deepTemp) * 0.8;
+                        } else if (depth < thermoclineDepth + 30) {
+                            const thermoclineProgress = (depth - mixedLayerDepth) / 30;
+                            temp = surfaceTemp - (surfaceTemp - deepTemp) * thermoclineProgress;
+                            temp -= upwellingEffect * (surfaceTemp - deepTemp) * 0.5;
+                        } else {
+                            temp = deepTemp + (surfaceTemp - deepTemp) * 0.1;
+                        }
+                    } else { // Downwelling or relaxation
+                        const thermoclineDepth = mixedLayerDepth + Math.abs(windStress) * 20;
+                        if (depth < thermoclineDepth) {
+                            temp = surfaceTemp - depth * 0.02;
+                        } else {
+                            const thermoclineProgress = (depth - thermoclineDepth) / 50;
+                            temp = surfaceTemp - (surfaceTemp - deepTemp) * Math.min(1, thermoclineProgress);
+                        }
+                    }
+                    
+                    // Velocity field
+                    let velU = 0; // Cross-shore velocity
+                    let velW = 0; // Vertical velocity
+                    
+                    if (windStress > 0) { // Upwelling
+                        // Offshore Ekman transport in surface layer
+                        if (depth < mixedLayerDepth) {
+                            velU = dynamics.ekmanTransport * Math.exp(-depth / 20) * 0.1;
+                        }
+                        // Upward velocity near coast
+                        velW = dynamics.upwellingVelocity * Math.exp(-distance / 5) * Math.exp(-depth / 50) * 0.001;
+                    } else { // Downwelling
+                        if (depth < mixedLayerDepth) {
+                            velU = -Math.abs(dynamics.ekmanTransport) * Math.exp(-depth / 20) * 0.1;
+                        }
+                        velW = -Math.abs(dynamics.upwellingVelocity) * Math.exp(-distance / 5) * 0.001;
+                    }
+                    
+                    // Nutrient field
+                    let nutrient;
+                    if (windStress > 0) {
+                        const upwellingNutrientEffect = Math.exp(-distance / 8) * Math.exp(-Math.pow(depth - 40, 2) / 1000);
+                        nutrient = 2 + upwellingNutrientEffect * nutrientConc;
+                    } else {
+                        nutrient = 2 + (depth / 200) * nutrientConc * 0.3;
+                    }
+                    
+                    tempRow.push(temp);
+                    velURow.push(velU);
+                    velWRow.push(velW);
+                    nutrientRow.push(nutrient);
+                }
+                
+                temperatures.push(tempRow);
+                velocitiesU.push(velURow);
+                velocitiesW.push(velWRow);
+                nutrients.push(nutrientRow);
+            }
+            
+            return {
+                temperatures,
+                velocitiesU,
+                velocitiesW,
+                nutrients,
+                crossShorePoints,
+                depthPoints
+            };
+        }
+        
+        function updateUpwellingDescription() {
+            const windStress = parseFloat(document.getElementById('wind-stress').value);
+            const dynamics = calculateUpwellingDynamics();
+            
+            let description = '';
+            
+            if (windStress > 0.15) {
+                description = 'Strong upwelling-favorable winds driving intense Ekman transport offshore. Cold, nutrient-rich deep water rises to surface, creating sharp thermal fronts and high productivity zones.';
+            } else if (windStress > 0.05) {
+                description = 'Moderate upwelling conditions with offshore surface transport. Thermocline shoaling brings cooler water toward surface with moderate nutrient enhancement.';
+            } else if (windStress > -0.05) {
+                description = 'Relaxed conditions with minimal vertical circulation. Thermal stratification developing with reduced mixing and nutrient transport.';
+            } else {
+                description = 'Downwelling-favorable conditions with onshore surface transport. Warm surface water pushed downward, deepening thermocline and reducing surface nutrients.';
+            }
+            
+            document.getElementById('upwelling-description').textContent = description;
+        }
+        
+        function updateSimulation() {
+            updateRangeValues();
+            updateUpwellingDescription();
+            
+            const dynamics = calculateUpwellingDynamics();
+            const fieldData = generateUpwellingField();
+            
+            // Update parameter displays
+            document.getElementById('calc-upwelling-velocity').textContent = Math.abs(dynamics.upwellingVelocity).toFixed(2);
+            document.getElementById('calc-ekman-transport').textContent = dynamics.ekmanTransport.toFixed(4);
+            document.getElementById('calc-front-strength').textContent = dynamics.frontStrength.toFixed(1);
+            document.getElementById('calc-temp-gradient').textContent = Math.abs(dynamics.tempGradient).toFixed(3);
+            document.getElementById('calc-nutrient-flux').textContent = dynamics.nutrientFlux.toFixed(1);
+            document.getElementById('calc-jet-velocity').textContent = Math.abs(dynamics.jetVelocity).toFixed(2);
+            document.getElementById('calc-mixing-intensity').textContent = dynamics.mixingIntensity.toFixed(2);
+            document.getElementById('calc-stratification-index').textContent = dynamics.stratification.toFixed(1);
+            
+            // Create/update visualization
+            createUpwellingVisualization(fieldData, dynamics);
+        }
+        
+        function createUpwellingVisualization(fieldData, dynamics) {
+            const ctx = document.getElementById('upwelling-chart').getContext('2d');
+            
+            if (upwellingChart) {
+                upwellingChart.destroy();
+            }
+            
+            // Create temperature contour data
+            const contourData = [];
+            const velocityData = [];
+            
+            const surfaceTemp = parseFloat(document.getElementById('surface-temp').value);
+            const deepTemp = parseFloat(document.getElementById('deep-temp').value);
+            
+            // Sample points for visualization
+            for (let i = 0; i < fieldData.crossShorePoints; i += 2) {
+                for (let j = 0; j < fieldData.depthPoints; j += 2) {
+                    const distance = i * 1; // km
+                    const depth = j * 4; // m
+                    const temp = fieldData.temperatures[i][j];
+                    const velU = fieldData.velocitiesU[i][j];
+                    const velW = fieldData.velocitiesW[i][j];
+                    
+                    // Temperature points
+                    contourData.push({
+                        x: distance,
+                        y: depth,
+                        temp: temp
+                    });
+                    
+                    // Velocity vectors (subsample for clarity)
+                    if (i % 4 === 0 && j % 4 === 0 && (Math.abs(velU) > 0.001 || Math.abs(velW) > 0.0001)) {
+                        velocityData.push({
+                            x: distance,
+                            y: depth,
+                            u: velU * 1000, // Scale for visibility
+                            w: velW * 10000 // Scale for visibility
+                        });
+                    }
+                }
+            }
+            
+            // Create datasets for different temperature ranges
+            const coldWater = contourData.filter(d => d.temp < (surfaceTemp + deepTemp) / 2 - 2);
+            const warmWater = contourData.filter(d => d.temp > (surfaceTemp + deepTemp) / 2 + 2);
+            const moderateWater = contourData.filter(d => 
+                d.temp >= (surfaceTemp + deepTemp) / 2 - 2 && 
+                d.temp <= (surfaceTemp + deepTemp) / 2 + 2
+            );
+            
+            const datasets = [
+                {
+                    label: 'Cold Upwelled Water',
+                    data: coldWater.map(d => ({x: d.x, y: d.y})),
+                    backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                    borderColor: 'rgb(29, 78, 216)',
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                },
+                {
+                    label: 'Moderate Temperature',
+                    data: moderateWater.map(d => ({x: d.x, y: d.y})),
+                    backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                    borderColor: 'rgb(21, 128, 61)',
+                    pointRadius: 2,
+                    pointHoverRadius: 4
+                },
+                {
+                    label: 'Warm Surface Water',
+                    data: warmWater.map(d => ({x: d.x, y: d.y})),
+                    backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                    borderColor: 'rgb(220, 38, 38)',
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }
+            ];
+            
+            // Add velocity vectors as line segments
+            velocityData.forEach((vel, index) => {
+                if (Math.abs(vel.u) > 0.1 || Math.abs(vel.w) > 0.1) {
+                    datasets.push({
+                        label: index === 0 ? 'Velocity Vectors' : '',
+                        data: [
+                            {x: vel.x, y: vel.y},
+                            {x: vel.x + vel.u, y: vel.y + vel.w}
+                        ],
+                        borderColor: 'rgba(107, 114, 128, 0.8)',
+                        backgroundColor: 'rgba(107, 114, 128, 0.8)',
+                        pointRadius: 1,
+                        pointHoverRadius: 3,
+                        showLine: true,
+                        fill: false,
+                        borderWidth: 2,
+                        tension: 0
+                    });
+                }
+            });
+            
+            upwellingChart = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                filter: function(legendItem, chartData) {
+                                    return legendItem.text !== '';
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgb(14, 165, 233)',
+                            borderWidth: 2,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Distance: ${context[0].parsed.x.toFixed(1)} km, Depth: ${context[0].parsed.y.toFixed(0)} m`;
+                                },
+                                label: function(context) {
+                                    const datasetLabel = context.dataset.label;
+                                    if (datasetLabel.includes('Water')) {
+                                        const pointIndex = context.dataIndex;
+                                        const temp = contourData.find(d => 
+                                            Math.abs(d.x - context.parsed.x) < 0.1 && 
+                                            Math.abs(d.y - context.parsed.y) < 1
+                                        )?.temp;
+                                        return `${datasetLabel}: ${temp ? temp.toFixed(1) + '°C' : 'N/A'}`;
+                                    }
+                                    return datasetLabel;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Distance Offshore (km)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e',
+                                padding: { top: 15, bottom: 10 }
+                            },
+                            min: 0,
+                            max: 50,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)',
+                                drawBorder: true,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 12, weight: '500' },
+                                padding: 8,
+                                callback: function(value) {
+                                    return value + ' km';
+                                }
+                            },
+                            border: {
+                                color: '#374151',
+                                width: 2
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e',
+                                padding: { left: 10, right: 15 }
+                            },
+                            min: 0,
+                            max: 200,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)',
+                                drawBorder: true,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 12, weight: '500' },
+                                padding: 8,
+                                stepSize: 25,
+                                callback: function(value) {
+                                    return value + 'm';
+                                }
+                            },
+                            border: {
+                                color: '#374151',
+                                width: 2
+                            },
+                            reverse: true // Surface at top, deep at bottom
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c12084676c88ab',t:'MTc1NDY3ODI2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
