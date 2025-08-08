@@ -1,0 +1,1671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Contamination Assessment System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 20%, #2563eb 40%, #3b82f6 60%, #60a5fa 80%, #93c5fd 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 2200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.4);
+            padding: 50px;
+            border-radius: 30px;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(255,255,255,0.1);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.6);
+            background: linear-gradient(45deg, #fbbf24, #f59e0b, #d97706, #b45309);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 900;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.95;
+            max-width: 1600px;
+            margin: 0 auto;
+            line-height: 1.7;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 500px 1fr;
+            gap: 35px;
+            margin-bottom: 35px;
+        }
+        
+        .controls-section {
+            background: rgba(255,255,255,0.97);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+            max-height: 95vh;
+            overflow-y: auto;
+        }
+        
+        .controls-section h2 {
+            color: #1e3a8a;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            border-bottom: 5px solid #3b82f6;
+            padding-bottom: 15px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .control-tabs {
+            display: flex;
+            margin-bottom: 25px;
+            background: #f1f5f9;
+            border-radius: 15px;
+            padding: 5px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 8px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: #1e3a8a;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group input, .control-group select, .control-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8fafc;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .control-group input:focus, .control-group select:focus, .control-group textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .range-container {
+            position: relative;
+        }
+        
+        .range-value {
+            position: absolute;
+            right: 10px;
+            top: -35px;
+            background: linear-gradient(135deg, #3b82f6, #1e40af);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+        
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: italic;
+            line-height: 1.4;
+            background: #f1f5f9;
+            padding: 8px;
+            border-radius: 8px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .simulate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #dc2626, #ef4444, #f97316, #f59e0b);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            box-shadow: 0 10px 30px rgba(220, 38, 38, 0.4);
+            margin-top: 20px;
+        }
+        
+        .simulate-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 15px 40px rgba(220, 38, 38, 0.5);
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .preset-btn {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .preset-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .results-section {
+            background: rgba(255,255,255,0.97);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .viz-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .viz-header h2 {
+            color: #1e3a8a;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+            border: 2px solid #e2e8f0;
+            height: 450px;
+        }
+        
+        .chart-title {
+            text-align: center;
+            color: #1e3a8a;
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3b82f6;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .full-width-chart {
+            grid-column: 1 / -1;
+            height: 600px;
+        }
+        
+        .contamination-info {
+            background: rgba(255,255,255,0.97);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            margin-top: 30px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .contamination-info h2 {
+            color: #1e3a8a;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #f59e0b;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .info-card h4 {
+            color: #92400e;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        
+        .info-card p {
+            color: #451a03;
+            line-height: 1.6;
+            font-size: 0.95rem;
+        }
+        
+        .parameters-display {
+            background: rgba(255,255,255,0.97);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            margin-top: 30px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .param-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+        
+        .param-card {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #3b82f6;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .param-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .param-card h4 {
+            color: #1e3a8a;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        
+        .param-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #3b82f6;
+            margin-bottom: 5px;
+        }
+        
+        .param-unit {
+            font-size: 0.85rem;
+            color: #64748b;
+            font-style: italic;
+            font-weight: 600;
+        }
+        
+        .equations-section {
+            background: rgba(255,255,255,0.97);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+            margin-top: 30px;
+            backdrop-filter: blur(15px);
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        
+        .equations-section h2 {
+            color: #1e3a8a;
+            font-size: 2rem;
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        
+        .equation {
+            background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+            border: 3px solid #10b981;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.8;
+            color: #064e3b;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.2);
+        }
+        
+        .equation-title {
+            font-weight: 800;
+            color: #059669;
+            margin-bottom: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .warning-box {
+            background: linear-gradient(135deg, #fef2f2, #fee2e2);
+            border: 3px solid #ef4444;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #7f1d1d;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.2);
+        }
+        
+        .warning-box h3 {
+            color: #dc2626;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+        
+        @media (max-width: 1600px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-section {
+                position: static;
+                max-height: none;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .preset-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .param-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .control-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean Contamination Assessment System</h1>
+            <p>Advanced multi-parameter contamination modeling system for coastal waters. This comprehensive tool evaluates how oceanographic conditions affect pollutant transport, dispersion, degradation, and bioaccumulation in marine ecosystems. Input contamination sources and environmental parameters to assess pollution impacts and persistence in coastal environments by Claudio Iturra.</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-section">
+                <h2>🎛️ Contamination Parameters</h2>
+                
+                <div class="control-tabs">
+                    <button class="tab-button active" onclick="switchTab('source')">🏭 Source</button>
+                    <button class="tab-button" onclick="switchTab('ocean')">🌊 Ocean</button>
+                    <button class="tab-button" onclick="switchTab('bio')">🐟 Biology</button>
+                    <button class="tab-button" onclick="switchTab('chem')">⚗️ Chemistry</button>
+                </div>
+                
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset('oil-spill')">🛢️ Oil Spill</button>
+                    <button class="preset-btn" onclick="loadPreset('sewage')">🚰 Sewage</button>
+                    <button class="preset-btn" onclick="loadPreset('industrial')">🏭 Industrial</button>
+                    <button class="preset-btn" onclick="loadPreset('agricultural')">🌾 Agricultural</button>
+                </div>
+                
+                <!-- Source Parameters Tab -->
+                <div id="source-tab" class="tab-content active">
+                    <div class="control-group">
+                        <label for="contaminant-type">🧪 Contaminant Type</label>
+                        <select id="contaminant-type" onchange="updateSimulation()">
+                            <option value="oil">Oil/Hydrocarbons</option>
+                            <option value="nutrients">Nutrients (N/P)</option>
+                            <option value="heavy-metals">Heavy Metals</option>
+                            <option value="pathogens">Pathogens/Bacteria</option>
+                            <option value="plastics">Microplastics</option>
+                            <option value="chemicals">Industrial Chemicals</option>
+                        </select>
+                        <div class="help-text">Type of pollutant affecting degradation and transport</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="source-rate">💧 Discharge Rate</label>
+                        <div class="range-container">
+                            <input type="range" id="source-rate" min="1" max="1000" step="10" value="100" onchange="updateSimulation()">
+                            <div class="range-value" id="source-rate-value">100 kg/day</div>
+                        </div>
+                        <div class="help-text">Continuous pollutant input rate</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="source-duration">⏱️ Discharge Duration</label>
+                        <div class="range-container">
+                            <input type="range" id="source-duration" min="1" max="168" step="1" value="24" onchange="updateSimulation()">
+                            <div class="range-value" id="source-duration-value">24 hours</div>
+                        </div>
+                        <div class="help-text">How long contamination continues</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="source-distance">📍 Distance from Shore</label>
+                        <div class="range-container">
+                            <input type="range" id="source-distance" min="0.1" max="10" step="0.1" value="1" onchange="updateSimulation()">
+                            <div class="range-value" id="source-distance-value">1 km</div>
+                        </div>
+                        <div class="help-text">Offshore distance of pollution source</div>
+                    </div>
+                </div>
+                
+                <!-- Ocean Parameters Tab -->
+                <div id="ocean-tab" class="tab-content">
+                    <div class="control-group">
+                        <label for="current-speed">🌊 Current Speed</label>
+                        <div class="range-container">
+                            <input type="range" id="current-speed" min="0.01" max="1.0" step="0.01" value="0.15" onchange="updateSimulation()">
+                            <div class="range-value" id="current-speed-value">0.15 m/s</div>
+                        </div>
+                        <div class="help-text">Alongshore current velocity</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="wind-speed">💨 Wind Speed</label>
+                        <div class="range-container">
+                            <input type="range" id="wind-speed" min="0" max="25" step="0.5" value="8" onchange="updateSimulation()">
+                            <div class="range-value" id="wind-speed-value">8 m/s</div>
+                        </div>
+                        <div class="help-text">Surface wind affecting mixing</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="wave-height">🌊 Wave Height</label>
+                        <div class="range-container">
+                            <input type="range" id="wave-height" min="0.1" max="5" step="0.1" value="1.5" onchange="updateSimulation()">
+                            <div class="range-value" id="wave-height-value">1.5 m</div>
+                        </div>
+                        <div class="help-text">Significant wave height</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="water-depth">📏 Water Depth</label>
+                        <div class="range-container">
+                            <input type="range" id="water-depth" min="5" max="200" step="5" value="30" onchange="updateSimulation()">
+                            <div class="range-value" id="water-depth-value">30 m</div>
+                        </div>
+                        <div class="help-text">Average coastal water depth</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="temperature">🌡️ Water Temperature</label>
+                        <div class="range-container">
+                            <input type="range" id="temperature" min="5" max="30" step="1" value="18" onchange="updateSimulation()">
+                            <div class="range-value" id="temperature-value">18 °C</div>
+                        </div>
+                        <div class="help-text">Sea surface temperature</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="salinity">🧂 Salinity</label>
+                        <div class="range-container">
+                            <input type="range" id="salinity" min="20" max="40" step="0.5" value="35" onchange="updateSimulation()">
+                            <div class="range-value" id="salinity-value">35 PSU</div>
+                        </div>
+                        <div class="help-text">Water salinity (practical salinity units)</div>
+                    </div>
+                </div>
+                
+                <!-- Biology Parameters Tab -->
+                <div id="bio-tab" class="tab-content">
+                    <div class="control-group">
+                        <label for="phytoplankton">🦠 Phytoplankton Density</label>
+                        <div class="range-container">
+                            <input type="range" id="phytoplankton" min="0.1" max="10" step="0.1" value="2.5" onchange="updateSimulation()">
+                            <div class="range-value" id="phytoplankton-value">2.5 mg/m³</div>
+                        </div>
+                        <div class="help-text">Chlorophyll-a concentration</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="bacteria-count">🦠 Bacterial Activity</label>
+                        <div class="range-container">
+                            <input type="range" id="bacteria-count" min="1" max="100" step="1" value="25" onchange="updateSimulation()">
+                            <div class="range-value" id="bacteria-count-value">25 × 10⁶ cells/L</div>
+                        </div>
+                        <div class="help-text">Bacterial degradation potential</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="fish-density">🐟 Fish Population</label>
+                        <div class="range-container">
+                            <input type="range" id="fish-density" min="0.1" max="50" step="0.5" value="5" onchange="updateSimulation()">
+                            <div class="range-value" id="fish-density-value">5 kg/ha</div>
+                        </div>
+                        <div class="help-text">Fish biomass density</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="filter-feeders">🦪 Filter Feeders</label>
+                        <div class="range-container">
+                            <input type="range" id="filter-feeders" min="0" max="20" step="0.5" value="3" onchange="updateSimulation()">
+                            <div class="range-value" id="filter-feeders-value">3 kg/m²</div>
+                        </div>
+                        <div class="help-text">Bivalve/filter feeder biomass</div>
+                    </div>
+                </div>
+                
+                <!-- Chemistry Parameters Tab -->
+                <div id="chem-tab" class="tab-content">
+                    <div class="control-group">
+                        <label for="ph-level">⚗️ pH Level</label>
+                        <div class="range-container">
+                            <input type="range" id="ph-level" min="6.5" max="8.5" step="0.1" value="8.1" onchange="updateSimulation()">
+                            <div class="range-value" id="ph-level-value">8.1</div>
+                        </div>
+                        <div class="help-text">Seawater pH affecting chemical reactions</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="dissolved-oxygen">💨 Dissolved Oxygen</label>
+                        <div class="range-container">
+                            <input type="range" id="dissolved-oxygen" min="2" max="12" step="0.2" value="8" onchange="updateSimulation()">
+                            <div class="range-value" id="dissolved-oxygen-value">8 mg/L</div>
+                        </div>
+                        <div class="help-text">DO levels affecting degradation</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="turbidity">🌫️ Turbidity</label>
+                        <div class="range-container">
+                            <input type="range" id="turbidity" min="0.1" max="50" step="0.5" value="5" onchange="updateSimulation()">
+                            <div class="range-value" id="turbidity-value">5 NTU</div>
+                        </div>
+                        <div class="help-text">Water clarity affecting photodegradation</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="sediment-load">🪨 Suspended Sediments</label>
+                        <div class="range-container">
+                            <input type="range" id="sediment-load" min="1" max="500" step="5" value="50" onchange="updateSimulation()">
+                            <div class="range-value" id="sediment-load-value">50 mg/L</div>
+                        </div>
+                        <div class="help-text">Particulate matter for adsorption</div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <label for="uv-radiation">☀️ UV Radiation</label>
+                        <div class="range-container">
+                            <input type="range" id="uv-radiation" min="0.1" max="10" step="0.1" value="5" onchange="updateSimulation()">
+                            <div class="range-value" id="uv-radiation-value">5 W/m²</div>
+                        </div>
+                        <div class="help-text">UV intensity for photodegradation</div>
+                    </div>
+                </div>
+                
+                <button class="simulate-btn" onclick="updateSimulation()">🔬 Assess Contamination Impact</button>
+            </div>
+            
+            <div class="results-section">
+                <div class="viz-header">
+                    <h2>📊 Contamination Assessment Results</h2>
+                    <p style="color: #64748b; font-style: italic; font-size: 1.1rem;">Multi-parameter pollution impact analysis</p>
+                </div>
+                
+                <div class="charts-grid">
+                    <div class="chart-container">
+                        <div class="chart-title">🌊 Concentration Over Time</div>
+                        <canvas id="concentration-chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">📍 Spatial Distribution</div>
+                        <canvas id="spatial-chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">⚗️ Degradation Processes</div>
+                        <canvas id="degradation-chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <div class="chart-title">🐟 Bioaccumulation Risk</div>
+                        <canvas id="bioaccumulation-chart"></canvas>
+                    </div>
+                    
+                    <div class="chart-container full-width-chart">
+                        <div class="chart-title">🎯 Contamination Plume Evolution</div>
+                        <canvas id="plume-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="contamination-info">
+            <h2>🧬 Oceanographic Effects on Contamination</h2>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>🌊 Physical Transport</h4>
+                    <p>Currents, waves, and tides control pollutant advection and dispersion. Strong currents increase dilution but extend contamination range. Wave action enhances vertical mixing and shoreline deposition.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🌡️ Temperature Effects</h4>
+                    <p>Higher temperatures accelerate chemical degradation and biological processes. Cold water slows breakdown but increases pollutant persistence. Temperature gradients affect vertical mixing patterns.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🧂 Salinity Impacts</h4>
+                    <p>Salt concentration affects pollutant solubility and chemical speciation. Freshwater inputs create density gradients that trap contaminants. Salinity changes alter bioavailability.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>💨 Oxygen Levels</h4>
+                    <p>Dissolved oxygen controls aerobic degradation rates. Low oxygen creates anoxic conditions favoring different breakdown pathways. Hypoxia increases pollutant toxicity to marine life.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>⚗️ pH Chemistry</h4>
+                    <p>Acidity affects metal speciation and bioavailability. pH changes alter chemical reaction rates and pollutant mobility. Ocean acidification modifies contamination impacts.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🦠 Biological Processes</h4>
+                    <p>Microorganisms degrade organic pollutants through biodegradation. Phytoplankton uptake affects nutrient pollution. Filter feeders concentrate contaminants in tissues.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🪨 Sediment Interactions</h4>
+                    <p>Suspended particles adsorb hydrophobic contaminants. Sediment resuspension releases buried pollutants. Particle settling removes contaminants from water column.</p>
+                </div>
+                
+                <div class="info-card">
+                    <h4>☀️ Light Penetration</h4>
+                    <p>UV radiation breaks down photosensitive pollutants. Turbidity reduces light penetration and photodegradation. Seasonal light cycles affect degradation rates.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="equations-section">
+            <h2>📐 Contamination Transport & Fate Equations</h2>
+            
+            <div class="equation">
+                <div class="equation-title">Advection-Dispersion-Reaction Equation</div>
+                ∂C/∂t + u·∇C = ∇·(K∇C) - λC - S<br>
+                <em>Where C = concentration, u = velocity, K = dispersion, λ = decay, S = sinks</em>
+            </div>
+            
+            <div class="equation">
+                <div class="equation-title">Horizontal Dispersion Coefficient</div>
+                Kₓ = 0.1 × U × L<br>
+                Kᵧ = 0.01 × U × L<br>
+                <em>Where U = current speed, L = length scale</em>
+            </div>
+            
+            <div class="equation">
+                <div class="equation-title">Vertical Mixing (Wind-Driven)</div>
+                Kᵥ = 0.4 × u* × h<br>
+                u* = √(τ/ρ) = 0.032 × W₁₀<br>
+                <em>Where u* = friction velocity, W₁₀ = wind speed at 10m</em>
+            </div>
+            
+            <div class="equation">
+                <div class="equation-title">First-Order Decay Rate</div>
+                λ = λ₀ × f(T) × f(pH) × f(O₂) × f(UV)<br>
+                f(T) = exp(0.069 × (T - 20))<br>
+                <em>Temperature-dependent degradation with environmental modifiers</em>
+            </div>
+            
+            <div class="equation">
+                <div class="equation-title">Bioaccumulation Factor</div>
+                BAF = BCF × BMF^(TL-1)<br>
+                BCF = 0.048 × Kₒw^0.76<br>
+                <em>Where BCF = bioconcentration, BMF = biomagnification, TL = trophic level</em>
+            </div>
+            
+            <div class="equation">
+                <div class="equation-title">Sediment Partition Coefficient</div>
+                Kd = fₒc × Kₒc<br>
+                Kₒc = 0.41 × Kₒw<br>
+                <em>Where fₒc = organic carbon fraction, Kₒw = octanol-water coefficient</em>
+            </div>
+            
+            <div class="equation">
+                <div class="equation-title">Photodegradation Rate</div>
+                λₚₕₒₜₒ = Φ × I × ε × (1 - exp(-α × z))<br>
+                <em>Where Φ = quantum yield, I = light intensity, ε = extinction, z = depth</em>
+            </div>
+        </div>
+        
+        <div class="parameters-display">
+            <h2 style="text-align: center; color: #1e3a8a; margin-bottom: 30px; font-size: 2rem;">🔢 Calculated Impact Parameters</h2>
+            
+            <div class="param-grid">
+                <div class="param-card">
+                    <h4>🎯 Peak Concentration</h4>
+                    <div class="param-value" id="calc-peak-conc">-</div>
+                    <div class="param-unit">mg/L</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>📏 Plume Length</h4>
+                    <div class="param-value" id="calc-plume-length">-</div>
+                    <div class="param-unit">km</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>📐 Plume Width</h4>
+                    <div class="param-value" id="calc-plume-width">-</div>
+                    <div class="param-unit">km</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>⏱️ Half-Life</h4>
+                    <div class="param-value" id="calc-half-life">-</div>
+                    <div class="param-unit">days</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>🌊 Dispersion Rate</h4>
+                    <div class="param-value" id="calc-dispersion">-</div>
+                    <div class="param-unit">m²/s</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>🐟 Bioaccumulation</h4>
+                    <div class="param-value" id="calc-bioaccum">-</div>
+                    <div class="param-unit">factor</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>🪨 Sediment Binding</h4>
+                    <div class="param-value" id="calc-sediment">-</div>
+                    <div class="param-unit">L/kg</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>☀️ Photo-Degradation</h4>
+                    <div class="param-value" id="calc-photo">-</div>
+                    <div class="param-unit">day⁻¹</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>🦠 Bio-Degradation</h4>
+                    <div class="param-value" id="calc-biodeg">-</div>
+                    <div class="param-unit">day⁻¹</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>⚠️ Risk Level</h4>
+                    <div class="param-value" id="calc-risk">-</div>
+                    <div class="param-unit">index</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>🏖️ Shore Impact Time</h4>
+                    <div class="param-value" id="calc-shore-time">-</div>
+                    <div class="param-unit">hours</div>
+                </div>
+                
+                <div class="param-card">
+                    <h4>🌍 Total Area Affected</h4>
+                    <div class="param-value" id="calc-area">-</div>
+                    <div class="param-unit">km²</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="warning-box">
+            <h3>⚠️ Environmental Impact Warning</h3>
+            <p>This model provides scientific estimates for contamination assessment. Actual environmental impacts depend on complex interactions between multiple factors. Always consult environmental authorities for real contamination events and follow proper safety protocols.</p>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+        let currentTab = 'source';
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRangeValues();
+            updateSimulation();
+        });
+        
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab and activate button
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+            
+            currentTab = tabName;
+        }
+        
+        function updateRangeValues() {
+            const ranges = [
+                'source-rate', 'source-duration', 'source-distance',
+                'current-speed', 'wind-speed', 'wave-height', 'water-depth', 'temperature', 'salinity',
+                'phytoplankton', 'bacteria-count', 'fish-density', 'filter-feeders',
+                'ph-level', 'dissolved-oxygen', 'turbidity', 'sediment-load', 'uv-radiation'
+            ];
+            
+            ranges.forEach(id => {
+                const range = document.getElementById(id);
+                if (!range) return;
+                
+                const valueDisplay = document.getElementById(id + '-value');
+                let value = range.value;
+                let unit = '';
+                
+                switch(id) {
+                    case 'source-rate':
+                        unit = ' kg/day';
+                        break;
+                    case 'source-duration':
+                        unit = ' hours';
+                        break;
+                    case 'source-distance':
+                        unit = ' km';
+                        break;
+                    case 'current-speed':
+                        unit = ' m/s';
+                        break;
+                    case 'wind-speed':
+                        unit = ' m/s';
+                        break;
+                    case 'wave-height':
+                        unit = ' m';
+                        break;
+                    case 'water-depth':
+                        unit = ' m';
+                        break;
+                    case 'temperature':
+                        unit = ' °C';
+                        break;
+                    case 'salinity':
+                        unit = ' PSU';
+                        break;
+                    case 'phytoplankton':
+                        unit = ' mg/m³';
+                        break;
+                    case 'bacteria-count':
+                        unit = ' × 10⁶ cells/L';
+                        break;
+                    case 'fish-density':
+                        unit = ' kg/ha';
+                        break;
+                    case 'filter-feeders':
+                        unit = ' kg/m²';
+                        break;
+                    case 'ph-level':
+                        unit = '';
+                        break;
+                    case 'dissolved-oxygen':
+                        unit = ' mg/L';
+                        break;
+                    case 'turbidity':
+                        unit = ' NTU';
+                        break;
+                    case 'sediment-load':
+                        unit = ' mg/L';
+                        break;
+                    case 'uv-radiation':
+                        unit = ' W/m²';
+                        break;
+                }
+                
+                valueDisplay.textContent = value + unit;
+                
+                range.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value + unit;
+                });
+            });
+        }
+        
+        function loadPreset(presetType) {
+            switch(presetType) {
+                case 'oil-spill':
+                    document.getElementById('contaminant-type').value = 'oil';
+                    document.getElementById('source-rate').value = 500;
+                    document.getElementById('source-duration').value = 12;
+                    document.getElementById('current-speed').value = 0.25;
+                    document.getElementById('wind-speed').value = 12;
+                    document.getElementById('wave-height').value = 2.5;
+                    document.getElementById('temperature').value = 15;
+                    document.getElementById('dissolved-oxygen').value = 6;
+                    break;
+                    
+                case 'sewage':
+                    document.getElementById('contaminant-type').value = 'pathogens';
+                    document.getElementById('source-rate').value = 200;
+                    document.getElementById('source-duration').value = 168;
+                    document.getElementById('current-speed').value = 0.1;
+                    document.getElementById('wind-speed').value = 5;
+                    document.getElementById('temperature').value = 22;
+                    document.getElementById('bacteria-count').value = 80;
+                    document.getElementById('dissolved-oxygen').value = 4;
+                    break;
+                    
+                case 'industrial':
+                    document.getElementById('contaminant-type').value = 'heavy-metals';
+                    document.getElementById('source-rate').value = 50;
+                    document.getElementById('source-duration').value = 72;
+                    document.getElementById('ph-level').value = 7.2;
+                    document.getElementById('sediment-load').value = 200;
+                    document.getElementById('current-speed').value = 0.2;
+                    break;
+                    
+                case 'agricultural':
+                    document.getElementById('contaminant-type').value = 'nutrients';
+                    document.getElementById('source-rate').value = 300;
+                    document.getElementById('source-duration').value = 48;
+                    document.getElementById('phytoplankton').value = 8;
+                    document.getElementById('dissolved-oxygen').value = 10;
+                    document.getElementById('temperature').value = 25;
+                    break;
+            }
+            
+            updateRangeValues();
+            updateSimulation();
+        }
+        
+        function getContaminantProperties(type) {
+            const properties = {
+                'oil': {
+                    degradationRate: 0.05,
+                    bioaccumulation: 1000,
+                    solubility: 0.1,
+                    density: 0.85,
+                    kow: 6.5
+                },
+                'nutrients': {
+                    degradationRate: 0.2,
+                    bioaccumulation: 1,
+                    solubility: 1000,
+                    density: 1.0,
+                    kow: -2
+                },
+                'heavy-metals': {
+                    degradationRate: 0.001,
+                    bioaccumulation: 10000,
+                    solubility: 100,
+                    density: 7.8,
+                    kow: 2
+                },
+                'pathogens': {
+                    degradationRate: 0.5,
+                    bioaccumulation: 1,
+                    solubility: 1000,
+                    density: 1.0,
+                    kow: -3
+                },
+                'plastics': {
+                    degradationRate: 0.0001,
+                    bioaccumulation: 100,
+                    solubility: 0.001,
+                    density: 0.9,
+                    kow: 4
+                },
+                'chemicals': {
+                    degradationRate: 0.1,
+                    bioaccumulation: 500,
+                    solubility: 50,
+                    density: 1.2,
+                    kow: 3.5
+                }
+            };
+            
+            return properties[type] || properties['oil'];
+        }
+        
+        function calculateContamination() {
+            // Get all parameters
+            const contaminantType = document.getElementById('contaminant-type').value;
+            const sourceRate = parseFloat(document.getElementById('source-rate').value);
+            const sourceDuration = parseFloat(document.getElementById('source-duration').value);
+            const sourceDistance = parseFloat(document.getElementById('source-distance').value) * 1000; // Convert to meters
+            
+            const currentSpeed = parseFloat(document.getElementById('current-speed').value);
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const waveHeight = parseFloat(document.getElementById('wave-height').value);
+            const waterDepth = parseFloat(document.getElementById('water-depth').value);
+            const temperature = parseFloat(document.getElementById('temperature').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            
+            const phytoplankton = parseFloat(document.getElementById('phytoplankton').value);
+            const bacteriaCount = parseFloat(document.getElementById('bacteria-count').value);
+            const fishDensity = parseFloat(document.getElementById('fish-density').value);
+            const filterFeeders = parseFloat(document.getElementById('filter-feeders').value);
+            
+            const phLevel = parseFloat(document.getElementById('ph-level').value);
+            const dissolvedOxygen = parseFloat(document.getElementById('dissolved-oxygen').value);
+            const turbidity = parseFloat(document.getElementById('turbidity').value);
+            const sedimentLoad = parseFloat(document.getElementById('sediment-load').value);
+            const uvRadiation = parseFloat(document.getElementById('uv-radiation').value);
+            
+            // Get contaminant properties
+            const contaminant = getContaminantProperties(contaminantType);
+            
+            // Calculate environmental modifiers
+            const tempFactor = Math.exp(0.069 * (temperature - 20));
+            const phFactor = Math.exp(-Math.abs(phLevel - 7) * 0.5);
+            const oxygenFactor = dissolvedOxygen / 8.0;
+            const uvFactor = uvRadiation / 5.0;
+            
+            // Calculate dispersion coefficients
+            const horizontalDispersion = 0.1 * currentSpeed * sourceDistance;
+            const verticalDispersion = 0.4 * Math.sqrt(0.032 * windSpeed) * waterDepth;
+            
+            // Calculate degradation rates
+            const baseDegradation = contaminant.degradationRate;
+            const photoDegradation = baseDegradation * 0.3 * uvFactor * Math.exp(-turbidity * 0.1);
+            const bioDegradation = baseDegradation * 0.7 * tempFactor * oxygenFactor * (bacteriaCount / 25);
+            const totalDegradation = photoDegradation + bioDegradation;
+            
+            // Calculate bioaccumulation
+            const bioaccumulationFactor = contaminant.bioaccumulation * Math.pow(10, contaminant.kow * 0.1);
+            
+            // Calculate sediment partition coefficient
+            const organicCarbon = 0.02; // 2% organic carbon
+            const koc = 0.41 * Math.pow(10, contaminant.kow);
+            const sedimentPartition = organicCarbon * koc;
+            
+            // Time series calculation (72 hours)
+            const timeSteps = 72;
+            const timeArray = [];
+            const concentrationArray = [];
+            const degradationArray = [];
+            const bioaccumArray = [];
+            
+            for (let t = 0; t < timeSteps; t++) {
+                timeArray.push(t);
+                
+                // Calculate concentration with dispersion and degradation
+                let concentration = 0;
+                if (t < sourceDuration) {
+                    // During discharge
+                    const sourceStrength = sourceRate / (24 * 3600); // kg/s
+                    const volume = Math.PI * Math.pow(Math.sqrt(horizontalDispersion * t * 3600), 2) * waterDepth;
+                    concentration = sourceStrength * t * 3600 / Math.max(volume, 1000);
+                } else {
+                    // After discharge stops
+                    const timeAfterStop = t - sourceDuration;
+                    concentration = concentrationArray[sourceDuration - 1] * Math.exp(-totalDegradation * timeAfterStop / 24);
+                }
+                
+                // Apply environmental decay
+                concentration *= Math.exp(-totalDegradation * t / 24);
+                
+                concentrationArray.push(Math.max(concentration, 0));
+                degradationArray.push(totalDegradation * concentration);
+                bioaccumArray.push(concentration * bioaccumulationFactor / 1000);
+            }
+            
+            // Calculate spatial distribution (distance from source)
+            const spatialDistances = [];
+            const spatialConcentrations = [];
+            
+            for (let d = 0; d <= 20; d += 0.5) {
+                spatialDistances.push(d);
+                const distance = d * 1000; // Convert to meters
+                const travelTime = distance / (currentSpeed + 0.01); // hours
+                const dispersionArea = Math.PI * Math.pow(Math.sqrt(horizontalDispersion * travelTime), 2);
+                const dilution = Math.max(dispersionArea / 1000, 1);
+                const decay = Math.exp(-totalDegradation * travelTime / 3600);
+                const spatialConc = (concentrationArray[Math.min(Math.floor(travelTime), concentrationArray.length - 1)] || 0) / dilution * decay;
+                spatialConcentrations.push(Math.max(spatialConc, 0));
+            }
+            
+            // Calculate derived parameters
+            const peakConcentration = Math.max(...concentrationArray);
+            const halfLife = Math.log(2) / (totalDegradation / 24); // days
+            const plumeLength = currentSpeed * 3600 * 24 * 3; // 3 days travel
+            const plumeWidth = 2 * Math.sqrt(horizontalDispersion * 3600 * 24);
+            const shoreImpactTime = sourceDistance / (currentSpeed * 3600); // hours
+            const affectedArea = Math.PI * Math.pow(plumeLength / 2, 2) / 1e6; // km²
+            
+            // Risk assessment
+            let riskLevel = 'Low';
+            let riskValue = 1;
+            if (peakConcentration > 10) {
+                riskLevel = 'High';
+                riskValue = 5;
+            } else if (peakConcentration > 1) {
+                riskLevel = 'Medium';
+                riskValue = 3;
+            }
+            
+            return {
+                time: timeArray,
+                concentration: concentrationArray,
+                degradation: degradationArray,
+                bioaccumulation: bioaccumArray,
+                spatialDistances: spatialDistances,
+                spatialConcentrations: spatialConcentrations,
+                
+                // Calculated parameters
+                peakConcentration: peakConcentration,
+                halfLife: halfLife,
+                plumeLength: plumeLength / 1000, // km
+                plumeWidth: plumeWidth / 1000, // km
+                dispersionRate: horizontalDispersion,
+                bioaccumulationFactor: bioaccumulationFactor,
+                sedimentPartition: sedimentPartition,
+                photoDegradation: photoDegradation,
+                bioDegradation: bioDegradation,
+                riskLevel: riskLevel,
+                riskValue: riskValue,
+                shoreImpactTime: shoreImpactTime,
+                affectedArea: affectedArea
+            };
+        }
+        
+        function updateSimulation() {
+            updateRangeValues();
+            
+            const results = calculateContamination();
+            
+            // Update parameter displays
+            document.getElementById('calc-peak-conc').textContent = results.peakConcentration.toFixed(3);
+            document.getElementById('calc-plume-length').textContent = results.plumeLength.toFixed(1);
+            document.getElementById('calc-plume-width').textContent = results.plumeWidth.toFixed(1);
+            document.getElementById('calc-half-life').textContent = results.halfLife.toFixed(1);
+            document.getElementById('calc-dispersion').textContent = results.dispersionRate.toFixed(2);
+            document.getElementById('calc-bioaccum').textContent = results.bioaccumulationFactor.toFixed(0);
+            document.getElementById('calc-sediment').textContent = results.sedimentPartition.toFixed(1);
+            document.getElementById('calc-photo').textContent = results.photoDegradation.toFixed(4);
+            document.getElementById('calc-biodeg').textContent = results.bioDegradation.toFixed(4);
+            document.getElementById('calc-risk').textContent = results.riskLevel;
+            document.getElementById('calc-shore-time').textContent = results.shoreImpactTime.toFixed(1);
+            document.getElementById('calc-area').textContent = results.affectedArea.toFixed(1);
+            
+            // Create charts
+            createConcentrationChart(results);
+            createSpatialChart(results);
+            createDegradationChart(results);
+            createBioaccumulationChart(results);
+            createPlumeChart(results);
+        }
+        
+        function createConcentrationChart(results) {
+            const ctx = document.getElementById('concentration-chart').getContext('2d');
+            
+            if (charts.concentration) {
+                charts.concentration.destroy();
+            }
+            
+            charts.concentration = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: results.time,
+                    datasets: [{
+                        label: 'Concentration',
+                        data: results.concentration,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Concentration (mg/L)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createSpatialChart(results) {
+            const ctx = document.getElementById('spatial-chart').getContext('2d');
+            
+            if (charts.spatial) {
+                charts.spatial.destroy();
+            }
+            
+            charts.spatial = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: results.spatialDistances,
+                    datasets: [{
+                        label: 'Spatial Distribution',
+                        data: results.spatialConcentrations,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Distance from Source (km)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Concentration (mg/L)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createDegradationChart(results) {
+            const ctx = document.getElementById('degradation-chart').getContext('2d');
+            
+            if (charts.degradation) {
+                charts.degradation.destroy();
+            }
+            
+            charts.degradation = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: results.time,
+                    datasets: [{
+                        label: 'Degradation Rate',
+                        data: results.degradation,
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Degradation Rate (mg/L/h)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createBioaccumulationChart(results) {
+            const ctx = document.getElementById('bioaccumulation-chart').getContext('2d');
+            
+            if (charts.bioaccumulation) {
+                charts.bioaccumulation.destroy();
+            }
+            
+            charts.bioaccumulation = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: results.time,
+                    datasets: [{
+                        label: 'Bioaccumulation',
+                        data: results.bioaccumulation,
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 2,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Tissue Concentration (mg/kg)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createPlumeChart(results) {
+            const ctx = document.getElementById('plume-chart').getContext('2d');
+            
+            if (charts.plume) {
+                charts.plume.destroy();
+            }
+            
+            // Create plume evolution data
+            const plumeData = [];
+            const timeSteps = [6, 12, 24, 48, 72];
+            const colors = ['#ef4444', '#f97316', '#f59e0b', '#10b981', '#3b82f6'];
+            
+            const datasets = timeSteps.map((time, index) => {
+                const data = [];
+                for (let x = -10; x <= 10; x += 0.5) {
+                    for (let y = 0; y <= 20; y += 0.5) {
+                        const distance = Math.sqrt(x*x + y*y);
+                        const concentration = results.spatialConcentrations[Math.min(Math.floor(distance * 2), results.spatialConcentrations.length - 1)] || 0;
+                        const timeDecay = Math.exp(-0.05 * (time - 6));
+                        const finalConc = concentration * timeDecay;
+                        
+                        if (finalConc > 0.001) {
+                            data.push({x: x, y: y, concentration: finalConc});
+                        }
+                    }
+                }
+                
+                return {
+                    label: `${time} hours`,
+                    data: data.map(point => ({x: point.x, y: point.y})),
+                    borderColor: colors[index],
+                    backgroundColor: colors[index] + '40',
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    showLine: false
+                };
+            });
+            
+            charts.plume = new Chart(ctx, {
+                type: 'scatter',
+                data: { datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: '#3b82f6',
+                            borderWidth: 2
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Cross-shore Distance (km)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } }
+                        },
+                        y: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Alongshore Distance (km)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#1e3a8a'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#374151', font: { size: 10 } },
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c14f55803488ae',t:'MTc1NDY4MDE4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
