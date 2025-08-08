@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Near-Inertial Oscillation Current Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #2c3e50;
+            margin-top: 0;
+            font-size: 1.8em;
+            font-weight: 600;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        
+        .input-group input, .input-group textarea, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group textarea {
+            height: 120px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .button.secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .results {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .equation-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Near-Inertial Oscillation Current Simulator</h1>
+            <p>Slab Model for Wind-Induced Ocean Currents by Claudio Iturra</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📐 Advanced Governing Equations</h2>
+                <div class="equation-box">
+                    <p><strong>Enhanced Slab Model with Complex Physics:</strong></p>
+                    <p>$$\frac{\partial u}{\partial t} - fv = \frac{\tau_x}{\rho h} - r_u u + \frac{\partial}{\partial t}\left(\frac{h_0 - h}{h}\right)u_0 - \alpha \frac{\partial h}{\partial t}u$$</p>
+                    <p>$$\frac{\partial v}{\partial t} + fu = \frac{\tau_y}{\rho h} - r_v v + \frac{\partial}{\partial t}\left(\frac{h_0 - h}{h}\right)v_0 - \alpha \frac{\partial h}{\partial t}v$$</p>
+                    <p>$$\frac{\partial h}{\partial t} = w_e - \frac{\nabla \cdot (\mathbf{U}h)}{A} + \beta(T_s - T_{ml})$$</p>
+                    <p><strong>Wind Stress with Rotation:</strong></p>
+                    <p>$$\tau_x = \rho_a C_d |\mathbf{W}| [W_u \cos(\theta) - W_v \sin(\theta)]$$</p>
+                    <p>$$\tau_y = \rho_a C_d |\mathbf{W}| [W_u \sin(\theta) + W_v \cos(\theta)]$$</p>
+                    <p><strong>Ekman Pumping:</strong></p>
+                    <p>$$w_e = \frac{1}{\rho f} \left(\frac{\partial \tau_y}{\partial x} - \frac{\partial \tau_x}{\partial y}\right)$$</p>
+                    <p><strong>Parameters:</strong> $r_{u,v}$ = friction coefficients, $\alpha$ = entrainment parameter, $\theta$ = wind stress rotation angle, $w_e$ = Ekman pumping velocity</p>
+                </div>
+            </div>
+            
+            <div class="grid">
+                <div class="section">
+                    <h2>🌊 Advanced Model Parameters</h2>
+                    <div class="input-group">
+                        <label for="latitude">Latitude (degrees)</label>
+                        <input type="number" id="latitude" value="-36" step="0.1">
+                    </div>
+                    <div class="input-group">
+                        <label for="mixedLayerDepth">Initial Mixed Layer Depth (m)</label>
+                        <input type="number" id="mixedLayerDepth" value="50" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="density">Seawater Density (kg/m³)</label>
+                        <input type="number" id="density" value="1025" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="dragCoeff">Drag Coefficient</label>
+                        <input type="number" id="dragCoeff" value="0.0013" step="0.0001">
+                    </div>
+                    <div class="input-group">
+                        <label for="airDensity">Air Density (kg/m³)</label>
+                        <input type="number" id="airDensity" value="1.225" step="0.001">
+                    </div>
+                    <div class="input-group">
+                        <label for="frictionU">U-Friction Coefficient (1/s)</label>
+                        <input type="number" id="frictionU" value="2e-5" step="1e-6">
+                    </div>
+                    <div class="input-group">
+                        <label for="frictionV">V-Friction Coefficient (1/s)</label>
+                        <input type="number" id="frictionV" value="2e-5" step="1e-6">
+                    </div>
+                    <div class="input-group">
+                        <label for="entrainment">Entrainment Parameter</label>
+                        <input type="number" id="entrainment" value="0.1" step="0.01">
+                    </div>
+                    <div class="input-group">
+                        <label for="stressRotation">Wind Stress Rotation (degrees)</label>
+                        <input type="number" id="stressRotation" value="15" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="thermalCoeff">Thermal Expansion Coeff (1/°C)</label>
+                        <input type="number" id="thermalCoeff" value="0.0002" step="0.00001">
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <h2>💨 Wind Data Input</h2>
+                    <div class="example-buttons">
+                        <button class="button secondary" onclick="loadSummerWind()">Summer Diurnal</button>
+                        <button class="button secondary" onclick="loadWinterStorm()">Winter Storm</button>
+                        <button class="button secondary" onclick="loadRelaxation()">Relaxation Event</button>
+                    </div>
+                    <div class="input-group">
+                        <label for="windU">U Wind Component (m/s) - One value per hour</label>
+                        <textarea id="windU" placeholder="Enter U wind values separated by commas or new lines..."></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="windV">V Wind Component (m/s) - One value per hour</label>
+                        <textarea id="windV" placeholder="Enter V wind values separated by commas or new lines..."></textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <button class="button" onclick="runSimulation()">🚀 Run Simulation</button>
+                <button class="button secondary" onclick="clearResults()">Clear Results</button>
+            </div>
+            
+            <div id="results" style="display: none;">
+                <div class="section">
+                    <h2>📊 Results</h2>
+                    <div class="results" id="summaryResults"></div>
+                </div>
+                
+                <div class="grid">
+                    <div class="chart-container">
+                        <h3>Wind Components</h3>
+                        <canvas id="windChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Current Components</h3>
+                        <canvas id="currentChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="grid">
+                    <div class="chart-container">
+                        <h3>Current Magnitude & Direction</h3>
+                        <canvas id="magnitudeChart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Current Trajectory (Hodograph)</h3>
+                        <canvas id="trajectoryChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>Mixed Layer Depth Evolution</h3>
+                    <canvas id="depthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let windChart, currentChart, magnitudeChart, trajectoryChart, depthChart;
+        
+        function loadSummerWind() {
+            // Strong diurnal cycle - typical summer pattern
+            const hours = 72; // 3 days
+            const uWind = [];
+            const vWind = [];
+            
+            for (let i = 0; i < hours; i++) {
+                const hour = i % 24;
+                // Strong diurnal cycle with sea breeze
+                const diurnalU = -8 * Math.cos(2 * Math.PI * hour / 24) + 2 * Math.sin(2 * Math.PI * hour / 24);
+                const diurnalV = -6 * Math.sin(2 * Math.PI * hour / 24) + 3 * Math.cos(2 * Math.PI * hour / 24);
+                
+                uWind.push((diurnalU + Math.random() * 2 - 1).toFixed(2));
+                vWind.push((diurnalV + Math.random() * 2 - 1).toFixed(2));
+            }
+            
+            document.getElementById('windU').value = uWind.join(', ');
+            document.getElementById('windV').value = vWind.join(', ');
+        }
+        
+        function loadWinterStorm() {
+            // Winter storm with strong winds and relaxation
+            const hours = 120; // 5 days
+            const uWind = [];
+            const vWind = [];
+            
+            for (let i = 0; i < hours; i++) {
+                let intensity = 1;
+                
+                // Storm buildup (hours 0-24)
+                if (i < 24) {
+                    intensity = i / 24;
+                }
+                // Storm peak (hours 24-48)
+                else if (i < 48) {
+                    intensity = 1;
+                }
+                // Storm decay (hours 48-72)
+                else if (i < 72) {
+                    intensity = 1 - (i - 48) / 24;
+                }
+                // Relaxation (hours 72+)
+                else {
+                    intensity = 0.1;
+                }
+                
+                const baseU = -15 * intensity;
+                const baseV = -20 * intensity;
+                
+                uWind.push((baseU + Math.random() * 4 - 2).toFixed(2));
+                vWind.push((baseV + Math.random() * 4 - 2).toFixed(2));
+            }
+            
+            document.getElementById('windU').value = uWind.join(', ');
+            document.getElementById('windV').value = vWind.join(', ');
+        }
+        
+        function loadRelaxation() {
+            // Sudden wind relaxation event
+            const hours = 96; // 4 days
+            const uWind = [];
+            const vWind = [];
+            
+            for (let i = 0; i < hours; i++) {
+                let u, v;
+                
+                // Strong initial wind (hours 0-12)
+                if (i < 12) {
+                    u = -12 + Math.random() * 2 - 1;
+                    v = -8 + Math.random() * 2 - 1;
+                }
+                // Rapid relaxation (hours 12-18)
+                else if (i < 18) {
+                    const decay = Math.exp(-(i - 12) / 3);
+                    u = -12 * decay + Math.random() * 1 - 0.5;
+                    v = -8 * decay + Math.random() * 1 - 0.5;
+                }
+                // Calm conditions (hours 18+)
+                else {
+                    u = Math.random() * 2 - 1;
+                    v = Math.random() * 2 - 1;
+                }
+                
+                uWind.push(u.toFixed(2));
+                vWind.push(v.toFixed(2));
+            }
+            
+            document.getElementById('windU').value = uWind.join(', ');
+            document.getElementById('windV').value = vWind.join(', ');
+        }
+        
+        function parseWindData(dataString) {
+            return dataString.split(/[,\n\s]+/)
+                           .map(val => val.trim())
+                           .filter(val => val !== '')
+                           .map(val => parseFloat(val))
+                           .filter(val => !isNaN(val));
+        }
+        
+        function runSimulation() {
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const h0 = parseFloat(document.getElementById('mixedLayerDepth').value);
+            const rho = parseFloat(document.getElementById('density').value);
+            const Cd = parseFloat(document.getElementById('dragCoeff').value);
+            const rhoAir = parseFloat(document.getElementById('airDensity').value);
+            const rU = parseFloat(document.getElementById('frictionU').value);
+            const rV = parseFloat(document.getElementById('frictionV').value);
+            const alpha = parseFloat(document.getElementById('entrainment').value);
+            const theta = parseFloat(document.getElementById('stressRotation').value) * Math.PI / 180;
+            const beta = parseFloat(document.getElementById('thermalCoeff').value);
+            
+            const windUData = parseWindData(document.getElementById('windU').value);
+            const windVData = parseWindData(document.getElementById('windV').value);
+            
+            if (windUData.length === 0 || windVData.length === 0) {
+                alert('Please enter wind data for both U and V components.');
+                return;
+            }
+            
+            if (windUData.length !== windVData.length) {
+                alert('U and V wind components must have the same number of values.');
+                return;
+            }
+            
+            // Calculate Coriolis parameter
+            const omega = 7.27e-5; // Earth's rotation rate (rad/s)
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            
+            // Time step (1 hour = 3600 seconds)
+            const dt = 3600;
+            const n = windUData.length;
+            
+            // Initialize arrays
+            const u = new Array(n).fill(0);
+            const v = new Array(n).fill(0);
+            const h = new Array(n).fill(h0);
+            const time = Array.from({length: n}, (_, i) => i);
+            
+            // Surface temperature variation (simplified)
+            const Ts = time.map(t => 20 + 5 * Math.sin(2 * Math.PI * t / 24)); // Daily cycle
+            const Tml = new Array(n).fill(18); // Mixed layer temperature
+            
+            // Advanced numerical integration using Runge-Kutta 4th order
+            for (let i = 1; i < n; i++) {
+                const windU = windUData[i-1];
+                const windV = windVData[i-1];
+                const windSpeed = Math.sqrt(windU*windU + windV*windV);
+                
+                // Enhanced wind stress with rotation
+                const tauX = rhoAir * Cd * windSpeed * (windU * Math.cos(theta) - windV * Math.sin(theta));
+                const tauY = rhoAir * Cd * windSpeed * (windU * Math.sin(theta) + windV * Math.cos(theta));
+                
+                // Ekman pumping (simplified spatial derivative)
+                const dTauY_dx = i > 1 ? (tauY - (rhoAir * Cd * Math.sqrt(windUData[i-2]*windUData[i-2] + windVData[i-2]*windVData[i-2]) * 
+                                         (windUData[i-2] * Math.sin(theta) + windVData[i-2] * Math.cos(theta)))) / 1000 : 0;
+                const dTauX_dy = 0; // Assuming no y-gradient for simplicity
+                const we = (1 / (rho * f)) * (dTauY_dx - dTauX_dy);
+                
+                // Mixed layer depth evolution
+                const dhdt = we + beta * (Ts[i-1] - Tml[i-1]);
+                
+                // Current state variables
+                const u0 = u[i-1];
+                const v0 = v[i-1];
+                const h_curr = h[i-1];
+                
+                // Entrainment terms
+                const entrainU = alpha * dhdt * u0;
+                const entrainV = alpha * dhdt * v0;
+                
+                // Friction terms
+                const frictionU = rU * u0;
+                const frictionV = rV * v0;
+                
+                // RK4 integration for enhanced equations
+                // k1
+                const k1u = dt * (f * v0 + tauX / (rho * h_curr) - frictionU - entrainU);
+                const k1v = dt * (-f * u0 + tauY / (rho * h_curr) - frictionV - entrainV);
+                const k1h = dt * dhdt;
+                
+                // k2
+                const h_k2 = h_curr + k1h/2;
+                const k2u = dt * (f * (v0 + k1v/2) + tauX / (rho * h_k2) - rU * (u0 + k1u/2) - alpha * dhdt * (u0 + k1u/2));
+                const k2v = dt * (-f * (u0 + k1u/2) + tauY / (rho * h_k2) - rV * (v0 + k1v/2) - alpha * dhdt * (v0 + k1v/2));
+                const k2h = dt * dhdt;
+                
+                // k3
+                const h_k3 = h_curr + k2h/2;
+                const k3u = dt * (f * (v0 + k2v/2) + tauX / (rho * h_k3) - rU * (u0 + k2u/2) - alpha * dhdt * (u0 + k2u/2));
+                const k3v = dt * (-f * (u0 + k2u/2) + tauY / (rho * h_k3) - rV * (v0 + k2v/2) - alpha * dhdt * (v0 + k2v/2));
+                const k3h = dt * dhdt;
+                
+                // k4
+                const h_k4 = h_curr + k3h;
+                const k4u = dt * (f * (v0 + k3v) + tauX / (rho * h_k4) - rU * (u0 + k3u) - alpha * dhdt * (u0 + k3u));
+                const k4v = dt * (-f * (u0 + k3u) + tauY / (rho * h_k4) - rV * (v0 + k3v) - alpha * dhdt * (v0 + k3v));
+                const k4h = dt * dhdt;
+                
+                // Update state variables
+                u[i] = u0 + (k1u + 2*k2u + 2*k3u + k4u) / 6;
+                v[i] = v0 + (k1v + 2*k2v + 2*k3v + k4v) / 6;
+                h[i] = Math.max(10, h_curr + (k1h + 2*k2h + 2*k3h + k4h) / 6); // Minimum depth constraint
+            }
+            
+            // Calculate magnitude and direction
+            const magnitude = u.map((ui, i) => Math.sqrt(ui*ui + v[i]*v[i]));
+            const direction = u.map((ui, i) => Math.atan2(v[i], ui) * 180 / Math.PI);
+            
+            // Display results
+            displayResults(f, windUData, windVData, u, v, magnitude, direction, time, h);
+        }
+        
+        function displayResults(f, windU, windV, u, v, magnitude, direction, time, h) {
+            document.getElementById('results').style.display = 'block';
+            
+            // Summary statistics
+            const maxCurrent = Math.max(...magnitude);
+            const avgCurrent = magnitude.reduce((a, b) => a + b, 0) / magnitude.length;
+            const inertialPeriod = 2 * Math.PI / Math.abs(f) / 3600; // hours
+            const maxDepth = Math.max(...h);
+            const minDepth = Math.min(...h);
+            const avgDepth = h.reduce((a, b) => a + b, 0) / h.length;
+            
+            // Calculate Rossby radius
+            const N = 0.01; // Typical buoyancy frequency (rad/s)
+            const rosby = N * avgDepth / Math.abs(f) / 1000; // km
+            
+            document.getElementById('summaryResults').innerHTML = `
+                <h3>Advanced Simulation Summary</h3>
+                <p><strong>Coriolis Parameter (f):</strong> ${f.toExponential(3)} rad/s</p>
+                <p><strong>Inertial Period:</strong> ${inertialPeriod.toFixed(1)} hours</p>
+                <p><strong>Rossby Radius:</strong> ${rosby.toFixed(1)} km</p>
+                <p><strong>Maximum Current Speed:</strong> ${maxCurrent.toFixed(3)} m/s</p>
+                <p><strong>Average Current Speed:</strong> ${avgCurrent.toFixed(3)} m/s</p>
+                <p><strong>Mixed Layer Depth Range:</strong> ${minDepth.toFixed(1)} - ${maxDepth.toFixed(1)} m</p>
+                <p><strong>Average Mixed Layer Depth:</strong> ${avgDepth.toFixed(1)} m</p>
+                <p><strong>Simulation Duration:</strong> ${time.length} hours (${(time.length/24).toFixed(1)} days)</p>
+            `;
+            
+            // Create charts
+            createWindChart(time, windU, windV);
+            createCurrentChart(time, u, v);
+            createMagnitudeChart(time, magnitude, direction);
+            createTrajectoryChart(u, v);
+            createDepthChart(time, h);
+        }
+        
+        function createWindChart(time, windU, windV) {
+            const ctx = document.getElementById('windChart').getContext('2d');
+            if (windChart) windChart.destroy();
+            
+            windChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [{
+                        label: 'U Wind (m/s)',
+                        data: windU,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        tension: 0.1
+                    }, {
+                        label: 'V Wind (m/s)',
+                        data: windV,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createCurrentChart(time, u, v) {
+            const ctx = document.getElementById('currentChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [{
+                        label: 'U Current (m/s)',
+                        data: u,
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.1)',
+                        tension: 0.1
+                    }, {
+                        label: 'V Current (m/s)',
+                        data: v,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Current Speed (m/s)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createMagnitudeChart(time, magnitude, direction) {
+            const ctx = document.getElementById('magnitudeChart').getContext('2d');
+            if (magnitudeChart) magnitudeChart.destroy();
+            
+            magnitudeChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [{
+                        label: 'Current Magnitude (m/s)',
+                        data: magnitude,
+                        borderColor: 'rgb(153, 102, 255)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Current Direction (°)',
+                        data: direction,
+                        borderColor: 'rgb(255, 205, 86)',
+                        backgroundColor: 'rgba(255, 205, 86, 0.1)',
+                        tension: 0.1,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Magnitude (m/s)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Direction (degrees)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createTrajectoryChart(u, v) {
+            const ctx = document.getElementById('trajectoryChart').getContext('2d');
+            if (trajectoryChart) trajectoryChart.destroy();
+            
+            trajectoryChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Current Trajectory',
+                        data: u.map((ui, i) => ({x: ui, y: v[i]})),
+                        borderColor: 'rgb(102, 126, 234)',
+                        backgroundColor: 'rgba(102, 126, 234, 0.6)',
+                        showLine: true,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'U Current (m/s)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'V Current (m/s)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createDepthChart(time, h) {
+            const ctx = document.getElementById('depthChart').getContext('2d');
+            if (depthChart) depthChart.destroy();
+            
+            depthChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: time,
+                    datasets: [{
+                        label: 'Mixed Layer Depth (m)',
+                        data: h,
+                        borderColor: 'rgb(34, 139, 34)',
+                        backgroundColor: 'rgba(34, 139, 34, 0.1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)'
+                            },
+                            reverse: true // Depth increases downward
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function clearResults() {
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('windU').value = '';
+            document.getElementById('windV').value = '';
+            
+            if (windChart) windChart.destroy();
+            if (currentChart) currentChart.destroy();
+            if (magnitudeChart) magnitudeChart.destroy();
+            if (trajectoryChart) trajectoryChart.destroy();
+            if (depthChart) depthChart.destroy();
+        }
+        
+        // Load summer example on page load
+        window.onload = function() {
+            loadSummerWind();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c1639cc25c88a6',t:'MTc1NDY4MTAxNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
