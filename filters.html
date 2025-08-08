@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Series Filter & Analysis Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,8 50,10 T100,10 L100,0 L0,0 Z" fill="rgba(102,126,234,0.3)"/></svg>') repeat-x;
+            background-size: 200px 20px;
+            animation: wave 4s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-100px); }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .filter-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .filter-type-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .filter-btn {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #5a67d8;
+        }
+        
+        .visualization-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #48bb78;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #4a5568;
+            margin-top: 5px;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef5e7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #f6ad55;
+        }
+        
+        .sample-data-btn {
+            background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);
+            margin-bottom: 15px;
+        }
+        
+        .download-section {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d6e8f5 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid #4299e1;
+        }
+        
+        .parameter-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .filter-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-type-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .frequency-response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Time Series Filter & Analysis Tool</h1>
+            <p>Advanced signal processing with customizable digital filters by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- Data Input Section -->
+                <div class="section">
+                    <h3>📥 Data Input</h3>
+                    <div class="input-group">
+                        <label for="dataInput">Paste Time Series Data:</label>
+                        <textarea id="dataInput" placeholder="Enter your time series data (one value per line or comma-separated)&#10;Example:&#10;1.2, 1.5, 1.8, 2.1, 1.9, 1.6&#10;or&#10;1.2&#10;1.5&#10;1.8&#10;2.1"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="temporalResolution">Temporal Resolution (minutes):</label>
+                        <input type="number" id="temporalResolution" value="1" step="0.1" min="0.001">
+                    </div>
+
+                    <button class="btn sample-data-btn" onclick="loadSampleData()">📋 Load Sample Data</button>
+                    <button class="btn btn-success" onclick="processData()">🔄 Process Data</button>
+                </div>
+                
+                <!-- Filter Selection -->
+                <div class="section">
+                    <h3>🔧 Filter Type</h3>
+                    <div class="filter-type-selector">
+                        <div class="filter-btn active" onclick="selectFilter('lowpass')">Low Pass</div>
+                        <div class="filter-btn" onclick="selectFilter('highpass')">High Pass</div>
+                        <div class="filter-btn" onclick="selectFilter('bandpass')">Band Pass</div>
+                        <div class="filter-btn" onclick="selectFilter('bandstop')">Band Stop</div>
+                    </div>
+                </div>
+                
+                <!-- Filter Parameters -->
+                <div class="section">
+                    <h3>⚙️ Filter Parameters</h3>
+                    <div id="filterParams">
+                        <!-- Dynamic filter parameters will be inserted here -->
+                    </div>
+                    <div class="input-group">
+                        <label for="filterOrder">Filter Order:</label>
+                        <input type="number" id="filterOrder" value="4" min="1" max="10" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label for="filterType">Filter Design:</label>
+                        <select id="filterType">
+                            <option value="butterworth">Butterworth</option>
+                            <option value="chebyshev">Chebyshev Type I</option>
+                            <option value="elliptic">Elliptic</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-info" onclick="applyFilter()">🎛️ Apply Filter</button>
+                    <button class="btn btn-danger" onclick="resetFilter()">🔄 Reset</button>
+                </div>
+                
+                <!-- Download Section -->
+                <div class="section">
+                    <h3>💾 Export Data</h3>
+                    <div class="download-section">
+                        <div class="input-group">
+                            <label for="exportFormat">Export Format:</label>
+                            <select id="exportFormat">
+                                <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
+                                <option value="txt">Text</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label>
+                                <input type="checkbox" id="includeOriginal" checked> Include Original Data
+                            </label>
+                        </div>
+                        <div class="input-group">
+                            <label>
+                                <input type="checkbox" id="includeTimestamps" checked> Include Timestamps
+                            </label>
+                        </div>
+                        <button class="btn btn-success" onclick="downloadData()" disabled id="downloadBtn">📥 Download Filtered Data</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <!-- Statistics -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="dataPoints">-</div>
+                        <div class="stat-label">Data Points</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="duration">-</div>
+                        <div class="stat-label">Duration</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="nyquistFreq">-</div>
+                        <div class="stat-label">Nyquist Freq (cpm)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="meanValue">-</div>
+                        <div class="stat-label">Mean Value</div>
+                    </div>
+                </div>
+                
+                <!-- Time Series Plot -->
+                <div class="chart-container">
+                    <div class="chart-title">Time Series Data</div>
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+                
+                <!-- Frequency Response -->
+                <div class="chart-container">
+                    <div class="chart-title">Filter Frequency Response</div>
+                    <canvas id="frequencyChart"></canvas>
+                </div>
+                
+                <!-- Power Spectrum -->
+                <div class="chart-container">
+                    <div class="chart-title">Power Spectral Density</div>
+                    <canvas id="spectrumChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let originalData = [];
+        let filteredData = [];
+        let timeArray = [];
+        let currentFilter = 'lowpass';
+        let samplingRate = 1;
+        let charts = {};
+        
+        function selectFilter(filterType) {
+            currentFilter = filterType;
+            
+            // Update active button
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update filter parameters UI
+            updateFilterParams();
+        }
+        
+        function updateFilterParams() {
+            const paramsDiv = document.getElementById('filterParams');
+            
+            switch(currentFilter) {
+                case 'lowpass':
+                    paramsDiv.innerHTML = `
+                        <div class="input-group">
+                            <label for="cutoffPeriod">Cutoff Period (minutes):</label>
+                            <input type="number" id="cutoffPeriod" value="240" step="1" min="1">
+                        </div>
+                    `;
+                    break;
+                case 'highpass':
+                    paramsDiv.innerHTML = `
+                        <div class="input-group">
+                            <label for="cutoffPeriod">Cutoff Period (minutes):</label>
+                            <input type="number" id="cutoffPeriod" value="1440" step="1" min="1">
+                        </div>
+                    `;
+                    break;
+                case 'bandpass':
+                    paramsDiv.innerHTML = `
+                        <div class="parameter-row">
+                            <div class="input-group">
+                                <label for="lowCutoffPeriod">Low Cutoff Period (min):</label>
+                                <input type="number" id="lowCutoffPeriod" value="1440" step="1" min="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="highCutoffPeriod">High Cutoff Period (min):</label>
+                                <input type="number" id="highCutoffPeriod" value="240" step="1" min="1">
+                            </div>
+                        </div>
+                    `;
+                    break;
+                case 'bandstop':
+                    paramsDiv.innerHTML = `
+                        <div class="parameter-row">
+                            <div class="input-group">
+                                <label for="lowCutoffPeriod">Low Cutoff Period (min):</label>
+                                <input type="number" id="lowCutoffPeriod" value="720" step="1" min="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="highCutoffPeriod">High Cutoff Period (min):</label>
+                                <input type="number" id="highCutoffPeriod" value="360" step="1" min="1">
+                            </div>
+                        </div>
+                    `;
+                    break;
+            }
+        }
+        
+        function loadSampleData() {
+            // Generate sample time series with multiple frequency components
+            const n = 240; // 10 days of data
+            const temporalRes = 60; // 60 minute (1 hour) resolution
+            const t = Array.from({length: n}, (_, i) => i * temporalRes);
+            
+            // Create signal with multiple oscillations + noise
+            const signal = t.map(time => {
+                return 3 * Math.sin(2 * Math.PI * time / 1440) +     // 24-hour (daily) cycle
+                       2 * Math.sin(2 * Math.PI * time / 720) +      // 12-hour cycle
+                       1.5 * Math.sin(2 * Math.PI * time / 4320) +   // 3-day cycle
+                       1 * Math.sin(2 * Math.PI * time / 10080) +    // 7-day (weekly) cycle
+                       0.8 * Math.sin(2 * Math.PI * time / 360) +    // 6-hour cycle
+                       0.5 * (Math.random() - 0.5);                  // Noise
+            });
+            
+            document.getElementById('dataInput').value = signal.map(v => v.toFixed(4)).join('\n');
+            document.getElementById('temporalResolution').value = temporalRes;
+            
+            // Show info about sample data
+            const infoPanel = document.createElement('div');
+            infoPanel.className = 'info-panel';
+            infoPanel.innerHTML = `
+                <strong>📋 Sample Data Loaded:</strong><br>
+                • 240 data points (10 days) at 60-minute (hourly) resolution<br>
+                • Contains multiple oscillations: 6-hour, 12-hour, 24-hour, 3-day, and 7-day cycles<br>
+                • Added white noise for realistic signal<br>
+                • Try different filters to isolate specific periodic components
+            `;
+            
+            const existingInfo = document.querySelector('.info-panel');
+            if (existingInfo) existingInfo.remove();
+            
+            document.querySelector('.section').appendChild(infoPanel);
+        }
+        
+        function processData() {
+            const dataText = document.getElementById('dataInput').value.trim();
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            samplingRate = 1 / temporalRes; // Convert to samples per minute
+            
+            if (!dataText) {
+                alert('Please enter time series data');
+                return;
+            }
+            
+            // Parse data (handle both comma-separated and line-separated)
+            let dataArray;
+            if (dataText.includes(',')) {
+                dataArray = dataText.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+            } else {
+                dataArray = dataText.split('\n').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+            }
+            
+            if (dataArray.length < 2) {
+                alert('Please enter at least 2 data points');
+                return;
+            }
+            
+            originalData = dataArray;
+            filteredData = [...originalData]; // Initialize filtered data as copy of original
+            
+            // Generate time array in minutes
+            timeArray = Array.from({length: originalData.length}, (_, i) => i * temporalRes);
+            
+            updateStatistics();
+            plotTimeSeries();
+            plotSpectrum();
+            plotFrequencyResponse();
+            
+            // Enable download button
+            document.getElementById('downloadBtn').disabled = false;
+        }
+        
+        function updateStatistics() {
+            const n = originalData.length;
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            const duration = (n - 1) * temporalRes; // Duration in minutes
+            const nyquist = 1 / (2 * temporalRes); // Nyquist frequency in cycles per minute
+            const mean = originalData.reduce((a, b) => a + b, 0) / n;
+            
+            let durationText;
+            if (duration >= 1440) {
+                durationText = (duration / 1440).toFixed(1) + ' days';
+            } else if (duration >= 60) {
+                durationText = (duration / 60).toFixed(1) + ' hours';
+            } else {
+                durationText = duration.toFixed(1) + ' minutes';
+            }
+            
+            document.getElementById('dataPoints').textContent = n.toLocaleString();
+            document.getElementById('duration').textContent = durationText;
+            document.getElementById('nyquistFreq').textContent = nyquist.toFixed(4) + ' cpm';
+            document.getElementById('meanValue').textContent = mean.toFixed(4);
+        }
+        
+        function plotTimeSeries() {
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            
+            if (charts.timeSeries) charts.timeSeries.destroy();
+            
+            const datasets = [{
+                label: 'Original Data',
+                data: timeArray.map((t, i) => ({x: t, y: originalData[i]})),
+                borderColor: 'rgb(102, 126, 234)',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                borderWidth: 1.5,
+                pointRadius: 0,
+                tension: 0
+            }];
+            
+            // Add filtered data if different from original
+            if (filteredData.length > 0 && JSON.stringify(filteredData) !== JSON.stringify(originalData)) {
+                datasets.push({
+                    label: 'Filtered Data',
+                    data: timeArray.map((t, i) => ({x: t, y: filteredData[i]})),
+                    borderColor: 'rgb(239, 68, 68)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0
+                });
+            }
+            
+            charts.timeSeries = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Time (minutes)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Amplitude'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return `Time: ${context[0].parsed.x.toFixed(1)} minutes`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function plotSpectrum() {
+            // Simple FFT approximation for visualization
+            const N = originalData.length;
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            const frequencies = Array.from({length: Math.floor(N/2)}, (_, i) => i / (N * temporalRes)); // Frequency in cycles per minute
+            
+            // Calculate power spectrum (simplified)
+            const originalSpectrum = calculateSpectrum(originalData);
+            const filteredSpectrum = filteredData.length > 0 ? calculateSpectrum(filteredData) : originalSpectrum;
+            
+            const ctx = document.getElementById('spectrumChart').getContext('2d');
+            
+            if (charts.spectrum) charts.spectrum.destroy();
+            
+            const datasets = [{
+                label: 'Original Spectrum',
+                data: frequencies.map((f, i) => ({x: f, y: originalSpectrum[i]})),
+                borderColor: 'rgb(102, 126, 234)',
+                backgroundColor: 'rgba(102, 126, 234, 0.3)',
+                borderWidth: 1.5,
+                pointRadius: 0,
+                fill: true
+            }];
+            
+            if (JSON.stringify(filteredData) !== JSON.stringify(originalData)) {
+                datasets.push({
+                    label: 'Filtered Spectrum',
+                    data: frequencies.map((f, i) => ({x: f, y: filteredSpectrum[i]})),
+                    borderColor: 'rgb(239, 68, 68)',
+                    backgroundColor: 'rgba(239, 68, 68, 0.3)',
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true
+                });
+            }
+            
+            charts.spectrum = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Frequency (cpm)'
+                            }
+                        },
+                        y: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: 'Power Spectral Density'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateSpectrum(data) {
+            // Simplified power spectrum calculation
+            const N = data.length;
+            const spectrum = new Array(Math.floor(N/2)).fill(0);
+            
+            for (let k = 0; k < spectrum.length; k++) {
+                let real = 0, imag = 0;
+                for (let n = 0; n < N; n++) {
+                    const angle = -2 * Math.PI * k * n / N;
+                    real += data[n] * Math.cos(angle);
+                    imag += data[n] * Math.sin(angle);
+                }
+                spectrum[k] = Math.sqrt(real * real + imag * imag) / N;
+            }
+            
+            return spectrum;
+        }
+        
+        function plotFrequencyResponse() {
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            const nyquist = 1 / (2 * temporalRes); // Nyquist frequency in cpm
+            const frequencies = Array.from({length: 1000}, (_, i) => i * nyquist / 500); // Up to Nyquist frequency
+            const response = frequencies.map(f => calculateFilterResponse(f));
+            
+            const ctx = document.getElementById('frequencyChart').getContext('2d');
+            
+            if (charts.frequency) charts.frequency.destroy();
+            
+            charts.frequency = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Magnitude Response',
+                        data: frequencies.map((f, i) => ({x: f, y: 20 * Math.log10(Math.abs(response[i]))})),
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        yAxisID: 'y'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Frequency (cpm)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Magnitude (dB)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateFilterResponse(frequency) {
+            // Simplified filter response calculation
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            const omega = 2 * Math.PI * frequency * temporalRes; // Normalized frequency
+            const order = parseInt(document.getElementById('filterOrder').value);
+            
+            let response = 1;
+            
+            switch(currentFilter) {
+                case 'lowpass':
+                    const cutoffPeriod = parseFloat(document.getElementById('cutoffPeriod')?.value || 240);
+                    const fc = 1 / cutoffPeriod; // Convert period to frequency
+                    const omegac = 2 * Math.PI * fc * temporalRes;
+                    response = 1 / Math.sqrt(1 + Math.pow(omega / omegac, 2 * order));
+                    break;
+                case 'highpass':
+                    const cutoffPeriodH = parseFloat(document.getElementById('cutoffPeriod')?.value || 1440);
+                    const fch = 1 / cutoffPeriodH; // Convert period to frequency
+                    const omegach = 2 * Math.PI * fch * temporalRes;
+                    response = (omega / omegach) / Math.sqrt(1 + Math.pow(omega / omegach, 2 * order));
+                    break;
+                case 'bandpass':
+                    const lowPeriod = parseFloat(document.getElementById('lowCutoffPeriod')?.value || 1440);
+                    const highPeriod = parseFloat(document.getElementById('highCutoffPeriod')?.value || 240);
+                    const fl = 1 / lowPeriod; // Convert period to frequency
+                    const fh = 1 / highPeriod; // Convert period to frequency
+                    if (frequency >= fl && frequency <= fh) {
+                        response = 1;
+                    } else {
+                        response = 0.1;
+                    }
+                    break;
+                case 'bandstop':
+                    const lowPeriodS = parseFloat(document.getElementById('lowCutoffPeriod')?.value || 720);
+                    const highPeriodS = parseFloat(document.getElementById('highCutoffPeriod')?.value || 360);
+                    const fls = 1 / lowPeriodS; // Convert period to frequency
+                    const fhs = 1 / highPeriodS; // Convert period to frequency
+                    if (frequency >= fls && frequency <= fhs) {
+                        response = 0.1;
+                    } else {
+                        response = 1;
+                    }
+                    break;
+            }
+            
+            return response;
+        }
+        
+        function applyFilter() {
+            if (originalData.length === 0) {
+                alert('Please process data first');
+                return;
+            }
+            
+            // Get filter parameters
+            const order = parseInt(document.getElementById('filterOrder').value);
+            
+            // Apply digital filter (simplified implementation)
+            filteredData = applyDigitalFilter(originalData, currentFilter, order);
+            
+            // Update plots
+            plotTimeSeries();
+            plotSpectrum();
+            
+            // Show success message
+            const successPanel = document.createElement('div');
+            successPanel.className = 'info-panel';
+            successPanel.innerHTML = `
+                <strong>✅ Filter Applied Successfully!</strong><br>
+                Filter Type: ${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}<br>
+                Order: ${order}<br>
+                Data points processed: ${filteredData.length.toLocaleString()}
+            `;
+            
+            const existingSuccess = document.querySelector('.info-panel');
+            if (existingSuccess) existingSuccess.remove();
+            
+            document.querySelector('.visualization-panel').insertBefore(successPanel, document.querySelector('.stats-grid'));
+            
+            // Auto-remove success message after 5 seconds
+            setTimeout(() => {
+                if (successPanel.parentNode) {
+                    successPanel.remove();
+                }
+            }, 5000);
+        }
+        
+        function applyDigitalFilter(data, filterType, order) {
+            // Simplified digital filter implementation
+            // In a real application, you would use proper DSP libraries
+            
+            const filtered = [...data];
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            const alpha = 0.1; // Smoothing factor (simplified)
+            
+            switch(filterType) {
+                case 'lowpass':
+                    // Simple exponential smoothing (low-pass effect)
+                    for (let i = 1; i < filtered.length; i++) {
+                        filtered[i] = alpha * data[i] + (1 - alpha) * filtered[i - 1];
+                    }
+                    break;
+                    
+                case 'highpass':
+                    // High-pass by subtracting low-pass
+                    const lowpass = [...data];
+                    for (let i = 1; i < lowpass.length; i++) {
+                        lowpass[i] = alpha * data[i] + (1 - alpha) * lowpass[i - 1];
+                    }
+                    for (let i = 0; i < filtered.length; i++) {
+                        filtered[i] = data[i] - lowpass[i];
+                    }
+                    break;
+                    
+                case 'bandpass':
+                    // Simplified bandpass (combination of high and low pass)
+                    const lowPeriodBP = parseFloat(document.getElementById('lowCutoffPeriod')?.value || 1440);
+                    const highPeriodBP = parseFloat(document.getElementById('highCutoffPeriod')?.value || 240);
+                    const fc1 = 1 / lowPeriodBP; // Convert period to frequency
+                    const fc2 = 1 / highPeriodBP; // Convert period to frequency
+                    
+                    // Apply frequency domain filtering (simplified)
+                    for (let i = 0; i < filtered.length; i++) {
+                        const freq = i / (data.length * temporalRes); // Frequency in cpm
+                        if (freq < fc1 || freq > fc2) {
+                            filtered[i] *= 0.1; // Attenuate frequencies outside band
+                        }
+                    }
+                    break;
+                    
+                case 'bandstop':
+                    // Simplified bandstop
+                    const lowPeriodBS = parseFloat(document.getElementById('lowCutoffPeriod')?.value || 720);
+                    const highPeriodBS = parseFloat(document.getElementById('highCutoffPeriod')?.value || 360);
+                    const fs1 = 1 / lowPeriodBS; // Convert period to frequency
+                    const fs2 = 1 / highPeriodBS; // Convert period to frequency
+                    
+                    for (let i = 0; i < filtered.length; i++) {
+                        const freq = i / (data.length * temporalRes); // Frequency in cpm
+                        if (freq >= fs1 && freq <= fs2) {
+                            filtered[i] *= 0.1; // Attenuate frequencies in stop band
+                        }
+                    }
+                    break;
+            }
+            
+            return filtered;
+        }
+        
+        function resetFilter() {
+            if (originalData.length === 0) {
+                alert('No data to reset');
+                return;
+            }
+            
+            filteredData = [...originalData];
+            plotTimeSeries();
+            plotSpectrum();
+            
+            // Hide filtered chart container
+            document.getElementById('filteredChartContainer').style.display = 'none';
+            
+            // Remove any info panels
+            const infoPanels = document.querySelectorAll('.info-panel');
+            infoPanels.forEach(panel => panel.remove());
+        }
+        
+        function downloadData() {
+            if (originalData.length === 0) {
+                alert('No data to download');
+                return;
+            }
+            
+            const format = document.getElementById('exportFormat').value;
+            const includeOriginal = document.getElementById('includeOriginal').checked;
+            const includeTimestamps = document.getElementById('includeTimestamps').checked;
+            
+            let content = '';
+            let filename = `filtered_data_${new Date().toISOString().slice(0, 10)}`;
+            
+            switch(format) {
+                case 'csv':
+                    content = generateCSV(includeOriginal, includeTimestamps);
+                    filename += '.csv';
+                    break;
+                case 'json':
+                    content = generateJSON(includeOriginal, includeTimestamps);
+                    filename += '.json';
+                    break;
+                case 'txt':
+                    content = generateTXT(includeOriginal, includeTimestamps);
+                    filename += '.txt';
+                    break;
+            }
+            
+            // Create and trigger download
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            // Show download confirmation
+            const confirmPanel = document.createElement('div');
+            confirmPanel.className = 'info-panel';
+            confirmPanel.innerHTML = `
+                <strong>📥 Download Complete!</strong><br>
+                File: ${filename}<br>
+                Format: ${format.toUpperCase()}<br>
+                Records: ${filteredData.length.toLocaleString()}
+            `;
+            
+            document.querySelector('.download-section').appendChild(confirmPanel);
+            
+            setTimeout(() => {
+                if (confirmPanel.parentNode) {
+                    confirmPanel.remove();
+                }
+            }, 3000);
+        }
+        
+        function generateCSV(includeOriginal, includeTimestamps) {
+            let headers = [];
+            if (includeTimestamps) headers.push('Time');
+            if (includeOriginal) headers.push('Original');
+            headers.push('Filtered');
+            
+            let csv = headers.join(',') + '\n';
+            
+            for (let i = 0; i < filteredData.length; i++) {
+                let row = [];
+                if (includeTimestamps) row.push(timeArray[i].toFixed(6));
+                if (includeOriginal) row.push(originalData[i].toFixed(6));
+                row.push(filteredData[i].toFixed(6));
+                csv += row.join(',') + '\n';
+            }
+            
+            return csv;
+        }
+        
+        function generateJSON(includeOriginal, includeTimestamps) {
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            const data = {
+                metadata: {
+                    temporalResolution: temporalRes,
+                    temporalUnit: 'minutes',
+                    filterType: currentFilter,
+                    dataPoints: filteredData.length,
+                    exportDate: new Date().toISOString()
+                },
+                data: []
+            };
+            
+            for (let i = 0; i < filteredData.length; i++) {
+                const point = {};
+                if (includeTimestamps) point.time = timeArray[i];
+                if (includeOriginal) point.original = originalData[i];
+                point.filtered = filteredData[i];
+                data.data.push(point);
+            }
+            
+            return JSON.stringify(data, null, 2);
+        }
+        
+        function generateTXT(includeOriginal, includeTimestamps) {
+            const temporalRes = parseFloat(document.getElementById('temporalResolution').value);
+            let content = `# Time Series Data Export\n`;
+            content += `# Export Date: ${new Date().toISOString()}\n`;
+            content += `# Temporal Resolution: ${temporalRes} minutes\n`;
+            content += `# Filter Type: ${currentFilter}\n`;
+            content += `# Data Points: ${filteredData.length}\n\n`;
+            
+            let headers = [];
+            if (includeTimestamps) headers.push('Time(min)');
+            if (includeOriginal) headers.push('Original');
+            headers.push('Filtered');
+            
+            content += headers.join('\t') + '\n';
+            
+            for (let i = 0; i < filteredData.length; i++) {
+                let row = [];
+                if (includeTimestamps) row.push(timeArray[i].toFixed(6));
+                if (includeOriginal) row.push(originalData[i].toFixed(6));
+                row.push(filteredData[i].toFixed(6));
+                content += row.join('\t') + '\n';
+            }
+            
+            return content;
+        }
+        
+        // Initialize
+        window.onload = function() {
+            updateFilterParams();
+            
+            // Add some helpful tips
+            const tipsPanel = document.createElement('div');
+            tipsPanel.className = 'info-panel';
+            tipsPanel.innerHTML = `
+                <strong>💡 Quick Tips:</strong><br>
+                • Use "Load Sample Data" to try the tool with example data<br>
+                • Adjust filter parameters before applying filters<br>
+                • Compare original vs filtered data in the time series plot<br>
+                • Check the frequency response to understand filter behavior
+            `;
+            
+            document.querySelector('.visualization-panel').appendChild(tipsPanel);
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c19db6a13e88b1',t:'MTc1NDY4MzM5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
