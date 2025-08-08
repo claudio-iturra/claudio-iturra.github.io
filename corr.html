@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Series Correlation Analysis Tool</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,8 50,10 T100,10 L100,0 L0,0 Z" fill="rgba(102,126,234,0.3)"/></svg>') repeat-x;
+            background-size: 200px 20px;
+            animation: wave 4s ease-in-out infinite;
+        }
+        
+        @keyframes wave {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-100px); }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+        
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .input-group textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .visualization-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .series-item {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #48bb78;
+            position: relative;
+        }
+        
+        .series-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .series-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .series-stats {
+            font-size: 0.9em;
+            color: #4a5568;
+        }
+        
+        .remove-btn {
+            background: #f56565;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .correlation-matrix {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        
+        .correlation-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .correlation-table th,
+        .correlation-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .correlation-table th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .correlation-cell {
+            font-weight: 600;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .correlation-cell:hover {
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #4299e1;
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef5e7 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #f6ad55;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #f0fff4 0%, #e6fffa 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #48bb78;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #4a5568;
+            margin-top: 5px;
+        }
+        
+        .correlation-details {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .correlation-pair {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .pair-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .pair-names {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        
+        .correlation-value {
+            font-size: 1.2em;
+            font-weight: 700;
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: white;
+        }
+        
+        .download-section {
+            background: linear-gradient(135deg, #f0f4f8 0%, #d6e8f5 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            border: 2px solid #4299e1;
+        }
+        
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Time Series Correlation Analysis</h1>
+            <p>Analyze correlations between multiple time series datasets by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- Add Time Series Section -->
+                <div class="section">
+                    <h3>📈 Add Time Series</h3>
+                    <div class="input-group">
+                        <label for="seriesName">Series Name:</label>
+                        <input type="text" id="seriesName" placeholder="e.g., Temperature, Sales, Stock Price">
+                    </div>
+                    <div class="input-group">
+                        <label for="seriesData">Time Series Data:</label>
+                        <textarea id="seriesData" placeholder="Enter data (one value per line or comma-separated)&#10;Example:&#10;1.2, 1.5, 1.8, 2.1&#10;or&#10;1.2&#10;1.5&#10;1.8&#10;2.1"></textarea>
+                    </div>
+                    <button class="btn btn-success" onclick="addTimeSeries()">➕ Add Series</button>
+                    <button class="btn btn-info" onclick="loadSampleData()">📋 Load Sample Data</button>
+                </div>
+                
+                <!-- Current Series -->
+                <div class="section">
+                    <h3>📋 Current Series (<span id="seriesCount">0</span>)</h3>
+                    <div id="seriesList">
+                        <div class="info-panel">
+                            <strong>No time series added yet.</strong><br>
+                            Add at least 2 series to calculate correlations.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Options -->
+                <div class="section">
+                    <h3>⚙️ Analysis Options</h3>
+                    <div class="input-group">
+                        <label for="correlationType">Correlation Type:</label>
+                        <select id="correlationType">
+                            <option value="pearson">Pearson (Linear)</option>
+                            <option value="spearman">Spearman (Rank)</option>
+                            <option value="kendall">Kendall (Tau)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="lagAnalysis">Lag Analysis:</label>
+                        <select id="lagAnalysis">
+                            <option value="0">No Lag</option>
+                            <option value="1">±1 Period</option>
+                            <option value="3">±3 Periods</option>
+                            <option value="5">±5 Periods</option>
+                            <option value="10">±10 Periods</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <input type="checkbox" id="removeOutliers"> Remove Outliers (±3σ)
+                        </label>
+                    </div>
+                    <button class="btn btn-info" onclick="calculateCorrelations()" id="analyzeBtn" disabled>🔍 Analyze Correlations</button>
+                    <button class="btn btn-danger" onclick="clearAllSeries()">🗑️ Clear All</button>
+                </div>
+                
+                <!-- Export Section -->
+                <div class="section">
+                    <h3>💾 Export Results</h3>
+                    <div class="download-section">
+                        <div class="input-group">
+                            <label for="exportFormat">Export Format:</label>
+                            <select id="exportFormat">
+                                <option value="csv">CSV</option>
+                                <option value="json">JSON</option>
+                                <option value="txt">Text Report</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-success" onclick="exportResults()" disabled id="exportBtn">📥 Export Results</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <!-- Summary Statistics -->
+                <div class="stats-grid" id="summaryStats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalSeries">0</div>
+                        <div class="stat-label">Time Series</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalCorrelations">0</div>
+                        <div class="stat-label">Correlations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="strongestCorr">-</div>
+                        <div class="stat-label">Strongest</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="averageCorr">-</div>
+                        <div class="stat-label">Average</div>
+                    </div>
+                </div>
+                
+                <!-- Time Series Plot -->
+                <div class="chart-container">
+                    <div class="chart-title">Time Series Overview</div>
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+                
+                <!-- Correlation Matrix -->
+                <div class="chart-container">
+                    <div class="chart-title">Correlation Matrix</div>
+                    <div class="correlation-matrix" id="correlationMatrix">
+                        <div class="info-panel">
+                            <strong>Add at least 2 time series to see correlation matrix.</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Correlation Heatmap -->
+                <div class="chart-container">
+                    <div class="chart-title">Correlation Heatmap</div>
+                    <canvas id="heatmapChart"></canvas>
+                </div>
+                
+                <!-- Detailed Results -->
+                <div class="chart-container">
+                    <div class="chart-title">Detailed Correlation Results</div>
+                    <div id="detailedResults">
+                        <div class="info-panel">
+                            <strong>Run correlation analysis to see detailed results.</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let timeSeries = [];
+        let correlationResults = [];
+        let charts = {};
+        
+        function addTimeSeries() {
+            const name = document.getElementById('seriesName').value.trim();
+            const dataText = document.getElementById('seriesData').value.trim();
+            
+            if (!name) {
+                alert('Please enter a series name');
+                return;
+            }
+            
+            if (!dataText) {
+                alert('Please enter time series data');
+                return;
+            }
+            
+            // Parse data
+            let dataArray;
+            if (dataText.includes(',')) {
+                dataArray = dataText.split(',').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+            } else {
+                dataArray = dataText.split('\n').map(v => parseFloat(v.trim())).filter(v => !isNaN(v));
+            }
+            
+            if (dataArray.length < 3) {
+                alert('Please enter at least 3 data points');
+                return;
+            }
+            
+            // Check if series name already exists
+            if (timeSeries.find(s => s.name === name)) {
+                alert('Series name already exists. Please use a different name.');
+                return;
+            }
+            
+            // Add series
+            const series = {
+                name: name,
+                data: dataArray,
+                mean: dataArray.reduce((a, b) => a + b, 0) / dataArray.length,
+                std: Math.sqrt(dataArray.reduce((a, b) => a + Math.pow(b - (dataArray.reduce((c, d) => c + d, 0) / dataArray.length), 2), 0) / dataArray.length),
+                length: dataArray.length
+            };
+            
+            timeSeries.push(series);
+            
+            // Clear inputs
+            document.getElementById('seriesName').value = '';
+            document.getElementById('seriesData').value = '';
+            
+            updateSeriesList();
+            updateTimeSeriesChart();
+            updateAnalyzeButton();
+            
+            // Show success message
+            showMessage('success', `✅ Added "${name}" with ${dataArray.length} data points`);
+        }
+        
+        function loadSampleData() {
+            // Clear existing series
+            timeSeries = [];
+            
+            // Generate 168 hours (7 days) of hourly oceanographic data
+            const n = 168;
+            const t = Array.from({length: n}, (_, i) => i);
+            
+            // Solar radiation cycle (24-hour period) - base for many correlations
+            const solarRadiation = t.map(i => {
+                const hourOfDay = i % 24;
+                const dayOfWeek = Math.floor(i / 24);
+                // Peak at noon (hour 12), zero at night
+                const dailyCycle = Math.max(0, Math.cos(2 * Math.PI * (hourOfDay - 12) / 24));
+                // Add weekly variation and noise
+                const weeklyVar = 0.9 + 0.1 * Math.sin(2 * Math.PI * dayOfWeek / 7);
+                const noise = 0.05 * (Math.random() - 0.5);
+                return (dailyCycle * weeklyVar + noise) * 800 + 50; // W/m²
+            });
+            
+            // Ocean surface temperature - strongly correlated with radiation (lag ~2-3 hours)
+            const surfaceTemp = t.map(i => {
+                const radIndex = Math.max(0, i - 2); // 2-hour lag
+                const baseTemp = 18 + (solarRadiation[radIndex] - 450) * 0.008; // Scale radiation to temp
+                const tidalInfluence = 0.3 * Math.sin(2 * Math.PI * i / 12.42); // Semi-diurnal tide effect
+                const noise = 0.2 * (Math.random() - 0.5);
+                return baseTemp + tidalInfluence + noise;
+            });
+            
+            // Wind velocity - inversely related to temperature (sea breeze effect)
+            const windVelocity = t.map(i => {
+                const hourOfDay = i % 24;
+                // Stronger winds during day due to thermal differences
+                const thermalWind = 2 + 3 * Math.max(0, Math.sin(Math.PI * (hourOfDay - 6) / 12));
+                // Inverse relationship with temperature
+                const tempEffect = -0.4 * (surfaceTemp[i] - 19);
+                // Weather system (3-day cycle)
+                const synoptic = 2 * Math.sin(2 * Math.PI * i / 72);
+                const noise = 1.5 * (Math.random() - 0.5);
+                return Math.max(0, thermalWind + tempEffect + synoptic + noise + 4); // m/s
+            });
+            
+            // Current velocity - influenced by wind and tides
+            const currentVelocity = t.map(i => {
+                // Tidal component (M2 tide - 12.42 hour period)
+                const tidalCurrent = 0.8 * Math.sin(2 * Math.PI * i / 12.42);
+                // Wind-driven component (with lag)
+                const windIndex = Math.max(0, i - 1); // 1-hour lag
+                const windDriven = 0.15 * windVelocity[windIndex];
+                const noise = 0.1 * (Math.random() - 0.5);
+                return tidalCurrent + windDriven + noise + 0.2; // m/s
+            });
+            
+            // Tide velocity - semi-diurnal with spring-neap cycle
+            const tideVelocity = t.map(i => {
+                // M2 tidal component (12.42 hours)
+                const m2 = Math.sin(2 * Math.PI * i / 12.42);
+                // S2 solar component (12 hours)
+                const s2 = 0.3 * Math.sin(2 * Math.PI * i / 12);
+                // Spring-neap cycle (14.77 days, but show part of it)
+                const springNeap = 0.8 + 0.2 * Math.cos(2 * Math.PI * i / (14.77 * 24));
+                const noise = 0.05 * (Math.random() - 0.5);
+                return (m2 + s2) * springNeap + noise; // m/s
+            });
+            
+            // Sea level - correlated with tides and atmospheric pressure (inverse wind relationship)
+            const seaLevel = t.map(i => {
+                // Tidal elevation (same phase as tide velocity but different amplitude)
+                const tidalElevation = 1.2 * Math.sin(2 * Math.PI * i / 12.42 + Math.PI/4);
+                // Atmospheric pressure effect (inverse wind relationship)
+                const pressureEffect = -0.02 * windVelocity[i]; // Higher wind = lower pressure = higher sea level
+                // Long-term trend
+                const trend = 0.001 * i;
+                const noise = 0.05 * (Math.random() - 0.5);
+                return tidalElevation + pressureEffect + trend + noise; // meters above mean
+            });
+            
+            // Add all oceanographic series
+            const sampleSeries = [
+                { name: 'Ocean Surface Temperature (°C)', data: surfaceTemp },
+                { name: 'Wind Velocity (m/s)', data: windVelocity },
+                { name: 'Solar Radiation (W/m²)', data: solarRadiation },
+                { name: 'Current Velocity (m/s)', data: currentVelocity },
+                { name: 'Tide Velocity (m/s)', data: tideVelocity },
+                { name: 'Sea Level (m)', data: seaLevel }
+            ];
+            
+            sampleSeries.forEach(series => {
+                series.mean = series.data.reduce((a, b) => a + b, 0) / series.data.length;
+                series.std = Math.sqrt(series.data.reduce((a, b) => a + Math.pow(b - series.mean, 2), 0) / series.data.length);
+                series.length = series.data.length;
+                timeSeries.push(series);
+            });
+            
+            updateSeriesList();
+            updateTimeSeriesChart();
+            updateAnalyzeButton();
+            
+            showMessage('info', '🌊 Loaded 7 days of hourly coastal oceanographic data (168 hours)');
+        }
+        
+        function removeSeries(index) {
+            const removedName = timeSeries[index].name;
+            timeSeries.splice(index, 1);
+            updateSeriesList();
+            updateTimeSeriesChart();
+            updateAnalyzeButton();
+            
+            showMessage('warning', `🗑️ Removed "${removedName}"`);
+        }
+        
+        function updateSeriesList() {
+            const seriesList = document.getElementById('seriesList');
+            const seriesCount = document.getElementById('seriesCount');
+            const totalSeries = document.getElementById('totalSeries');
+            
+            seriesCount.textContent = timeSeries.length;
+            totalSeries.textContent = timeSeries.length;
+            
+            if (timeSeries.length === 0) {
+                seriesList.innerHTML = `
+                    <div class="info-panel">
+                        <strong>No time series added yet.</strong><br>
+                        Add at least 2 series to calculate correlations.
+                    </div>
+                `;
+                return;
+            }
+            
+            seriesList.innerHTML = timeSeries.map((series, index) => `
+                <div class="series-item">
+                    <div class="series-header">
+                        <div class="series-name">${series.name}</div>
+                        <button class="remove-btn" onclick="removeSeries(${index})">✕</button>
+                    </div>
+                    <div class="series-stats">
+                        Points: ${series.length} | Mean: ${series.mean.toFixed(3)} | Std: ${series.std.toFixed(3)}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        function updateTimeSeriesChart() {
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            
+            if (charts.timeSeries) charts.timeSeries.destroy();
+            
+            if (timeSeries.length === 0) {
+                return;
+            }
+            
+            const colors = [
+                'rgb(102, 126, 234)', 'rgb(239, 68, 68)', 'rgb(34, 197, 94)',
+                'rgb(251, 191, 36)', 'rgb(168, 85, 247)', 'rgb(236, 72, 153)',
+                'rgb(14, 165, 233)', 'rgb(249, 115, 22)', 'rgb(139, 69, 19)',
+                'rgb(75, 85, 99)'
+            ];
+            
+            const datasets = timeSeries.map((series, index) => ({
+                label: series.name,
+                data: series.data.map((value, i) => ({x: i, y: value})),
+                borderColor: colors[index % colors.length],
+                backgroundColor: colors[index % colors.length] + '20',
+                borderWidth: 2,
+                pointRadius: 0,
+                tension: 0.1
+            }));
+            
+            charts.timeSeries = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            title: {
+                                display: true,
+                                text: 'Hours from Start'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    if (timeSeries.length > 0 && timeSeries[0].length === 168) {
+                                        const day = Math.floor(value / 24) + 1;
+                                        const hour = value % 24;
+                                        return `Day ${day}, ${hour}:00`;
+                                    }
+                                    return value;
+                                }
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Value'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateAnalyzeButton() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            
+            if (timeSeries.length >= 2) {
+                analyzeBtn.disabled = false;
+            } else {
+                analyzeBtn.disabled = true;
+                exportBtn.disabled = true;
+            }
+        }
+        
+        function calculateCorrelations() {
+            if (timeSeries.length < 2) {
+                alert('Need at least 2 time series for correlation analysis');
+                return;
+            }
+            
+            const correlationType = document.getElementById('correlationType').value;
+            const lagAnalysis = parseInt(document.getElementById('lagAnalysis').value);
+            const removeOutliers = document.getElementById('removeOutliers').checked;
+            
+            correlationResults = [];
+            
+            // Calculate all pairwise correlations
+            for (let i = 0; i < timeSeries.length; i++) {
+                for (let j = i + 1; j < timeSeries.length; j++) {
+                    const series1 = timeSeries[i];
+                    const series2 = timeSeries[j];
+                    
+                    // Prepare data (handle different lengths)
+                    const minLength = Math.min(series1.data.length, series2.data.length);
+                    let data1 = series1.data.slice(0, minLength);
+                    let data2 = series2.data.slice(0, minLength);
+                    
+                    // Remove outliers if requested
+                    if (removeOutliers) {
+                        const result = removeOutliersFromPair(data1, data2);
+                        data1 = result.data1;
+                        data2 = result.data2;
+                    }
+                    
+                    // Calculate correlation with lag analysis
+                    const correlations = [];
+                    
+                    for (let lag = -lagAnalysis; lag <= lagAnalysis; lag++) {
+                        const corr = calculateCorrelation(data1, data2, lag, correlationType);
+                        correlations.push({
+                            lag: lag,
+                            correlation: corr,
+                            pValue: calculatePValue(corr, data1.length - Math.abs(lag))
+                        });
+                    }
+                    
+                    // Find best correlation
+                    const bestCorr = correlations.reduce((best, current) => 
+                        Math.abs(current.correlation) > Math.abs(best.correlation) ? current : best
+                    );
+                    
+                    correlationResults.push({
+                        series1: series1.name,
+                        series2: series2.name,
+                        correlations: correlations,
+                        bestCorrelation: bestCorr,
+                        dataPoints: data1.length
+                    });
+                }
+            }
+            
+            updateCorrelationMatrix();
+            updateHeatmap();
+            updateDetailedResults();
+            updateSummaryStats();
+            
+            document.getElementById('exportBtn').disabled = false;
+            
+            showMessage('success', `✅ Calculated ${correlationResults.length} correlation pairs`);
+        }
+        
+        function calculateCorrelation(data1, data2, lag, type) {
+            // Apply lag
+            let x, y;
+            if (lag >= 0) {
+                x = data1.slice(0, data1.length - lag);
+                y = data2.slice(lag);
+            } else {
+                x = data1.slice(-lag);
+                y = data2.slice(0, data2.length + lag);
+            }
+            
+            if (x.length < 3) return 0;
+            
+            switch (type) {
+                case 'pearson':
+                    return pearsonCorrelation(x, y);
+                case 'spearman':
+                    return spearmanCorrelation(x, y);
+                case 'kendall':
+                    return kendallCorrelation(x, y);
+                default:
+                    return pearsonCorrelation(x, y);
+            }
+        }
+        
+        function pearsonCorrelation(x, y) {
+            const n = x.length;
+            const sumX = x.reduce((a, b) => a + b, 0);
+            const sumY = y.reduce((a, b) => a + b, 0);
+            const sumXY = x.reduce((sum, xi, i) => sum + xi * y[i], 0);
+            const sumX2 = x.reduce((sum, xi) => sum + xi * xi, 0);
+            const sumY2 = y.reduce((sum, yi) => sum + yi * yi, 0);
+            
+            const numerator = n * sumXY - sumX * sumY;
+            const denominator = Math.sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY));
+            
+            return denominator === 0 ? 0 : numerator / denominator;
+        }
+        
+        function spearmanCorrelation(x, y) {
+            // Convert to ranks
+            const rankX = getRanks(x);
+            const rankY = getRanks(y);
+            return pearsonCorrelation(rankX, rankY);
+        }
+        
+        function kendallCorrelation(x, y) {
+            const n = x.length;
+            let concordant = 0;
+            let discordant = 0;
+            
+            for (let i = 0; i < n - 1; i++) {
+                for (let j = i + 1; j < n; j++) {
+                    const signX = Math.sign(x[j] - x[i]);
+                    const signY = Math.sign(y[j] - y[i]);
+                    
+                    if (signX * signY > 0) concordant++;
+                    else if (signX * signY < 0) discordant++;
+                }
+            }
+            
+            return (concordant - discordant) / (n * (n - 1) / 2);
+        }
+        
+        function getRanks(data) {
+            const sorted = data.map((value, index) => ({ value, index }))
+                              .sort((a, b) => a.value - b.value);
+            
+            const ranks = new Array(data.length);
+            for (let i = 0; i < sorted.length; i++) {
+                ranks[sorted[i].index] = i + 1;
+            }
+            
+            return ranks;
+        }
+        
+        function removeOutliersFromPair(data1, data2) {
+            const validIndices = [];
+            
+            for (let i = 0; i < data1.length; i++) {
+                const z1 = Math.abs((data1[i] - timeSeries.find(s => s.data === data1).mean) / timeSeries.find(s => s.data === data1).std);
+                const z2 = Math.abs((data2[i] - timeSeries.find(s => s.data === data2).mean) / timeSeries.find(s => s.data === data2).std);
+                
+                if (z1 <= 3 && z2 <= 3) {
+                    validIndices.push(i);
+                }
+            }
+            
+            return {
+                data1: validIndices.map(i => data1[i]),
+                data2: validIndices.map(i => data2[i])
+            };
+        }
+        
+        function calculatePValue(r, n) {
+            // Simplified p-value calculation for correlation
+            if (n <= 2) return 1;
+            
+            const t = r * Math.sqrt((n - 2) / (1 - r * r));
+            const df = n - 2;
+            
+            // Approximate p-value using t-distribution
+            return 2 * (1 - Math.abs(t) / Math.sqrt(df + t * t));
+        }
+        
+        function updateCorrelationMatrix() {
+            const matrixDiv = document.getElementById('correlationMatrix');
+            
+            if (correlationResults.length === 0) {
+                matrixDiv.innerHTML = '<div class="info-panel"><strong>No correlation results yet.</strong></div>';
+                return;
+            }
+            
+            // Create correlation matrix
+            const seriesNames = timeSeries.map(s => s.name);
+            const matrix = Array(seriesNames.length).fill().map(() => Array(seriesNames.length).fill(1));
+            
+            correlationResults.forEach(result => {
+                const i = seriesNames.indexOf(result.series1);
+                const j = seriesNames.indexOf(result.series2);
+                const corr = result.bestCorrelation.correlation;
+                
+                matrix[i][j] = corr;
+                matrix[j][i] = corr;
+            });
+            
+            // Generate HTML table
+            let html = '<table class="correlation-table"><thead><tr><th></th>';
+            seriesNames.forEach(name => {
+                html += `<th>${name}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+            
+            seriesNames.forEach((name, i) => {
+                html += `<tr><th>${name}</th>`;
+                matrix[i].forEach((corr, j) => {
+                    const color = getCorrelationColor(corr);
+                    const cellClass = i === j ? 'correlation-cell' : 'correlation-cell';
+                    html += `<td class="${cellClass}" style="background-color: ${color}; color: ${Math.abs(corr) > 0.5 ? 'white' : 'black'}">
+                        ${corr.toFixed(3)}
+                    </td>`;
+                });
+                html += '</tr>';
+            });
+            
+            html += '</tbody></table>';
+            matrixDiv.innerHTML = html;
+        }
+        
+        function getCorrelationColor(corr) {
+            const abs = Math.abs(corr);
+            if (corr > 0) {
+                // Positive correlation - blue scale
+                const intensity = Math.floor(abs * 255);
+                return `rgba(59, 130, 246, ${abs})`;
+            } else {
+                // Negative correlation - red scale
+                const intensity = Math.floor(abs * 255);
+                return `rgba(239, 68, 68, ${abs})`;
+            }
+        }
+        
+        function updateHeatmap() {
+            const ctx = document.getElementById('heatmapChart').getContext('2d');
+            
+            if (charts.heatmap) charts.heatmap.destroy();
+            
+            if (correlationResults.length === 0) return;
+            
+            // Create heatmap data
+            const seriesNames = timeSeries.map(s => s.name);
+            const heatmapData = [];
+            
+            correlationResults.forEach(result => {
+                heatmapData.push({
+                    x: result.series1,
+                    y: result.series2,
+                    v: result.bestCorrelation.correlation
+                });
+                heatmapData.push({
+                    x: result.series2,
+                    y: result.series1,
+                    v: result.bestCorrelation.correlation
+                });
+            });
+            
+            // Add diagonal (self-correlation = 1)
+            seriesNames.forEach(name => {
+                heatmapData.push({
+                    x: name,
+                    y: name,
+                    v: 1
+                });
+            });
+            
+            charts.heatmap = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Correlation',
+                        data: heatmapData.map(d => ({
+                            x: seriesNames.indexOf(d.x),
+                            y: seriesNames.indexOf(d.y),
+                            correlation: d.v
+                        })),
+                        backgroundColor: function(context) {
+                            const corr = context.parsed.correlation;
+                            return getCorrelationColor(corr);
+                        },
+                        pointRadius: 20,
+                        pointHoverRadius: 25
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: -0.5,
+                            max: seriesNames.length - 0.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return seriesNames[value] || '';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time Series'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            min: -0.5,
+                            max: seriesNames.length - 0.5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    return seriesNames[value] || '';
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: 'Time Series'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const point = context[0];
+                                    return `${seriesNames[point.parsed.x]} vs ${seriesNames[point.parsed.y]}`;
+                                },
+                                label: function(context) {
+                                    return `Correlation: ${context.parsed.correlation.toFixed(3)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateDetailedResults() {
+            const detailsDiv = document.getElementById('detailedResults');
+            
+            if (correlationResults.length === 0) {
+                detailsDiv.innerHTML = '<div class="info-panel"><strong>No results yet.</strong></div>';
+                return;
+            }
+            
+            // Sort by absolute correlation strength
+            const sortedResults = [...correlationResults].sort((a, b) => 
+                Math.abs(b.bestCorrelation.correlation) - Math.abs(a.bestCorrelation.correlation)
+            );
+            
+            let html = '<div class="correlation-details">';
+            
+            sortedResults.forEach(result => {
+                const corr = result.bestCorrelation.correlation;
+                const lag = result.bestCorrelation.lag;
+                const pValue = result.bestCorrelation.pValue;
+                
+                const strength = Math.abs(corr) > 0.7 ? 'Strong' : 
+                               Math.abs(corr) > 0.4 ? 'Moderate' : 'Weak';
+                const direction = corr > 0 ? 'Positive' : 'Negative';
+                
+                html += `
+                    <div class="correlation-pair">
+                        <div class="pair-header">
+                            <div class="pair-names">${result.series1} ↔ ${result.series2}</div>
+                            <div class="correlation-value" style="background-color: ${getCorrelationColor(corr)}">
+                                ${corr.toFixed(3)}
+                            </div>
+                        </div>
+                        <div style="font-size: 0.9em; color: #4a5568;">
+                            <strong>${strength} ${direction}</strong> correlation
+                            ${lag !== 0 ? ` (lag: ${lag > 0 ? '+' : ''}${lag})` : ''}
+                            | p-value: ${pValue.toFixed(4)} | n: ${result.dataPoints}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            detailsDiv.innerHTML = html;
+        }
+        
+        function updateSummaryStats() {
+            const totalCorrelations = document.getElementById('totalCorrelations');
+            const strongestCorr = document.getElementById('strongestCorr');
+            const averageCorr = document.getElementById('averageCorr');
+            
+            if (correlationResults.length === 0) {
+                totalCorrelations.textContent = '0';
+                strongestCorr.textContent = '-';
+                averageCorr.textContent = '-';
+                return;
+            }
+            
+            totalCorrelations.textContent = correlationResults.length;
+            
+            const correlations = correlationResults.map(r => r.bestCorrelation.correlation);
+            const strongest = correlations.reduce((max, corr) => 
+                Math.abs(corr) > Math.abs(max) ? corr : max
+            );
+            const average = correlations.reduce((sum, corr) => sum + Math.abs(corr), 0) / correlations.length;
+            
+            strongestCorr.textContent = strongest.toFixed(3);
+            averageCorr.textContent = average.toFixed(3);
+        }
+        
+        function clearAllSeries() {
+            if (timeSeries.length === 0) return;
+            
+            if (confirm('Are you sure you want to clear all time series?')) {
+                timeSeries = [];
+                correlationResults = [];
+                
+                updateSeriesList();
+                updateTimeSeriesChart();
+                updateAnalyzeButton();
+                
+                // Clear results
+                document.getElementById('correlationMatrix').innerHTML = '<div class="info-panel"><strong>Add at least 2 time series to see correlation matrix.</strong></div>';
+                document.getElementById('detailedResults').innerHTML = '<div class="info-panel"><strong>Run correlation analysis to see detailed results.</strong></div>';
+                
+                // Reset stats
+                document.getElementById('totalSeries').textContent = '0';
+                document.getElementById('totalCorrelations').textContent = '0';
+                document.getElementById('strongestCorr').textContent = '-';
+                document.getElementById('averageCorr').textContent = '-';
+                
+                if (charts.heatmap) charts.heatmap.destroy();
+                
+                showMessage('warning', '🗑️ Cleared all time series');
+            }
+        }
+        
+        function exportResults() {
+            if (correlationResults.length === 0) {
+                alert('No results to export. Run correlation analysis first.');
+                return;
+            }
+            
+            const format = document.getElementById('exportFormat').value;
+            let content = '';
+            let filename = `correlation_analysis_${new Date().toISOString().slice(0, 10)}`;
+            
+            switch (format) {
+                case 'csv':
+                    content = generateCSV();
+                    filename += '.csv';
+                    break;
+                case 'json':
+                    content = generateJSON();
+                    filename += '.json';
+                    break;
+                case 'txt':
+                    content = generateTextReport();
+                    filename += '.txt';
+                    break;
+            }
+            
+            // Download file
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showMessage('success', `📥 Exported results as ${format.toUpperCase()}`);
+        }
+        
+        function generateCSV() {
+            let csv = 'Series1,Series2,Correlation,Lag,P-Value,Data Points,Correlation Type\n';
+            
+            correlationResults.forEach(result => {
+                const corr = result.bestCorrelation;
+                csv += `${result.series1},${result.series2},${corr.correlation.toFixed(6)},${corr.lag},${corr.pValue.toFixed(6)},${result.dataPoints},${document.getElementById('correlationType').value}\n`;
+            });
+            
+            return csv;
+        }
+        
+        function generateJSON() {
+            const data = {
+                metadata: {
+                    analysisDate: new Date().toISOString(),
+                    correlationType: document.getElementById('correlationType').value,
+                    lagAnalysis: document.getElementById('lagAnalysis').value,
+                    removeOutliers: document.getElementById('removeOutliers').checked,
+                    totalSeries: timeSeries.length,
+                    totalCorrelations: correlationResults.length
+                },
+                timeSeries: timeSeries.map(s => ({
+                    name: s.name,
+                    length: s.length,
+                    mean: s.mean,
+                    std: s.std
+                })),
+                correlations: correlationResults.map(result => ({
+                    series1: result.series1,
+                    series2: result.series2,
+                    bestCorrelation: result.bestCorrelation,
+                    dataPoints: result.dataPoints,
+                    allLags: result.correlations
+                }))
+            };
+            
+            return JSON.stringify(data, null, 2);
+        }
+        
+        function generateTextReport() {
+            let report = `TIME SERIES CORRELATION ANALYSIS REPORT\n`;
+            report += `Generated: ${new Date().toISOString()}\n`;
+            report += `${'='.repeat(50)}\n\n`;
+            
+            report += `ANALYSIS PARAMETERS:\n`;
+            report += `- Correlation Type: ${document.getElementById('correlationType').value}\n`;
+            report += `- Lag Analysis: ±${document.getElementById('lagAnalysis').value} periods\n`;
+            report += `- Remove Outliers: ${document.getElementById('removeOutliers').checked ? 'Yes' : 'No'}\n\n`;
+            
+            report += `TIME SERIES SUMMARY:\n`;
+            timeSeries.forEach(series => {
+                report += `- ${series.name}: ${series.length} points, mean=${series.mean.toFixed(3)}, std=${series.std.toFixed(3)}\n`;
+            });
+            report += `\n`;
+            
+            report += `CORRELATION RESULTS:\n`;
+            const sortedResults = [...correlationResults].sort((a, b) => 
+                Math.abs(b.bestCorrelation.correlation) - Math.abs(a.bestCorrelation.correlation)
+            );
+            
+            sortedResults.forEach(result => {
+                const corr = result.bestCorrelation;
+                const strength = Math.abs(corr.correlation) > 0.7 ? 'Strong' : 
+                               Math.abs(corr.correlation) > 0.4 ? 'Moderate' : 'Weak';
+                const direction = corr.correlation > 0 ? 'Positive' : 'Negative';
+                
+                report += `\n${result.series1} ↔ ${result.series2}:\n`;
+                report += `  Correlation: ${corr.correlation.toFixed(6)} (${strength} ${direction})\n`;
+                report += `  Lag: ${corr.lag}\n`;
+                report += `  P-value: ${corr.pValue.toFixed(6)}\n`;
+                report += `  Data Points: ${result.dataPoints}\n`;
+            });
+            
+            return report;
+        }
+        
+        function showMessage(type, message) {
+            const existingMessage = document.querySelector('.temp-message');
+            if (existingMessage) existingMessage.remove();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type === 'success' ? 'info-panel' : type === 'warning' ? 'warning-panel' : 'info-panel'} temp-message`;
+            messageDiv.innerHTML = message;
+            
+            document.querySelector('.visualization-panel').insertBefore(messageDiv, document.querySelector('.stats-grid'));
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 4000);
+        }
+        
+        // Initialize
+        window.onload = function() {
+            updateSeriesList();
+            updateAnalyzeButton();
+            
+            // Add helpful tips
+            const tipsPanel = document.createElement('div');
+            tipsPanel.className = 'info-panel';
+            tipsPanel.innerHTML = `
+                <strong>🌊 Oceanographic Analysis Tips:</strong><br>
+                • Sample data includes 7 days (168 hours) of coastal ocean measurements<br>
+                • Look for tidal cycles (~12.4 hours), daily solar patterns, and wind-temperature relationships<br>
+                • Try lag analysis to find delayed responses (e.g., temperature following radiation)<br>
+                • Strong correlations: |r| > 0.7, Moderate: 0.4-0.7, Weak: < 0.4<br>
+                • Expected correlations: Temperature-Radiation (+), Wind-Temperature (-), Tides-Sea Level (+)
+            `;
+            
+            document.querySelector('.visualization-panel').appendChild(tipsPanel);
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c1b44f043e88ac',t:'MTc1NDY4NDMyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
