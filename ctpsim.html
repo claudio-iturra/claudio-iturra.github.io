@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Temperature Profile Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 30%, #0284c7 70%, #0ea5e9 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.2);
+            padding: 40px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #38bdf8, #0ea5e9, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .controls-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .controls-section h2 {
+            color: #0c4a6e;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            border-bottom: 4px solid #0ea5e9;
+            padding-bottom: 15px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #0c4a6e;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .control-group select, .control-group input[type="range"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        
+        .control-group select:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            background: white;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+        }
+        
+        .range-container {
+            position: relative;
+        }
+        
+        .range-value {
+            position: absolute;
+            right: 10px;
+            top: -35px;
+            background: #0ea5e9;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        
+        .simulate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0c4a6e, #0ea5e9);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+            margin-top: 20px;
+        }
+        
+        .simulate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(14, 165, 233, 0.4);
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .preset-btn {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .chart-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .chart-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .chart-header h2 {
+            color: #0c4a6e;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 600px;
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            margin-bottom: 30px;
+        }
+        
+        .parameters-display {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .parameter-card {
+            background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid #0ea5e9;
+            transition: all 0.3s;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+        }
+        
+        .parameter-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+        }
+        
+        .parameter-card h4 {
+            color: #0c4a6e;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        .parameter-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0ea5e9;
+            margin-bottom: 5px;
+        }
+        
+        .parameter-unit {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .scenario-info {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border: 2px solid #7dd3fc;
+            color: #0c4a6e;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .scenario-info h3 {
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-section {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .preset-buttons {
+                grid-template-columns: 1fr;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean Temperature Profile Simulator</h1>
+            <p>Advanced simulation of vertical temperature distribution in coastal waters (0-100m depth). Explore how solar radiation, wind, mixed layer dynamics, ocean circulation, and upwelling/downwelling events affect temperature profiles in real-time by Claudio Iturra.</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-section">
+                <h2>🎛️ Environmental Controls</h2>
+                
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset('summer')">☀️ Summer Day</button>
+                    <button class="preset-btn" onclick="loadPreset('winter')">❄️ Winter Storm</button>
+                    <button class="preset-btn" onclick="loadPreset('upwelling')">⬆️ Upwelling</button>
+                    <button class="preset-btn" onclick="loadPreset('calm')">🌅 Calm Night</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="time-of-day">🕐 Time of Day</label>
+                    <select id="time-of-day" onchange="updateSimulation()">
+                        <option value="day">Day (06:00-18:00)</option>
+                        <option value="night">Night (18:00-06:00)</option>
+                        <option value="dawn">Dawn (05:00-07:00)</option>
+                        <option value="dusk">Dusk (17:00-19:00)</option>
+                    </select>
+                    <div class="help-text">Solar heating varies dramatically with time of day</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="solar-radiation">☀️ Solar Radiation Intensity</label>
+                    <select id="solar-radiation" onchange="updateSimulation()">
+                        <option value="strong">Strong (Clear Sky, >800 W/m²)</option>
+                        <option value="medium">Medium (Partly Cloudy, 400-800 W/m²)</option>
+                        <option value="weak">Weak (Overcast, <400 W/m²)</option>
+                        <option value="none">None (Night/Heavy Clouds)</option>
+                    </select>
+                    <div class="help-text">Controls surface heating and thermal stratification</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="cloud-cover">☁️ Cloud Cover</label>
+                    <div class="range-container">
+                        <input type="range" id="cloud-cover" min="0" max="100" value="20" onchange="updateSimulation()">
+                        <div class="range-value" id="cloud-cover-value">20%</div>
+                    </div>
+                    <div class="help-text">Affects solar radiation penetration and longwave cooling</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="wind-speed">💨 Wind Speed</label>
+                    <div class="range-container">
+                        <input type="range" id="wind-speed" min="0" max="25" value="5" onchange="updateSimulation()">
+                        <div class="range-value" id="wind-speed-value">5 m/s</div>
+                    </div>
+                    <div class="help-text">Controls mixing intensity and heat exchange</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="mixed-layer-depth">🌊 Mixed Layer Depth</label>
+                    <div class="range-container">
+                        <input type="range" id="mixed-layer-depth" min="5" max="80" value="25" onchange="updateSimulation()">
+                        <div class="range-value" id="mixed-layer-depth-value">25 m</div>
+                    </div>
+                    <div class="help-text">Depth of well-mixed surface layer</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="current-velocity">🌀 Current Velocity</label>
+                    <div class="range-container">
+                        <input type="range" id="current-velocity" min="0" max="2" step="0.1" value="0.3" onchange="updateSimulation()">
+                        <div class="range-value" id="current-velocity-value">0.3 m/s</div>
+                    </div>
+                    <div class="help-text">Horizontal current strength affecting advection</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="circulation-type">🔄 Ocean Circulation</label>
+                    <select id="circulation-type" onchange="updateSimulation()">
+                        <option value="upwelling">Upwelling (Cold water rising)</option>
+                        <option value="downwelling">Downwelling (Warm water sinking)</option>
+                        <option value="relaxation">Relaxation (Neutral conditions)</option>
+                        <option value="coastal-jet">Coastal Jet (Strong alongshore flow)</option>
+                    </select>
+                    <div class="help-text">Vertical circulation pattern affecting temperature distribution</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="upwelling-strength">⬆️ Upwelling/Downwelling Strength</label>
+                    <div class="range-container">
+                        <input type="range" id="upwelling-strength" min="0" max="10" step="0.5" value="2" onchange="updateSimulation()">
+                        <div class="range-value" id="upwelling-strength-value">2 m/day</div>
+                    </div>
+                    <div class="help-text">Vertical velocity magnitude (positive = upward)</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="water-mass-temp">🌡️ Deep Water Temperature</label>
+                    <div class="range-container">
+                        <input type="range" id="water-mass-temp" min="4" max="18" step="0.5" value="8" onchange="updateSimulation()">
+                        <div class="range-value" id="water-mass-temp-value">8°C</div>
+                    </div>
+                    <div class="help-text">Temperature of deep water mass (below thermocline)</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="surface-temp">🌡️ Surface Water Temperature</label>
+                    <div class="range-container">
+                        <input type="range" id="surface-temp" min="10" max="28" step="0.5" value="18" onchange="updateSimulation()">
+                        <div class="range-value" id="surface-temp-value">18°C</div>
+                    </div>
+                    <div class="help-text">Initial surface temperature (modified by heating/cooling)</div>
+                </div>
+                
+                <button class="simulate-btn" onclick="updateSimulation()">🔄 Update Temperature Profile</button>
+            </div>
+            
+            <div class="chart-section">
+                <div class="chart-header">
+                    <h2>📊 Vertical Temperature Profile</h2>
+                    <div id="scenario-info" class="scenario-info">
+                        <h3>Current Scenario</h3>
+                        <p id="scenario-description">Adjust parameters to see temperature profile changes</p>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="temperature-profile-chart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="parameters-display">
+            <h2 style="text-align: center; color: #0c4a6e; margin-bottom: 30px; font-size: 2rem;">📈 Calculated Oceanographic Parameters</h2>
+            
+            <div class="parameters-grid">
+                <div class="parameter-card">
+                    <h4>🌡️ Surface Temperature</h4>
+                    <div class="parameter-value" id="calc-surface-temp">-</div>
+                    <div class="parameter-unit">°C</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🌊 Thermocline Depth</h4>
+                    <div class="parameter-value" id="calc-thermocline-depth">-</div>
+                    <div class="parameter-unit">meters</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>📊 Temperature Gradient</h4>
+                    <div class="parameter-value" id="calc-temp-gradient">-</div>
+                    <div class="parameter-unit">°C/m</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🔥 Heat Flux</h4>
+                    <div class="parameter-value" id="calc-heat-flux">-</div>
+                    <div class="parameter-unit">W/m²</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🌀 Mixing Intensity</h4>
+                    <div class="parameter-value" id="calc-mixing-intensity">-</div>
+                    <div class="parameter-unit">index</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>⚖️ Stratification</h4>
+                    <div class="parameter-value" id="calc-stratification">-</div>
+                    <div class="parameter-unit">s⁻²</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>📏 Temperature Range</h4>
+                    <div class="parameter-value" id="calc-temp-range">-</div>
+                    <div class="parameter-unit">°C</div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>⬆️ Vertical Velocity</h4>
+                    <div class="parameter-value" id="calc-vertical-velocity">-</div>
+                    <div class="parameter-unit">m/day</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let temperatureChart;
+        
+        // Initialize range value displays
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRangeValues();
+            updateSimulation();
+        });
+        
+        function updateRangeValues() {
+            const ranges = ['cloud-cover', 'wind-speed', 'mixed-layer-depth', 'current-velocity', 'upwelling-strength', 'water-mass-temp', 'surface-temp'];
+            ranges.forEach(id => {
+                const range = document.getElementById(id);
+                const valueDisplay = document.getElementById(id + '-value');
+                let value = range.value;
+                let unit = '';
+                
+                switch(id) {
+                    case 'cloud-cover':
+                        unit = '%';
+                        break;
+                    case 'wind-speed':
+                        unit = ' m/s';
+                        break;
+                    case 'mixed-layer-depth':
+                        unit = ' m';
+                        break;
+                    case 'current-velocity':
+                        unit = ' m/s';
+                        break;
+                    case 'upwelling-strength':
+                        unit = ' m/day';
+                        break;
+                    case 'water-mass-temp':
+                    case 'surface-temp':
+                        unit = '°C';
+                        break;
+                }
+                
+                valueDisplay.textContent = value + unit;
+                
+                range.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value + unit;
+                });
+            });
+        }
+        
+        function loadPreset(presetType) {
+            switch(presetType) {
+                case 'summer':
+                    document.getElementById('time-of-day').value = 'day';
+                    document.getElementById('solar-radiation').value = 'strong';
+                    document.getElementById('cloud-cover').value = 10;
+                    document.getElementById('wind-speed').value = 3;
+                    document.getElementById('mixed-layer-depth').value = 15;
+                    document.getElementById('current-velocity').value = 0.2;
+                    document.getElementById('circulation-type').value = 'relaxation';
+                    document.getElementById('upwelling-strength').value = 0.5;
+                    document.getElementById('water-mass-temp').value = 12;
+                    document.getElementById('surface-temp').value = 24;
+                    break;
+                    
+                case 'winter':
+                    document.getElementById('time-of-day').value = 'day';
+                    document.getElementById('solar-radiation').value = 'weak';
+                    document.getElementById('cloud-cover').value = 80;
+                    document.getElementById('wind-speed').value = 15;
+                    document.getElementById('mixed-layer-depth').value = 60;
+                    document.getElementById('current-velocity').value = 0.8;
+                    document.getElementById('circulation-type').value = 'downwelling';
+                    document.getElementById('upwelling-strength').value = 3;
+                    document.getElementById('water-mass-temp').value = 6;
+                    document.getElementById('surface-temp').value = 12;
+                    break;
+                    
+                case 'upwelling':
+                    document.getElementById('time-of-day').value = 'day';
+                    document.getElementById('solar-radiation').value = 'medium';
+                    document.getElementById('cloud-cover').value = 30;
+                    document.getElementById('wind-speed').value = 8;
+                    document.getElementById('mixed-layer-depth').value = 20;
+                    document.getElementById('current-velocity').value = 0.6;
+                    document.getElementById('circulation-type').value = 'upwelling';
+                    document.getElementById('upwelling-strength').value = 6;
+                    document.getElementById('water-mass-temp').value = 8;
+                    document.getElementById('surface-temp').value = 16;
+                    break;
+                    
+                case 'calm':
+                    document.getElementById('time-of-day').value = 'night';
+                    document.getElementById('solar-radiation').value = 'none';
+                    document.getElementById('cloud-cover').value = 20;
+                    document.getElementById('wind-speed').value = 2;
+                    document.getElementById('mixed-layer-depth').value = 10;
+                    document.getElementById('current-velocity').value = 0.1;
+                    document.getElementById('circulation-type').value = 'relaxation';
+                    document.getElementById('upwelling-strength').value = 0;
+                    document.getElementById('water-mass-temp').value = 10;
+                    document.getElementById('surface-temp').value = 18;
+                    break;
+            }
+            
+            updateRangeValues();
+            updateSimulation();
+        }
+        
+        function calculateTemperatureProfile() {
+            // Get all parameters
+            const timeOfDay = document.getElementById('time-of-day').value;
+            const solarRadiation = document.getElementById('solar-radiation').value;
+            const cloudCover = parseFloat(document.getElementById('cloud-cover').value);
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixed-layer-depth').value);
+            const currentVelocity = parseFloat(document.getElementById('current-velocity').value);
+            const circulationType = document.getElementById('circulation-type').value;
+            const upwellingStrength = parseFloat(document.getElementById('upwelling-strength').value);
+            const deepWaterTemp = parseFloat(document.getElementById('water-mass-temp').value);
+            const baseSurfaceTemp = parseFloat(document.getElementById('surface-temp').value);
+            
+            // Create depth array (0 to 100m)
+            const depths = [];
+            const temperatures = [];
+            
+            for (let depth = 0; depth <= 100; depth += 2) {
+                depths.push(depth);
+            }
+            
+            // Calculate solar heating effect
+            let solarHeatingFactor = 0;
+            if (timeOfDay === 'day' || timeOfDay === 'dawn' || timeOfDay === 'dusk') {
+                switch(solarRadiation) {
+                    case 'strong': solarHeatingFactor = 1.0; break;
+                    case 'medium': solarHeatingFactor = 0.6; break;
+                    case 'weak': solarHeatingFactor = 0.3; break;
+                    case 'none': solarHeatingFactor = 0; break;
+                }
+            }
+            
+            // Adjust for cloud cover
+            solarHeatingFactor *= (1 - cloudCover / 100 * 0.7);
+            
+            // Adjust for time of day
+            if (timeOfDay === 'dawn' || timeOfDay === 'dusk') {
+                solarHeatingFactor *= 0.4;
+            } else if (timeOfDay === 'night') {
+                solarHeatingFactor = -0.2; // Cooling at night
+            }
+            
+            // Calculate wind mixing effect
+            const windMixingDepth = Math.min(mixedLayerDepth + windSpeed * 2, 80);
+            const mixingIntensity = Math.min(windSpeed / 10, 1.0);
+            
+            // Calculate circulation effects
+            let circulationTempEffect = 0;
+            let circulationDepthEffect = 0;
+            
+            switch(circulationType) {
+                case 'upwelling':
+                    circulationTempEffect = -upwellingStrength * 0.5; // Cooling
+                    circulationDepthEffect = -upwellingStrength * 2; // Shoaling of thermocline
+                    break;
+                case 'downwelling':
+                    circulationTempEffect = upwellingStrength * 0.3; // Warming
+                    circulationDepthEffect = upwellingStrength * 3; // Deepening of thermocline
+                    break;
+                case 'coastal-jet':
+                    circulationTempEffect = currentVelocity * 0.5; // Advective warming/cooling
+                    break;
+                case 'relaxation':
+                    // Neutral conditions
+                    break;
+            }
+            
+            // Calculate effective surface temperature
+            const surfaceTemp = baseSurfaceTemp + solarHeatingFactor * 3 + circulationTempEffect;
+            
+            // Calculate thermocline characteristics
+            const thermoclineDepth = Math.max(5, mixedLayerDepth + circulationDepthEffect);
+            const thermoclineThickness = Math.max(10, 30 - windSpeed * 1.5);
+            
+            // Generate temperature profile
+            for (let i = 0; i < depths.length; i++) {
+                const depth = depths[i];
+                let temp;
+                
+                if (depth <= mixedLayerDepth) {
+                    // Mixed layer - uniform temperature with slight decrease
+                    const mixedLayerCooling = depth * 0.02 * (1 - mixingIntensity);
+                    temp = surfaceTemp - mixedLayerCooling;
+                    
+                    // Add wind mixing effect
+                    if (depth <= windMixingDepth) {
+                        const windEffect = Math.sin(depth / windMixingDepth * Math.PI) * windSpeed * 0.1;
+                        temp += windEffect * (Math.random() - 0.5) * 0.5; // Add some variability
+                    }
+                    
+                } else if (depth <= thermoclineDepth + thermoclineThickness) {
+                    // Thermocline - rapid temperature decrease
+                    const thermoclineProgress = (depth - mixedLayerDepth) / thermoclineThickness;
+                    const thermoclineStrength = surfaceTemp - deepWaterTemp;
+                    
+                    // Sigmoid function for smooth thermocline
+                    const sigmoidFactor = 1 / (1 + Math.exp(-6 * (thermoclineProgress - 0.5)));
+                    temp = surfaceTemp - thermoclineStrength * sigmoidFactor;
+                    
+                    // Add upwelling/downwelling effects in thermocline
+                    if (circulationType === 'upwelling') {
+                        temp -= upwellingStrength * 0.2 * thermoclineProgress;
+                    } else if (circulationType === 'downwelling') {
+                        temp += upwellingStrength * 0.1 * (1 - thermoclineProgress);
+                    }
+                    
+                } else {
+                    // Deep water - gradual approach to deep water temperature
+                    const deepProgress = Math.min(1, (depth - thermoclineDepth - thermoclineThickness) / 30);
+                    temp = deepWaterTemp + (surfaceTemp - deepWaterTemp) * 0.1 * Math.exp(-deepProgress * 2);
+                    
+                    // Add deep water variability
+                    temp += (Math.random() - 0.5) * 0.3;
+                }
+                
+                // Add current velocity effects (advection)
+                if (currentVelocity > 0.5) {
+                    const advectionEffect = Math.sin(depth / 20) * currentVelocity * 0.2;
+                    temp += advectionEffect;
+                }
+                
+                // Ensure temperature doesn't go below freezing or above reasonable limits
+                temp = Math.max(-1.8, Math.min(30, temp));
+                
+                temperatures.push(temp);
+            }
+            
+            return { depths, temperatures, surfaceTemp, thermoclineDepth, deepWaterTemp };
+        }
+        
+        function calculateOceanographicParameters(depths, temperatures) {
+            // Calculate temperature gradient
+            let maxGradient = 0;
+            let thermoclineDepth = 0;
+            
+            for (let i = 1; i < depths.length; i++) {
+                const gradient = Math.abs(temperatures[i-1] - temperatures[i]) / (depths[i] - depths[i-1]);
+                if (gradient > maxGradient) {
+                    maxGradient = gradient;
+                    thermoclineDepth = depths[i];
+                }
+            }
+            
+            // Calculate heat flux (simplified)
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const solarRadiation = document.getElementById('solar-radiation').value;
+            let heatFlux = 0;
+            
+            switch(solarRadiation) {
+                case 'strong': heatFlux = 800; break;
+                case 'medium': heatFlux = 500; break;
+                case 'weak': heatFlux = 200; break;
+                case 'none': heatFlux = -100; break;
+            }
+            
+            const cloudCover = parseFloat(document.getElementById('cloud-cover').value);
+            heatFlux *= (1 - cloudCover / 100 * 0.6);
+            
+            // Calculate mixing intensity
+            const mixingIntensity = Math.min(windSpeed / 15 + parseFloat(document.getElementById('current-velocity').value) / 2, 1.0);
+            
+            // Calculate stratification (simplified Brunt-Väisälä frequency squared)
+            const g = 9.81;
+            const rho0 = 1025; // kg/m³
+            const alpha = 2e-4; // thermal expansion coefficient
+            let stratification = 0;
+            
+            if (depths.length > 1) {
+                const dT = temperatures[0] - temperatures[Math.floor(depths.length/2)];
+                const dz = depths[Math.floor(depths.length/2)] - depths[0];
+                stratification = g * alpha * dT / dz;
+            }
+            
+            const tempRange = Math.max(...temperatures) - Math.min(...temperatures);
+            const verticalVelocity = parseFloat(document.getElementById('upwelling-strength').value);
+            const circulationType = document.getElementById('circulation-type').value;
+            const actualVerticalVel = circulationType === 'downwelling' ? -verticalVelocity : verticalVelocity;
+            
+            return {
+                surfaceTemp: temperatures[0],
+                thermoclineDepth: thermoclineDepth,
+                tempGradient: maxGradient,
+                heatFlux: heatFlux,
+                mixingIntensity: mixingIntensity,
+                stratification: Math.max(0, stratification),
+                tempRange: tempRange,
+                verticalVelocity: actualVerticalVel
+            };
+        }
+        
+        function updateScenarioDescription() {
+            const timeOfDay = document.getElementById('time-of-day').value;
+            const solarRadiation = document.getElementById('solar-radiation').value;
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const circulationType = document.getElementById('circulation-type').value;
+            
+            let description = '';
+            
+            // Time and radiation
+            if (timeOfDay === 'day' && solarRadiation === 'strong') {
+                description += 'Strong daytime heating creating thermal stratification. ';
+            } else if (timeOfDay === 'night') {
+                description += 'Nighttime cooling reducing surface temperatures. ';
+            } else if (solarRadiation === 'weak') {
+                description += 'Weak solar heating with limited stratification. ';
+            }
+            
+            // Wind effects
+            if (windSpeed > 10) {
+                description += 'Strong winds causing intense mixing and deepening mixed layer. ';
+            } else if (windSpeed < 3) {
+                description += 'Calm conditions allowing strong stratification to develop. ';
+            } else {
+                description += 'Moderate winds providing balanced mixing. ';
+            }
+            
+            // Circulation
+            if (circulationType === 'upwelling') {
+                description += 'Upwelling bringing cold, nutrient-rich water to surface.';
+            } else if (circulationType === 'downwelling') {
+                description += 'Downwelling pushing warm surface water deeper.';
+            } else if (circulationType === 'coastal-jet') {
+                description += 'Strong coastal jet affecting horizontal advection.';
+            } else {
+                description += 'Relaxed circulation with minimal vertical motion.';
+            }
+            
+            document.getElementById('scenario-description').textContent = description;
+        }
+        
+        function updateSimulation() {
+            updateRangeValues();
+            updateScenarioDescription();
+            
+            const profileData = calculateTemperatureProfile();
+            const parameters = calculateOceanographicParameters(profileData.depths, profileData.temperatures);
+            
+            // Update parameter displays
+            document.getElementById('calc-surface-temp').textContent = parameters.surfaceTemp.toFixed(1);
+            document.getElementById('calc-thermocline-depth').textContent = parameters.thermoclineDepth.toFixed(0);
+            document.getElementById('calc-temp-gradient').textContent = parameters.tempGradient.toFixed(3);
+            document.getElementById('calc-heat-flux').textContent = parameters.heatFlux.toFixed(0);
+            document.getElementById('calc-mixing-intensity').textContent = parameters.mixingIntensity.toFixed(2);
+            document.getElementById('calc-stratification').textContent = parameters.stratification.toExponential(2);
+            document.getElementById('calc-temp-range').textContent = parameters.tempRange.toFixed(1);
+            document.getElementById('calc-vertical-velocity').textContent = parameters.verticalVelocity.toFixed(1);
+            
+            // Create/update chart
+            createTemperatureChart(profileData.depths, profileData.temperatures);
+        }
+        
+        function createTemperatureChart(depths, temperatures) {
+            const ctx = document.getElementById('temperature-profile-chart').getContext('2d');
+            
+            if (temperatureChart) {
+                temperatureChart.destroy();
+            }
+            
+            // Create data points for temperature vs depth
+            const dataPoints = temperatures.map((temp, i) => ({
+                x: temp,
+                y: depths[i]
+            }));
+            
+            // Calculate temperature range for x-axis
+            const minTemp = Math.min(...temperatures);
+            const maxTemp = Math.max(...temperatures);
+            const tempRange = maxTemp - minTemp;
+            const padding = tempRange * 0.1;
+            
+            temperatureChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Temperature Profile',
+                        data: dataPoints,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderWidth: 4,
+                        pointRadius: 4,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: 'rgb(255, 99, 132)',
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: 'rgb(255, 99, 132)',
+                            borderWidth: 2,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Depth: ${context[0].parsed.y.toFixed(1)} m`;
+                                },
+                                label: function(context) {
+                                    return `Temperature: ${context.parsed.x.toFixed(2)}°C`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)',
+                                font: { size: 18, weight: 'bold' },
+                                color: '#0c4a6e',
+                                padding: { top: 15, bottom: 10 }
+                            },
+                            min: minTemp - padding,
+                            max: maxTemp + padding,
+                            grid: {
+                                color: 'rgba(0,0,0,0.15)',
+                                drawBorder: true,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 14, weight: '500' },
+                                padding: 10,
+                                maxTicksLimit: 8,
+                                callback: function(value) {
+                                    return value.toFixed(1) + '°C';
+                                }
+                            },
+                            border: {
+                                color: '#374151',
+                                width: 3
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { size: 18, weight: 'bold' },
+                                color: '#0c4a6e',
+                                padding: { left: 10, right: 15 }
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0,0,0,0.15)',
+                                drawBorder: true,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 14, weight: '500' },
+                                padding: 10,
+                                stepSize: 10,
+                                callback: function(value) {
+                                    return value + 'm';
+                                }
+                            },
+                            border: {
+                                color: '#374151',
+                                width: 3
+                            },
+                            reverse: true // Surface (0m) at top, deep (100m) at bottom
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c1127107aa88b1',t:'MTc1NDY3NzY5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
