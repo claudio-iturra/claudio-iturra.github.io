@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thermal Camera Simulator & Temperature Matrix Extractor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d1b69 0%, #11998e 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><defs><linearGradient id="thermal" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:rgb(0,0,255);stop-opacity:0.3" /><stop offset="25%" style="stop-color:rgb(0,255,0);stop-opacity:0.3" /><stop offset="50%" style="stop-color:rgb(255,255,0);stop-opacity:0.3" /><stop offset="75%" style="stop-color:rgb(255,165,0);stop-opacity:0.3" /><stop offset="100%" style="stop-color:rgb(255,0,0);stop-opacity:0.3" /></linearGradient></defs><rect width="100" height="20" fill="url(%23thermal)"/></svg>') repeat-x;
+            background-size: 200px 20px;
+            animation: thermalFlow 10s linear infinite;
+        }
+        
+        @keyframes thermalFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-200px); }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            border-left: 5px solid #11998e;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #11998e;
+            box-shadow: 0 0 0 3px rgba(17,153,142,0.1);
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #11998e 0%, #2d1b69 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(17,153,142,0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .camera-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .camera-container {
+            position: relative;
+            background: #000;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 25px;
+            aspect-ratio: 4/3;
+        }
+        
+        #videoElement {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #thermalCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.8;
+            mix-blend-mode: multiply;
+        }
+        
+        .overlay-controls {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .overlay-btn {
+            background: rgba(0,0,0,0.7);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+        }
+        
+        .overlay-btn:hover {
+            background: rgba(0,0,0,0.9);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #11998e;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .temperature-scale {
+            background: linear-gradient(to right, #0000ff, #00ffff, #00ff00, #ffff00, #ff8000, #ff0000);
+            height: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            position: relative;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .scale-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .matrix-display {
+            background: #f8fafc;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .matrix-title {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .matrix-table {
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .matrix-table td {
+            padding: 2px 4px;
+            text-align: center;
+            border: 1px solid #e5e7eb;
+            min-width: 35px;
+        }
+        
+        .recording-indicator {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: none;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .data-log {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 2px solid #cbd5e1;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #11998e;
+        }
+        
+        .thermal-colormap {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+            margin: 15px 0;
+        }
+        
+        .color-cell {
+            aspect-ratio: 1;
+            border-radius: 3px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #11998e;
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌡️ Thermal Camera Simulator</h1>
+            <p>Convert webcam feed to thermal imaging with temperature matrix extraction by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- Camera Controls -->
+                <div class="section">
+                    <h3>📹 Camera Controls</h3>
+                    <button class="btn btn-success" onclick="startCamera()" id="startBtn">🎥 Start Camera</button>
+                    <button class="btn btn-danger" onclick="stopCamera()" id="stopBtn" disabled>⏹️ Stop Camera</button>
+                    <div class="input-group">
+                        <label for="cameraSelect">Camera Source:</label>
+                        <select id="cameraSelect">
+                            <option value="">Default Camera</option>
+                        </select>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="resolution">Resolution:</label>
+                            <select id="resolution">
+                                <option value="640x480">640×480</option>
+                                <option value="1280x720" selected>1280×720</option>
+                                <option value="1920x1080">1920×1080</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <label for="matrixSize">Matrix Size:</label>
+                            <select id="matrixSize">
+                                <option value="16x12">16×12</option>
+                                <option value="32x24" selected>32×24</option>
+                                <option value="64x48">64×48</option>
+                                <option value="80x60">80×60</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Thermal Settings -->
+                <div class="section">
+                    <h3>🌡️ Thermal Settings</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="minTemp">Min Temp (°C):</label>
+                            <input type="number" id="minTemp" value="15" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label for="maxTemp">Max Temp (°C):</label>
+                            <input type="number" id="maxTemp" value="35" step="0.5">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="thermalMode">Thermal Mode:</label>
+                        <select id="thermalMode">
+                            <option value="brightness">Brightness-based</option>
+                            <option value="motion" selected>Motion-enhanced</option>
+                            <option value="edge">Edge-detection</option>
+                            <option value="combined">Combined Analysis</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="sensitivity">Sensitivity:</label>
+                        <input type="range" id="sensitivity" min="0.1" max="2.0" step="0.1" value="1.0">
+                        <span id="sensitivityValue">1.0</span>
+                    </div>
+                    <div class="input-group">
+                        <label for="smoothing">Smoothing:</label>
+                        <input type="range" id="smoothing" min="0" max="5" step="1" value="2">
+                        <span id="smoothingValue">2</span>
+                    </div>
+                </div>
+                
+                <!-- Data Recording -->
+                <div class="section">
+                    <h3>📊 Data Recording</h3>
+                    <div class="input-group">
+                        <label for="recordInterval">Record Interval:</label>
+                        <select id="recordInterval">
+                            <option value="10">10 seconds</option>
+                            <option value="30">30 seconds</option>
+                            <option value="60" selected>1 minute</option>
+                            <option value="120">2 minutes</option>
+                            <option value="300">5 minutes</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-warning" onclick="startRecording()" id="recordBtn" disabled>🔴 Start Recording</button>
+                    <button class="btn" onclick="stopRecording()" id="stopRecordBtn" disabled>⏹️ Stop Recording</button>
+                    <button class="btn btn-success" onclick="exportData()" id="exportBtn" disabled>💾 Export Data</button>
+                </div>
+                
+                <!-- Display Options -->
+                <div class="section">
+                    <h3>🎨 Display Options</h3>
+                    <div class="input-group">
+                        <label>
+                            <input type="checkbox" id="showThermal" checked> Show Thermal Overlay
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <input type="checkbox" id="showGrid" checked> Show Temperature Grid
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <input type="checkbox" id="showMatrix"> Show Live Matrix
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label for="colormap">Color Map:</label>
+                        <select id="colormap">
+                            <option value="thermal" selected>Thermal (Blue-Red)</option>
+                            <option value="iron">Iron</option>
+                            <option value="rainbow">Rainbow</option>
+                            <option value="grayscale">Grayscale</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="camera-panel">
+                <!-- Live Statistics -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="avgTemp">--</div>
+                        <div class="stat-label">Avg Temp (°C)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="minTempStat">--</div>
+                        <div class="stat-label">Min Temp (°C)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="maxTempStat">--</div>
+                        <div class="stat-label">Max Temp (°C)</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="hotspots">--</div>
+                        <div class="stat-label">Hot Spots</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="recordCount">0</div>
+                        <div class="stat-label">Records</div>
+                    </div>
+                </div>
+                
+                <!-- Camera Feed -->
+                <div class="camera-container">
+                    <video id="videoElement" autoplay muted></video>
+                    <canvas id="thermalCanvas"></canvas>
+                    <div class="recording-indicator" id="recordingIndicator">● REC</div>
+                    <div class="overlay-controls">
+                        <button class="overlay-btn" onclick="captureFrame()">📸 Capture</button>
+                        <button class="overlay-btn" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+                    </div>
+                </div>
+                
+                <!-- Temperature Scale -->
+                <div class="temperature-scale"></div>
+                <div class="scale-labels">
+                    <span id="scaleMin">15°C</span>
+                    <span>Temperature Scale</span>
+                    <span id="scaleMax">35°C</span>
+                </div>
+                
+                <!-- Live Temperature Matrix -->
+                <div class="matrix-display" id="matrixDisplay" style="display: none;">
+                    <div class="matrix-title">Live Temperature Matrix (°C)</div>
+                    <table class="matrix-table" id="matrixTable"></table>
+                </div>
+                
+                <!-- Data Log -->
+                <div class="data-log" id="dataLog">
+                    <div class="log-entry">System ready. Start camera to begin thermal analysis.</div>
+                </div>
+                
+                <!-- Information Panel -->
+                <div class="info-panel">
+                    <strong>🔬 How it works:</strong><br>
+                    This simulator converts visual camera data into thermal-like temperature matrices using advanced image analysis. 
+                    It analyzes brightness, motion, edge patterns, and color temperature to estimate relative temperatures, creating realistic thermal imaging data for research and development.
+                    <br><br>
+                    <strong>📋 Quick Start:</strong><br>
+                    1. Click "Start Camera" and allow camera access<br>
+                    2. Select your preferred thermal analysis mode<br>
+                    3. Adjust temperature range and sensitivity<br>
+                    4. Start recording to capture temperature matrices<br>
+                    5. Export data as CSV or JSON for analysis
+                </div>
+                
+                <div class="warning-panel">
+                    <strong>⚠️ Camera Access Requirements:</strong><br>
+                    • This page must be served over HTTPS or localhost<br>
+                    • Allow camera permissions when prompted<br>
+                    • Close other apps using your camera<br>
+                    • Try different resolutions if camera fails to start<br><br>
+                    <strong>Note:</strong> This is a simulation using regular camera data. 
+                    For actual thermal measurements, use dedicated thermal imaging hardware with infrared sensors.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let videoElement, thermalCanvas, ctx;
+        let stream = null;
+        let isRecording = false;
+        let recordingInterval = null;
+        let temperatureData = [];
+        let frameCount = 0;
+        let previousFrame = null;
+        
+        // Thermal analysis parameters
+        let thermalSettings = {
+            minTemp: 15,
+            maxTemp: 35,
+            sensitivity: 1.0,
+            smoothing: 2,
+            mode: 'motion'
+        };
+        
+        // Check camera permissions
+        async function checkCameraPermissions() {
+            try {
+                const result = await navigator.permissions.query({ name: 'camera' });
+                
+                switch (result.state) {
+                    case 'granted':
+                        logMessage('✅ Camera permission granted');
+                        return true;
+                    case 'prompt':
+                        logMessage('⚠️ Camera permission will be requested when you start');
+                        return false;
+                    case 'denied':
+                        logMessage('❌ Camera permission denied. Please enable in browser settings.');
+                        return false;
+                }
+            } catch (error) {
+                logMessage('⚠️ Cannot check camera permissions (older browser)');
+                return false;
+            }
+        }
+        
+        // Initialize the application
+        window.onload = async function() {
+            videoElement = document.getElementById('videoElement');
+            thermalCanvas = document.getElementById('thermalCanvas');
+            ctx = thermalCanvas.getContext('2d');
+            
+            // Check if we're on HTTPS or localhost (required for camera access)
+            if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+                logMessage('⚠️ Camera access requires HTTPS or localhost');
+                alert('⚠️ For camera access, this page needs to be served over HTTPS or accessed via localhost');
+            }
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Check camera permissions
+            await checkCameraPermissions();
+            
+            // Enumerate cameras
+            await enumerateCameras();
+            
+            // Initialize thermal canvas
+            initializeThermalCanvas();
+            
+            logMessage('🌡️ Thermal Camera Simulator ready!');
+            logMessage('📋 Instructions: 1) Click "Start Camera" 2) Allow camera access 3) Begin thermal analysis');
+        };
+        
+        function setupEventListeners() {
+            // Sensitivity slider
+            document.getElementById('sensitivity').addEventListener('input', function() {
+                thermalSettings.sensitivity = parseFloat(this.value);
+                document.getElementById('sensitivityValue').textContent = this.value;
+            });
+            
+            // Smoothing slider
+            document.getElementById('smoothing').addEventListener('input', function() {
+                thermalSettings.smoothing = parseInt(this.value);
+                document.getElementById('smoothingValue').textContent = this.value;
+            });
+            
+            // Temperature range inputs
+            document.getElementById('minTemp').addEventListener('change', function() {
+                thermalSettings.minTemp = parseFloat(this.value);
+                document.getElementById('scaleMin').textContent = this.value + '°C';
+            });
+            
+            document.getElementById('maxTemp').addEventListener('change', function() {
+                thermalSettings.maxTemp = parseFloat(this.value);
+                document.getElementById('scaleMax').textContent = this.value + '°C';
+            });
+            
+            // Thermal mode
+            document.getElementById('thermalMode').addEventListener('change', function() {
+                thermalSettings.mode = this.value;
+                logMessage(`Thermal mode changed to: ${this.value}`);
+            });
+            
+            // Display options
+            document.getElementById('showMatrix').addEventListener('change', function() {
+                document.getElementById('matrixDisplay').style.display = this.checked ? 'block' : 'none';
+            });
+        }
+        
+        async function enumerateCameras() {
+            try {
+                // First request basic permission to get device labels
+                let permissionGranted = false;
+                try {
+                    const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+                    tempStream.getTracks().forEach(track => track.stop());
+                    permissionGranted = true;
+                } catch (e) {
+                    logMessage('⚠️ Camera permission needed to show device names');
+                }
+                
+                const devices = await navigator.mediaDevices.enumerateDevices();
+                const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                
+                const select = document.getElementById('cameraSelect');
+                select.innerHTML = '<option value="">Default Camera</option>';
+                
+                videoDevices.forEach((device, index) => {
+                    const option = document.createElement('option');
+                    option.value = device.deviceId;
+                    
+                    if (device.label) {
+                        option.textContent = device.label;
+                    } else if (permissionGranted) {
+                        option.textContent = `Camera ${index + 1}`;
+                    } else {
+                        option.textContent = `Camera ${index + 1} (grant permission to see name)`;
+                    }
+                    
+                    select.appendChild(option);
+                });
+                
+                if (videoDevices.length === 0) {
+                    logMessage('❌ No cameras found. Please connect a camera and refresh.');
+                    select.innerHTML = '<option value="">No cameras available</option>';
+                } else {
+                    logMessage(`📹 Found ${videoDevices.length} camera(s)`);
+                }
+                
+            } catch (error) {
+                logMessage('❌ Error detecting cameras: ' + error.message);
+                const select = document.getElementById('cameraSelect');
+                select.innerHTML = '<option value="">Camera detection failed</option>';
+            }
+        }
+        
+        function initializeThermalCanvas() {
+            const container = document.querySelector('.camera-container');
+            thermalCanvas.width = container.clientWidth;
+            thermalCanvas.height = container.clientHeight;
+        }
+        
+        async function startCamera() {
+            try {
+                // First check if getUserMedia is supported
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera access not supported in this browser');
+                }
+                
+                const deviceId = document.getElementById('cameraSelect').value;
+                const resolution = document.getElementById('resolution').value.split('x');
+                
+                const constraints = {
+                    video: {
+                        width: { ideal: parseInt(resolution[0]) },
+                        height: { ideal: parseInt(resolution[1]) },
+                        frameRate: { ideal: 30 },
+                        facingMode: 'environment' // Prefer back camera for better thermal analysis
+                    },
+                    audio: false // We don't need audio
+                };
+                
+                if (deviceId) {
+                    constraints.video.deviceId = { exact: deviceId };
+                    delete constraints.video.facingMode; // Remove facingMode when specific device is selected
+                }
+                
+                logMessage('Requesting camera access...');
+                
+                // Request camera permission explicitly
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                videoElement.srcObject = stream;
+                
+                // Wait for video to load and start playing
+                await new Promise((resolve, reject) => {
+                    videoElement.onloadedmetadata = () => {
+                        videoElement.play().then(resolve).catch(reject);
+                    };
+                    videoElement.onerror = reject;
+                });
+                
+                // Resize thermal canvas to match video
+                thermalCanvas.width = videoElement.videoWidth;
+                thermalCanvas.height = videoElement.videoHeight;
+                
+                // Start thermal analysis
+                startThermalAnalysis();
+                
+                // Update UI
+                document.getElementById('startBtn').disabled = true;
+                document.getElementById('stopBtn').disabled = false;
+                document.getElementById('recordBtn').disabled = false;
+                
+                logMessage(`✅ Camera started successfully: ${videoElement.videoWidth}×${videoElement.videoHeight}`);
+                logMessage('🌡️ Thermal analysis active - analyzing visual patterns for temperature estimation');
+                
+            } catch (error) {
+                let errorMessage = 'Camera access failed: ';
+                
+                if (error.name === 'NotAllowedError') {
+                    errorMessage += 'Permission denied. Please allow camera access and refresh the page.';
+                } else if (error.name === 'NotFoundError') {
+                    errorMessage += 'No camera found. Please connect a camera and try again.';
+                } else if (error.name === 'NotReadableError') {
+                    errorMessage += 'Camera is already in use by another application.';
+                } else if (error.name === 'OverconstrainedError') {
+                    errorMessage += 'Camera does not support the requested resolution.';
+                } else {
+                    errorMessage += error.message;
+                }
+                
+                logMessage('❌ ' + errorMessage);
+                alert(errorMessage + '\n\nTroubleshooting:\n1. Allow camera permissions\n2. Close other apps using the camera\n3. Try a different resolution\n4. Refresh the page');
+            }
+        }
+        
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            
+            videoElement.srcObject = null;
+            
+            // Stop recording if active
+            if (isRecording) {
+                stopRecording();
+            }
+            
+            // Clear thermal canvas
+            ctx.clearRect(0, 0, thermalCanvas.width, thermalCanvas.height);
+            
+            // Update UI
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('recordBtn').disabled = true;
+            
+            // Reset stats
+            updateStats(null);
+            
+            logMessage('Camera stopped');
+        }
+        
+        function startThermalAnalysis() {
+            function analyze() {
+                if (videoElement.videoWidth > 0 && videoElement.videoHeight > 0) {
+                    processFrame();
+                }
+                
+                if (stream) {
+                    requestAnimationFrame(analyze);
+                }
+            }
+            
+            analyze();
+        }
+        
+        function processFrame() {
+            const width = videoElement.videoWidth;
+            const height = videoElement.videoHeight;
+            
+            // Create temporary canvas for image processing
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            // Draw current frame
+            tempCtx.drawImage(videoElement, 0, 0, width, height);
+            const currentFrame = tempCtx.getImageData(0, 0, width, height);
+            
+            // Generate temperature matrix
+            const temperatureMatrix = generateTemperatureMatrix(currentFrame, width, height);
+            
+            // Update thermal overlay if enabled
+            if (document.getElementById('showThermal').checked) {
+                drawThermalOverlay(temperatureMatrix, width, height);
+            }
+            
+            // Update live matrix display if enabled
+            if (document.getElementById('showMatrix').checked) {
+                updateMatrixDisplay(temperatureMatrix);
+            }
+            
+            // Update statistics
+            updateStats(temperatureMatrix);
+            
+            // Store previous frame for motion analysis
+            previousFrame = currentFrame;
+            frameCount++;
+        }
+        
+        function generateTemperatureMatrix(imageData, width, height) {
+            const matrixSize = document.getElementById('matrixSize').value.split('x');
+            const matrixWidth = parseInt(matrixSize[0]);
+            const matrixHeight = parseInt(matrixSize[1]);
+            
+            const matrix = [];
+            const cellWidth = width / matrixWidth;
+            const cellHeight = height / matrixHeight;
+            
+            for (let row = 0; row < matrixHeight; row++) {
+                const matrixRow = [];
+                
+                for (let col = 0; col < matrixWidth; col++) {
+                    const temperature = calculateCellTemperature(
+                        imageData, width, height,
+                        col * cellWidth, row * cellHeight,
+                        cellWidth, cellHeight
+                    );
+                    
+                    matrixRow.push(temperature);
+                }
+                
+                matrix.push(matrixRow);
+            }
+            
+            return matrix;
+        }
+        
+        function calculateCellTemperature(imageData, width, height, startX, startY, cellWidth, cellHeight) {
+            let totalBrightness = 0;
+            let motionIntensity = 0;
+            let edgeIntensity = 0;
+            let redIntensity = 0;
+            let infraredEstimate = 0;
+            let pixelCount = 0;
+            
+            const endX = Math.min(startX + cellWidth, width);
+            const endY = Math.min(startY + cellHeight, height);
+            
+            for (let y = Math.floor(startY); y < Math.floor(endY); y++) {
+                for (let x = Math.floor(startX); x < Math.floor(endX); x++) {
+                    const index = (y * width + x) * 4;
+                    
+                    if (index < imageData.data.length - 3) {
+                        const r = imageData.data[index];
+                        const g = imageData.data[index + 1];
+                        const b = imageData.data[index + 2];
+                        
+                        // Calculate brightness (luminance)
+                        const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                        totalBrightness += brightness;
+                        
+                        // Red channel intensity (correlates with heat in visible spectrum)
+                        redIntensity += r;
+                        
+                        // Estimate infrared-like signature from color temperature
+                        // Warmer objects tend to emit more red/yellow light
+                        const colorTemp = (r - b) / 255; // Red minus blue normalized
+                        infraredEstimate += Math.max(0, colorTemp);
+                        
+                        // Calculate motion if previous frame exists
+                        if (previousFrame && thermalSettings.mode !== 'brightness') {
+                            const prevR = previousFrame.data[index];
+                            const prevG = previousFrame.data[index + 1];
+                            const prevB = previousFrame.data[index + 2];
+                            const prevBrightness = 0.299 * prevR + 0.587 * prevG + 0.114 * prevB;
+                            
+                            motionIntensity += Math.abs(brightness - prevBrightness);
+                        }
+                        
+                        // Calculate edge intensity for edge detection mode
+                        if (thermalSettings.mode === 'edge' || thermalSettings.mode === 'combined') {
+                            if (x > 0 && y > 0) {
+                                const leftIndex = (y * width + (x - 1)) * 4;
+                                const topIndex = ((y - 1) * width + x) * 4;
+                                
+                                if (leftIndex < imageData.data.length - 3 && topIndex < imageData.data.length - 3) {
+                                    const leftBrightness = 0.299 * imageData.data[leftIndex] + 0.587 * imageData.data[leftIndex + 1] + 0.114 * imageData.data[leftIndex + 2];
+                                    const topBrightness = 0.299 * imageData.data[topIndex] + 0.587 * imageData.data[topIndex + 1] + 0.114 * imageData.data[topIndex + 2];
+                                    
+                                    edgeIntensity += Math.abs(brightness - leftBrightness) + Math.abs(brightness - topBrightness);
+                                }
+                            }
+                        }
+                        
+                        pixelCount++;
+                    }
+                }
+            }
+            
+            if (pixelCount === 0) return thermalSettings.minTemp;
+            
+            const avgBrightness = totalBrightness / pixelCount;
+            const avgMotion = motionIntensity / pixelCount;
+            const avgEdge = edgeIntensity / pixelCount;
+            const avgRed = redIntensity / pixelCount;
+            const avgInfrared = infraredEstimate / pixelCount;
+            
+            // Calculate temperature based on selected mode with improved algorithms
+            let temperatureValue = 0;
+            
+            switch (thermalSettings.mode) {
+                case 'brightness':
+                    // Pure brightness-based with infrared estimation
+                    temperatureValue = (avgBrightness / 255 * 0.7) + (avgInfrared * 0.3);
+                    break;
+                case 'motion':
+                    // Motion-enhanced with heat signature detection
+                    temperatureValue = (avgBrightness / 255 * 0.4) + (avgMotion / 50 * 0.3) + (avgRed / 255 * 0.2) + (avgInfrared * 0.1);
+                    break;
+                case 'edge':
+                    // Edge-based thermal boundary detection
+                    temperatureValue = (avgBrightness / 255 * 0.4) + (avgEdge / 100 * 0.4) + (avgInfrared * 0.2);
+                    break;
+                case 'combined':
+                    // Advanced multi-modal thermal analysis
+                    temperatureValue = (avgBrightness / 255 * 0.25) + (avgMotion / 50 * 0.25) + (avgEdge / 100 * 0.2) + (avgRed / 255 * 0.15) + (avgInfrared * 0.15);
+                    break;
+            }
+            
+            // Apply sensitivity with non-linear scaling for better temperature distribution
+            temperatureValue = Math.pow(temperatureValue * thermalSettings.sensitivity, 0.8);
+            
+            // Add some realistic temperature variation (simulate sensor noise)
+            const variation = (Math.random() - 0.5) * 0.1 * thermalSettings.sensitivity;
+            temperatureValue += variation;
+            
+            // Apply smoothing if enabled
+            if (thermalSettings.smoothing > 0) {
+                // Simple temporal smoothing (would need frame history for full implementation)
+                temperatureValue = temperatureValue * (1 - thermalSettings.smoothing * 0.1) + (avgBrightness / 255) * (thermalSettings.smoothing * 0.1);
+            }
+            
+            // Map to temperature range with realistic ambient temperature baseline
+            const ambientTemp = (thermalSettings.minTemp + thermalSettings.maxTemp) / 2;
+            const tempRange = thermalSettings.maxTemp - thermalSettings.minTemp;
+            const temperature = ambientTemp + (temperatureValue - 0.5) * tempRange;
+            
+            // Clamp to range
+            return Math.max(thermalSettings.minTemp, Math.min(thermalSettings.maxTemp, temperature));
+        }
+        
+        function drawThermalOverlay(matrix, width, height) {
+            const matrixHeight = matrix.length;
+            const matrixWidth = matrix[0].length;
+            
+            // Resize thermal canvas to match video
+            thermalCanvas.width = width;
+            thermalCanvas.height = height;
+            
+            const cellWidth = width / matrixWidth;
+            const cellHeight = height / matrixHeight;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+            
+            // Draw thermal cells
+            for (let row = 0; row < matrixHeight; row++) {
+                for (let col = 0; col < matrixWidth; col++) {
+                    const temperature = matrix[row][col];
+                    const color = getTemperatureColor(temperature);
+                    
+                    ctx.fillStyle = color;
+                    ctx.fillRect(
+                        col * cellWidth,
+                        row * cellHeight,
+                        cellWidth,
+                        cellHeight
+                    );
+                    
+                    // Draw grid if enabled
+                    if (document.getElementById('showGrid').checked) {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+                        ctx.lineWidth = 1;
+                        ctx.strokeRect(
+                            col * cellWidth,
+                            row * cellHeight,
+                            cellWidth,
+                            cellHeight
+                        );
+                        
+                        // Draw temperature text for larger cells
+                        if (cellWidth > 40 && cellHeight > 30) {
+                            ctx.fillStyle = 'white';
+                            ctx.font = '10px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(
+                                temperature.toFixed(1),
+                                col * cellWidth + cellWidth / 2,
+                                row * cellHeight + cellHeight / 2 + 3
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        
+        function getTemperatureColor(temperature) {
+            const colormap = document.getElementById('colormap').value;
+            const normalized = (temperature - thermalSettings.minTemp) / (thermalSettings.maxTemp - thermalSettings.minTemp);
+            const clamped = Math.max(0, Math.min(1, normalized));
+            
+            switch (colormap) {
+                case 'thermal':
+                    return getThermalColor(clamped);
+                case 'iron':
+                    return getIronColor(clamped);
+                case 'rainbow':
+                    return getRainbowColor(clamped);
+                case 'grayscale':
+                    return getGrayscaleColor(clamped);
+                default:
+                    return getThermalColor(clamped);
+            }
+        }
+        
+        function getThermalColor(value) {
+            // Blue to red thermal colormap
+            let r, g, b;
+            
+            if (value < 0.25) {
+                r = 0;
+                g = Math.floor(255 * value * 4);
+                b = 255;
+            } else if (value < 0.5) {
+                r = 0;
+                g = 255;
+                b = Math.floor(255 * (0.5 - value) * 4);
+            } else if (value < 0.75) {
+                r = Math.floor(255 * (value - 0.5) * 4);
+                g = 255;
+                b = 0;
+            } else {
+                r = 255;
+                g = Math.floor(255 * (1 - value) * 4);
+                b = 0;
+            }
+            
+            return `rgba(${r}, ${g}, ${b}, 0.7)`;
+        }
+        
+        function getIronColor(value) {
+            const r = Math.floor(255 * Math.min(1, value * 1.5));
+            const g = Math.floor(255 * Math.max(0, Math.min(1, (value - 0.3) * 2)));
+            const b = Math.floor(255 * Math.max(0, Math.min(1, (value - 0.7) * 3)));
+            
+            return `rgba(${r}, ${g}, ${b}, 0.7)`;
+        }
+        
+        function getRainbowColor(value) {
+            const hue = (1 - value) * 240; // Blue to red
+            return `hsla(${hue}, 100%, 50%, 0.7)`;
+        }
+        
+        function getGrayscaleColor(value) {
+            const intensity = Math.floor(255 * value);
+            return `rgba(${intensity}, ${intensity}, ${intensity}, 0.7)`;
+        }
+        
+        function updateMatrixDisplay(matrix) {
+            const table = document.getElementById('matrixTable');
+            table.innerHTML = '';
+            
+            matrix.forEach(row => {
+                const tr = document.createElement('tr');
+                row.forEach(temp => {
+                    const td = document.createElement('td');
+                    td.textContent = temp.toFixed(1);
+                    td.style.backgroundColor = getTemperatureColor(temp);
+                    td.style.color = temp > (thermalSettings.minTemp + thermalSettings.maxTemp) / 2 ? 'white' : 'black';
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+        }
+        
+        function updateStats(matrix) {
+            if (!matrix) {
+                document.getElementById('avgTemp').textContent = '--';
+                document.getElementById('minTempStat').textContent = '--';
+                document.getElementById('maxTempStat').textContent = '--';
+                document.getElementById('hotspots').textContent = '--';
+                return;
+            }
+            
+            const flatMatrix = matrix.flat();
+            const avgTemp = flatMatrix.reduce((sum, temp) => sum + temp, 0) / flatMatrix.length;
+            const minTemp = Math.min(...flatMatrix);
+            const maxTemp = Math.max(...flatMatrix);
+            
+            // Count hotspots (temperatures above 80% of max range)
+            const hotspotThreshold = thermalSettings.minTemp + (thermalSettings.maxTemp - thermalSettings.minTemp) * 0.8;
+            const hotspots = flatMatrix.filter(temp => temp > hotspotThreshold).length;
+            
+            document.getElementById('avgTemp').textContent = avgTemp.toFixed(1);
+            document.getElementById('minTempStat').textContent = minTemp.toFixed(1);
+            document.getElementById('maxTempStat').textContent = maxTemp.toFixed(1);
+            document.getElementById('hotspots').textContent = hotspots;
+        }
+        
+        function startRecording() {
+            if (!stream) {
+                alert('Please start the camera first');
+                return;
+            }
+            
+            isRecording = true;
+            const interval = parseInt(document.getElementById('recordInterval').value) * 1000;
+            
+            // Show recording indicator
+            document.getElementById('recordingIndicator').style.display = 'block';
+            
+            // Update UI
+            document.getElementById('recordBtn').disabled = true;
+            document.getElementById('stopRecordBtn').disabled = false;
+            
+            // Start recording interval
+            recordingInterval = setInterval(() => {
+                recordTemperatureData();
+            }, interval);
+            
+            // Record first frame immediately
+            recordTemperatureData();
+            
+            logMessage(`Recording started (interval: ${interval/1000}s)`);
+        }
+        
+        function stopRecording() {
+            isRecording = false;
+            
+            if (recordingInterval) {
+                clearInterval(recordingInterval);
+                recordingInterval = null;
+            }
+            
+            // Hide recording indicator
+            document.getElementById('recordingIndicator').style.display = 'none';
+            
+            // Update UI
+            document.getElementById('recordBtn').disabled = false;
+            document.getElementById('stopRecordBtn').disabled = true;
+            document.getElementById('exportBtn').disabled = false;
+            
+            logMessage(`Recording stopped. ${temperatureData.length} records captured.`);
+        }
+        
+        function recordTemperatureData() {
+            if (!videoElement.videoWidth) return;
+            
+            const width = videoElement.videoWidth;
+            const height = videoElement.videoHeight;
+            
+            // Create temporary canvas for processing
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const tempCtx = tempCanvas.getContext('2d');
+            
+            tempCtx.drawImage(videoElement, 0, 0, width, height);
+            const imageData = tempCtx.getImageData(0, 0, width, height);
+            
+            // Generate temperature matrix
+            const matrix = generateTemperatureMatrix(imageData, width, height);
+            
+            // Create data record
+            const record = {
+                timestamp: new Date().toISOString(),
+                frameNumber: frameCount,
+                matrix: matrix,
+                settings: { ...thermalSettings },
+                stats: {
+                    avgTemp: matrix.flat().reduce((sum, temp) => sum + temp, 0) / matrix.flat().length,
+                    minTemp: Math.min(...matrix.flat()),
+                    maxTemp: Math.max(...matrix.flat())
+                }
+            };
+            
+            temperatureData.push(record);
+            
+            // Update record count
+            document.getElementById('recordCount').textContent = temperatureData.length;
+            
+            logMessage(`Recorded frame ${frameCount} - Avg: ${record.stats.avgTemp.toFixed(1)}°C`);
+        }
+        
+        function captureFrame() {
+            if (!stream) {
+                alert('Please start the camera first');
+                return;
+            }
+            
+            recordTemperatureData();
+            logMessage('Frame captured manually');
+        }
+        
+        function exportData() {
+            if (temperatureData.length === 0) {
+                alert('No data to export. Start recording first.');
+                return;
+            }
+            
+            const exportData = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    totalRecords: temperatureData.length,
+                    matrixSize: document.getElementById('matrixSize').value,
+                    thermalSettings: thermalSettings,
+                    recordInterval: document.getElementById('recordInterval').value
+                },
+                records: temperatureData
+            };
+            
+            // Create CSV format
+            let csv = 'Timestamp,Frame,AvgTemp,MinTemp,MaxTemp,Matrix\n';
+            
+            temperatureData.forEach(record => {
+                const matrixStr = record.matrix.map(row => row.join(';')).join('|');
+                csv += `${record.timestamp},${record.frameNumber},${record.stats.avgTemp.toFixed(3)},${record.stats.minTemp.toFixed(3)},${record.stats.maxTemp.toFixed(3)},"${matrixStr}"\n`;
+            });
+            
+            // Download CSV
+            downloadFile(csv, `thermal_data_${new Date().toISOString().slice(0, 10)}.csv`);
+            
+            // Also download JSON
+            downloadFile(JSON.stringify(exportData, null, 2), `thermal_data_${new Date().toISOString().slice(0, 10)}.json`);
+            
+            logMessage(`Data exported: ${temperatureData.length} records`);
+        }
+        
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function toggleFullscreen() {
+            const container = document.querySelector('.camera-container');
+            
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    logMessage('Error entering fullscreen: ' + err.message);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        function logMessage(message) {
+            const log = document.getElementById('dataLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong> - ${message}`;
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            // Keep only last 20 entries
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        // Handle page unload
+        window.addEventListener('beforeunload', function() {
+            if (stream) {
+                stopCamera();
+            }
+        });
+        
+        // Handle window resize
+        window.addEventListener('resize', function() {
+            if (stream && videoElement.videoWidth > 0) {
+                initializeThermalCanvas();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c1e351237a88ab',t:'MTc1NDY4NjI0Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
