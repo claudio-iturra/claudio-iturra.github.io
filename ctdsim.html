@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean CTD Profile Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #334155 70%, #475569 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 2400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.3);
+            padding: 40px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #06b6d4, #0891b2, #0e7490);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 1600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .controls-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        
+        .controls-section h2 {
+            color: #0f172a;
+            margin-bottom: 25px;
+            font-size: 1.6rem;
+            border-bottom: 4px solid #06b6d4;
+            padding-bottom: 12px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #0f172a;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .control-group select, .control-group input[type="range"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 13px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        
+        .control-group select:focus {
+            outline: none;
+            border-color: #06b6d4;
+            background: white;
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.2);
+        }
+        
+        .range-container {
+            position: relative;
+        }
+        
+        .range-value {
+            position: absolute;
+            right: 8px;
+            top: -30px;
+            background: #06b6d4;
+            color: white;
+            padding: 3px 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .help-text {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 6px;
+            font-style: italic;
+            line-height: 1.3;
+        }
+        
+        .simulate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0f172a, #06b6d4);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.3);
+            margin-top: 15px;
+        }
+        
+        .simulate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(6, 182, 212, 0.4);
+        }
+        
+        .preset-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .preset-btn {
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+        }
+        
+        .preset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .profiles-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .viz-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        .viz-header h2 {
+            color: #0f172a;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .profiles-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        
+        .profile-chart {
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            height: 400px;
+        }
+        
+        .profile-title {
+            text-align: center;
+            color: #0f172a;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #06b6d4;
+        }
+        
+        .environmental-display {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            margin-top: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .env-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .env-card {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-radius: 12px;
+            padding: 15px;
+            border-left: 4px solid #06b6d4;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+        }
+        
+        .env-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+        
+        .env-card h4 {
+            color: #0f172a;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            font-weight: 700;
+        }
+        
+        .env-value {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #06b6d4;
+            margin-bottom: 3px;
+        }
+        
+        .env-unit {
+            font-size: 0.8rem;
+            color: #64748b;
+            font-style: italic;
+        }
+        
+        .ctd-info {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border: 2px solid #7dd3fc;
+            color: #0f172a;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .ctd-info h3 {
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 1600px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-section {
+                position: static;
+                max-height: none;
+            }
+            
+            .profiles-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 1000px) {
+            .profiles-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .preset-buttons {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .env-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean CTD Profile Simulator</h1>
+            <p>Comprehensive simulation of CTD (Conductivity-Temperature-Depth) profiles in coastal waters. Model temperature, salinity, dissolved oxygen, fluorescence, and chlorophyll-a vertical distributions considering all atmospheric and oceanographic forcing parameters including wind stress, stratification, mixed layer dynamics, coastal circulation, solar radiation, turbidity, tidal effects, and biogeochemical processes by Claudio Iturra.</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="controls-section">
+                <h2>🎛️ Environmental Parameters</h2>
+                
+                <div class="preset-buttons">
+                    <button class="preset-btn" onclick="loadPreset('summer')">☀️ Summer</button>
+                    <button class="preset-btn" onclick="loadPreset('winter')">❄️ Winter</button>
+                    <button class="preset-btn" onclick="loadPreset('upwelling')">⬆️ Upwelling</button>
+                    <button class="preset-btn" onclick="loadPreset('storm')">⛈️ Storm</button>
+                </div>
+                
+                <div class="control-group">
+                    <label for="wind-speed">💨 Wind Speed</label>
+                    <div class="range-container">
+                        <input type="range" id="wind-speed" min="0" max="25" step="0.5" value="8" onchange="updateSimulation()">
+                        <div class="range-value" id="wind-speed-value">8 m/s</div>
+                    </div>
+                    <div class="help-text">Surface wind speed affecting mixing and gas exchange</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="solar-radiation">☀️ Solar Radiation</label>
+                    <div class="range-container">
+                        <input type="range" id="solar-radiation" min="100" max="1200" step="25" value="600" onchange="updateSimulation()">
+                        <div class="range-value" id="solar-radiation-value">600 W/m²</div>
+                    </div>
+                    <div class="help-text">Surface solar irradiance for heating and photosynthesis</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="air-temp">🌡️ Air Temperature</label>
+                    <div class="range-container">
+                        <input type="range" id="air-temp" min="5" max="35" step="1" value="20" onchange="updateSimulation()">
+                        <div class="range-value" id="air-temp-value">20°C</div>
+                    </div>
+                    <div class="help-text">Atmospheric temperature affecting surface heat flux</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="mixed-layer-depth">🌊 Mixed Layer Depth</label>
+                    <div class="range-container">
+                        <input type="range" id="mixed-layer-depth" min="5" max="50" step="2" value="20" onchange="updateSimulation()">
+                        <div class="range-value" id="mixed-layer-depth-value">20 m</div>
+                    </div>
+                    <div class="help-text">Depth of surface mixed layer</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="stratification">⚖️ Stratification Strength</label>
+                    <div class="range-container">
+                        <input type="range" id="stratification" min="0.5" max="5" step="0.1" value="2" onchange="updateSimulation()">
+                        <div class="range-value" id="stratification-value">2.0 s⁻²</div>
+                    </div>
+                    <div class="help-text">Water column stability (buoyancy frequency)</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="coastal-upwelling">⬆️ Upwelling Intensity</label>
+                    <div class="range-container">
+                        <input type="range" id="coastal-upwelling" min="0" max="10" step="0.5" value="3" onchange="updateSimulation()">
+                        <div class="range-value" id="coastal-upwelling-value">3.0 m/day</div>
+                    </div>
+                    <div class="help-text">Vertical upwelling velocity bringing deep water up</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="turbidity">🌫️ Water Turbidity</label>
+                    <div class="range-container">
+                        <input type="range" id="turbidity" min="0.1" max="10" step="0.1" value="2" onchange="updateSimulation()">
+                        <div class="range-value" id="turbidity-value">2.0 NTU</div>
+                    </div>
+                    <div class="help-text">Water clarity affecting light penetration</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="tidal-range">🌙 Tidal Range</label>
+                    <div class="range-container">
+                        <input type="range" id="tidal-range" min="0.5" max="4" step="0.1" value="2" onchange="updateSimulation()">
+                        <div class="range-value" id="tidal-range-value">2.0 m</div>
+                    </div>
+                    <div class="help-text">Tidal amplitude affecting vertical mixing</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="river-discharge">🏞️ River Discharge</label>
+                    <div class="range-container">
+                        <input type="range" id="river-discharge" min="0" max="1000" step="25" value="200" onchange="updateSimulation()">
+                        <div class="range-value" id="river-discharge-value">200 m³/s</div>
+                    </div>
+                    <div class="help-text">Freshwater input affecting salinity and nutrients</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="season">📅 Season</label>
+                    <select id="season" onchange="updateSimulation()">
+                        <option value="spring">Spring</option>
+                        <option value="summer" selected>Summer</option>
+                        <option value="autumn">Autumn</option>
+                        <option value="winter">Winter</option>
+                    </select>
+                    <div class="help-text">Seasonal effects on biology and physics</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="latitude">🌍 Latitude</label>
+                    <div class="range-container">
+                        <input type="range" id="latitude" min="20" max="60" step="1" value="37" onchange="updateSimulation()">
+                        <div class="range-value" id="latitude-value">37°N</div>
+                    </div>
+                    <div class="help-text">Geographic latitude affecting solar angle</div>
+                </div>
+                
+                <div class="control-group">
+                    <label for="nutrient-loading">🧪 Nutrient Loading</label>
+                    <div class="range-container">
+                        <input type="range" id="nutrient-loading" min="1" max="50" step="1" value="15" onchange="updateSimulation()">
+                        <div class="range-value" id="nutrient-loading-value">15 μM</div>
+                    </div>
+                    <div class="help-text">Surface nutrient concentration (nitrate)</div>
+                </div>
+                
+                <button class="simulate-btn" onclick="updateSimulation()">🔄 Generate CTD Profiles</button>
+            </div>
+            
+            <div class="profiles-section">
+                <div class="viz-header">
+                    <h2>📊 CTD Vertical Profiles (0-100m)</h2>
+                    <div id="ctd-info" class="ctd-info">
+                        <h3>Coastal Ocean Conditions</h3>
+                        <p id="conditions-description">Adjust environmental parameters to see realistic CTD profile responses</p>
+                    </div>
+                </div>
+                
+                <div class="profiles-grid">
+                    <div class="profile-chart">
+                        <div class="profile-title">🌡️ Temperature Profile</div>
+                        <canvas id="temperature-chart"></canvas>
+                    </div>
+                    
+                    <div class="profile-chart">
+                        <div class="profile-title">🧂 Salinity Profile</div>
+                        <canvas id="salinity-chart"></canvas>
+                    </div>
+                    
+                    <div class="profile-chart">
+                        <div class="profile-title">💨 Dissolved Oxygen</div>
+                        <canvas id="oxygen-chart"></canvas>
+                    </div>
+                    
+                    <div class="profile-chart">
+                        <div class="profile-title">💡 Fluorescence</div>
+                        <canvas id="fluorescence-chart"></canvas>
+                    </div>
+                    
+                    <div class="profile-chart">
+                        <div class="profile-title">🌿 Chlorophyll-a</div>
+                        <canvas id="chlorophyll-chart"></canvas>
+                    </div>
+                    
+                    <div class="profile-chart">
+                        <div class="profile-title">🌫️ Turbidity</div>
+                        <canvas id="turbidity-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="environmental-display">
+            <h2 style="text-align: center; color: #0f172a; margin-bottom: 25px; font-size: 1.8rem;">🌊 Calculated Environmental Conditions</h2>
+            
+            <div class="env-grid">
+                <div class="env-card">
+                    <h4>🌡️ Surface Temperature</h4>
+                    <div class="env-value" id="calc-surface-temp">-</div>
+                    <div class="env-unit">°C</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>🧂 Surface Salinity</h4>
+                    <div class="env-value" id="calc-surface-salinity">-</div>
+                    <div class="env-unit">PSU</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>💨 Surface Oxygen</h4>
+                    <div class="env-value" id="calc-surface-oxygen">-</div>
+                    <div class="env-unit">mg/L</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>🌿 Surface Chlorophyll</h4>
+                    <div class="env-value" id="calc-surface-chl">-</div>
+                    <div class="env-unit">μg/L</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>🌊 Thermocline Depth</h4>
+                    <div class="env-value" id="calc-thermocline-depth">-</div>
+                    <div class="env-unit">m</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>⚖️ Density Gradient</h4>
+                    <div class="env-value" id="calc-density-gradient">-</div>
+                    <div class="env-unit">kg/m⁴</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>💡 Light Attenuation</h4>
+                    <div class="env-value" id="calc-light-atten">-</div>
+                    <div class="env-unit">m⁻¹</div>
+                </div>
+                
+                <div class="env-card">
+                    <h4>🌀 Mixing Rate</h4>
+                    <div class="env-value" id="calc-mixing-rate">-</div>
+                    <div class="env-unit">m²/s</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+        
+        // Initialize range value displays
+        document.addEventListener('DOMContentLoaded', function() {
+            updateRangeValues();
+            updateSimulation();
+        });
+        
+        function updateRangeValues() {
+            const ranges = ['wind-speed', 'solar-radiation', 'air-temp', 'mixed-layer-depth', 
+                           'stratification', 'coastal-upwelling', 'turbidity', 'tidal-range', 
+                           'river-discharge', 'latitude', 'nutrient-loading'];
+            
+            ranges.forEach(id => {
+                const range = document.getElementById(id);
+                const valueDisplay = document.getElementById(id + '-value');
+                let value = range.value;
+                let unit = '';
+                
+                switch(id) {
+                    case 'wind-speed':
+                        unit = ' m/s';
+                        break;
+                    case 'solar-radiation':
+                        unit = ' W/m²';
+                        break;
+                    case 'air-temp':
+                        unit = '°C';
+                        break;
+                    case 'mixed-layer-depth':
+                        unit = ' m';
+                        break;
+                    case 'stratification':
+                        unit = ' s⁻²';
+                        break;
+                    case 'coastal-upwelling':
+                        unit = ' m/day';
+                        break;
+                    case 'turbidity':
+                        unit = ' NTU';
+                        break;
+                    case 'tidal-range':
+                        unit = ' m';
+                        break;
+                    case 'river-discharge':
+                        unit = ' m³/s';
+                        break;
+                    case 'latitude':
+                        unit = '°N';
+                        break;
+                    case 'nutrient-loading':
+                        unit = ' μM';
+                        break;
+                }
+                
+                valueDisplay.textContent = value + unit;
+                
+                range.addEventListener('input', function() {
+                    valueDisplay.textContent = this.value + unit;
+                });
+            });
+        }
+        
+        function loadPreset(presetType) {
+            switch(presetType) {
+                case 'summer':
+                    document.getElementById('wind-speed').value = 6;
+                    document.getElementById('solar-radiation').value = 900;
+                    document.getElementById('air-temp').value = 25;
+                    document.getElementById('mixed-layer-depth').value = 15;
+                    document.getElementById('stratification').value = 3.5;
+                    document.getElementById('coastal-upwelling').value = 2;
+                    document.getElementById('turbidity').value = 1.5;
+                    document.getElementById('tidal-range').value = 1.8;
+                    document.getElementById('river-discharge').value = 150;
+                    document.getElementById('season').value = 'summer';
+                    document.getElementById('latitude').value = 37;
+                    document.getElementById('nutrient-loading').value = 8;
+                    break;
+                    
+                case 'winter':
+                    document.getElementById('wind-speed').value = 15;
+                    document.getElementById('solar-radiation').value = 300;
+                    document.getElementById('air-temp').value = 10;
+                    document.getElementById('mixed-layer-depth').value = 40;
+                    document.getElementById('stratification').value = 1.2;
+                    document.getElementById('coastal-upwelling').value = 1;
+                    document.getElementById('turbidity').value = 3;
+                    document.getElementById('tidal-range').value = 2.5;
+                    document.getElementById('river-discharge').value = 400;
+                    document.getElementById('season').value = 'winter';
+                    document.getElementById('latitude').value = 37;
+                    document.getElementById('nutrient-loading').value = 25;
+                    break;
+                    
+                case 'upwelling':
+                    document.getElementById('wind-speed').value = 12;
+                    document.getElementById('solar-radiation').value = 700;
+                    document.getElementById('air-temp').value = 18;
+                    document.getElementById('mixed-layer-depth').value = 12;
+                    document.getElementById('stratification').value = 4;
+                    document.getElementById('coastal-upwelling').value = 8;
+                    document.getElementById('turbidity').value = 2.5;
+                    document.getElementById('tidal-range').value = 2;
+                    document.getElementById('river-discharge').value = 100;
+                    document.getElementById('season').value = 'summer';
+                    document.getElementById('latitude').value = 42;
+                    document.getElementById('nutrient-loading').value = 35;
+                    break;
+                    
+                case 'storm':
+                    document.getElementById('wind-speed').value = 22;
+                    document.getElementById('solar-radiation').value = 200;
+                    document.getElementById('air-temp').value = 15;
+                    document.getElementById('mixed-layer-depth').value = 45;
+                    document.getElementById('stratification').value = 0.8;
+                    document.getElementById('coastal-upwelling').value = 1;
+                    document.getElementById('turbidity').value = 8;
+                    document.getElementById('tidal-range').value = 3.5;
+                    document.getElementById('river-discharge').value = 800;
+                    document.getElementById('season').value = 'winter';
+                    document.getElementById('latitude').value = 37;
+                    document.getElementById('nutrient-loading').value = 40;
+                    break;
+            }
+            
+            updateRangeValues();
+            updateSimulation();
+        }
+        
+        function calculateCTDProfiles() {
+            // Get all parameters
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const solarRadiation = parseFloat(document.getElementById('solar-radiation').value);
+            const airTemp = parseFloat(document.getElementById('air-temp').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixed-layer-depth').value);
+            const stratification = parseFloat(document.getElementById('stratification').value);
+            const upwellingIntensity = parseFloat(document.getElementById('coastal-upwelling').value);
+            const turbidity = parseFloat(document.getElementById('turbidity').value);
+            const tidalRange = parseFloat(document.getElementById('tidal-range').value);
+            const riverDischarge = parseFloat(document.getElementById('river-discharge').value);
+            const season = document.getElementById('season').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const nutrientLoading = parseFloat(document.getElementById('nutrient-loading').value);
+            
+            // Create depth array (0-100m)
+            const depths = [];
+            for (let i = 0; i <= 100; i += 1) {
+                depths.push(i);
+            }
+            
+            // Calculate profiles
+            const profiles = {
+                temperature: [],
+                salinity: [],
+                oxygen: [],
+                fluorescence: [],
+                chlorophyll: [],
+                turbidityProfile: []
+            };
+            
+            // Seasonal adjustments
+            const seasonalFactors = {
+                spring: { tempOffset: 0, bioFactor: 1.5, mixingFactor: 1.2 },
+                summer: { tempOffset: 5, bioFactor: 2.0, mixingFactor: 0.8 },
+                autumn: { tempOffset: 2, bioFactor: 1.2, mixingFactor: 1.0 },
+                winter: { tempOffset: -3, bioFactor: 0.5, mixingFactor: 1.5 }
+            };
+            
+            const seasonFactor = seasonalFactors[season];
+            
+            // Calculate base surface conditions
+            const surfaceTemp = Math.max(8, Math.min(28, airTemp + (solarRadiation - 400) / 100 + seasonFactor.tempOffset - upwellingIntensity * 2));
+            const surfaceSalinity = Math.max(30, Math.min(36, 34 - riverDischarge / 200 + upwellingIntensity * 0.3));
+            const surfaceOxygen = Math.max(6, Math.min(12, 8 + (windSpeed - 10) * 0.2 + (20 - surfaceTemp) * 0.1));
+            
+            // Light attenuation coefficient
+            const lightAtten = 0.05 + turbidity * 0.1 + (riverDischarge / 1000) * 0.2;
+            
+            depths.forEach(depth => {
+                // Temperature profile
+                let temp;
+                if (depth <= mixedLayerDepth) {
+                    // Mixed layer - uniform temperature with slight cooling
+                    temp = surfaceTemp - depth * 0.02;
+                } else {
+                    // Thermocline and deep water
+                    const thermoclineThickness = 20 + stratification * 5;
+                    const thermoclineCenter = mixedLayerDepth + thermoclineThickness / 2;
+                    
+                    if (depth < mixedLayerDepth + thermoclineThickness) {
+                        // In thermocline
+                        const thermoclineProgress = (depth - mixedLayerDepth) / thermoclineThickness;
+                        const tempDrop = 8 + stratification * 2 - upwellingIntensity * 1.5;
+                        temp = surfaceTemp - tempDrop * Math.pow(thermoclineProgress, 1.5);
+                    } else {
+                        // Below thermocline
+                        const deepTemp = surfaceTemp - (8 + stratification * 2) + upwellingIntensity * 2;
+                        temp = Math.max(4, deepTemp - (depth - mixedLayerDepth - thermoclineThickness) * 0.01);
+                    }
+                }
+                
+                // Add upwelling effects
+                if (upwellingIntensity > 3) {
+                    const upwellingEffect = Math.exp(-depth / 30) * (upwellingIntensity - 3) * 0.5;
+                    temp -= upwellingEffect;
+                }
+                
+                profiles.temperature.push(Math.max(4, temp));
+                
+                // Salinity profile
+                let salinity;
+                if (depth <= mixedLayerDepth) {
+                    // Surface freshwater influence
+                    salinity = surfaceSalinity + depth * 0.02;
+                } else {
+                    // Increasing salinity with depth
+                    const salinityIncrease = (depth - mixedLayerDepth) * 0.01 + upwellingIntensity * 0.05;
+                    salinity = surfaceSalinity + salinityIncrease;
+                }
+                
+                // River discharge effects
+                if (riverDischarge > 300) {
+                    const freshwaterEffect = Math.exp(-depth / 10) * (riverDischarge - 300) / 1000;
+                    salinity -= freshwaterEffect * 3;
+                }
+                
+                profiles.salinity.push(Math.max(28, Math.min(36, salinity)));
+                
+                // Dissolved oxygen profile
+                let oxygen;
+                if (depth <= mixedLayerDepth) {
+                    // Well-mixed surface layer
+                    oxygen = surfaceOxygen - depth * 0.01;
+                } else {
+                    // Oxygen minimum zone development
+                    const oxygenConsumption = (depth - mixedLayerDepth) * 0.03;
+                    oxygen = surfaceOxygen - oxygenConsumption;
+                    
+                    // Biological oxygen consumption
+                    if (depth > 20 && depth < 60) {
+                        const bioConsumption = Math.sin((depth - 20) / 40 * Math.PI) * 2 * seasonFactor.bioFactor;
+                        oxygen -= bioConsumption;
+                    }
+                }
+                
+                // Upwelling brings oxygen-poor water
+                if (upwellingIntensity > 2) {
+                    const upwellingOxygenEffect = Math.exp(-Math.pow(depth - 40, 2) / 800) * (upwellingIntensity - 2) * 0.8;
+                    oxygen -= upwellingOxygenEffect;
+                }
+                
+                profiles.oxygen.push(Math.max(2, Math.min(12, oxygen)));
+                
+                // Fluorescence profile (proxy for phytoplankton)
+                let fluorescence;
+                const lightLevel = Math.exp(-lightAtten * depth);
+                
+                if (depth <= mixedLayerDepth) {
+                    // Surface layer - high light, variable nutrients
+                    fluorescence = (nutrientLoading / 20) * lightLevel * seasonFactor.bioFactor;
+                } else if (depth < 60) {
+                    // Subsurface chlorophyll maximum
+                    const scmDepth = mixedLayerDepth + 15;
+                    const scmEffect = Math.exp(-Math.pow(depth - scmDepth, 2) / 200);
+                    fluorescence = (nutrientLoading / 15) * lightLevel * seasonFactor.bioFactor * (1 + scmEffect * 2);
+                } else {
+                    // Deep water - low fluorescence
+                    fluorescence = 0.1 * lightLevel;
+                }
+                
+                // Upwelling enhances surface productivity
+                if (upwellingIntensity > 3 && depth < 30) {
+                    const upwellingBioEffect = (upwellingIntensity - 3) * 0.3 * Math.exp(-depth / 15);
+                    fluorescence += upwellingBioEffect;
+                }
+                
+                profiles.fluorescence.push(Math.max(0, fluorescence));
+                
+                // Chlorophyll-a profile (related to fluorescence)
+                const chlorophyll = profiles.fluorescence[profiles.fluorescence.length - 1] * (0.5 + Math.random() * 0.3);
+                profiles.chlorophyll.push(Math.max(0.1, chlorophyll));
+                
+                // Turbidity profile
+                let turbidityValue;
+                if (depth <= mixedLayerDepth) {
+                    // Surface mixing and river input
+                    turbidityValue = turbidity + riverDischarge / 500 + windSpeed * 0.1;
+                } else {
+                    // Decreasing turbidity with depth
+                    turbidityValue = turbidity * Math.exp(-depth / 40);
+                    
+                    // Resuspension near bottom
+                    if (depth > 80) {
+                        const bottomEffect = (depth - 80) / 20 * tidalRange * 0.2;
+                        turbidityValue += bottomEffect;
+                    }
+                }
+                
+                profiles.turbidityProfile.push(Math.max(0.1, turbidityValue));
+            });
+            
+            return {
+                depths,
+                profiles,
+                surfaceTemp,
+                surfaceSalinity,
+                surfaceOxygen,
+                lightAtten,
+                mixedLayerDepth,
+                stratification
+            };
+        }
+        
+        function updateConditionsDescription() {
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const upwellingIntensity = parseFloat(document.getElementById('coastal-upwelling').value);
+            const season = document.getElementById('season').value;
+            const riverDischarge = parseFloat(document.getElementById('river-discharge').value);
+            
+            let description = `${season.charAt(0).toUpperCase() + season.slice(1)} conditions with `;
+            
+            if (windSpeed > 15) {
+                description += 'strong winds promoting deep mixing. ';
+            } else if (windSpeed < 5) {
+                description += 'calm conditions favoring stratification. ';
+            } else {
+                description += 'moderate winds. ';
+            }
+            
+            if (upwellingIntensity > 5) {
+                description += 'Active upwelling bringing cold, nutrient-rich deep water to surface.';
+            } else if (upwellingIntensity < 2) {
+                description += 'Minimal upwelling with stable water column.';
+            } else {
+                description += 'Moderate upwelling activity.';
+            }
+            
+            if (riverDischarge > 500) {
+                description += ' High freshwater input reducing surface salinity.';
+            }
+            
+            document.getElementById('conditions-description').textContent = description;
+        }
+        
+        function updateSimulation() {
+            updateRangeValues();
+            updateConditionsDescription();
+            
+            const ctdData = calculateCTDProfiles();
+            
+            // Update environmental displays
+            document.getElementById('calc-surface-temp').textContent = ctdData.surfaceTemp.toFixed(1);
+            document.getElementById('calc-surface-salinity').textContent = ctdData.surfaceSalinity.toFixed(1);
+            document.getElementById('calc-surface-oxygen').textContent = ctdData.surfaceOxygen.toFixed(1);
+            document.getElementById('calc-surface-chl').textContent = ctdData.profiles.chlorophyll[0].toFixed(2);
+            document.getElementById('calc-thermocline-depth').textContent = (ctdData.mixedLayerDepth + 10).toFixed(0);
+            document.getElementById('calc-density-gradient').textContent = (ctdData.stratification * 0.1).toFixed(3);
+            document.getElementById('calc-light-atten').textContent = ctdData.lightAtten.toFixed(3);
+            
+            const windSpeed = parseFloat(document.getElementById('wind-speed').value);
+            const mixingRate = windSpeed * windSpeed * 1e-5;
+            document.getElementById('calc-mixing-rate').textContent = mixingRate.toFixed(6);
+            
+            // Create/update all profile charts
+            createProfileChart('temperature', ctdData.depths, ctdData.profiles.temperature, '°C', '#ef4444', '#dc2626');
+            createProfileChart('salinity', ctdData.depths, ctdData.profiles.salinity, 'PSU', '#3b82f6', '#1e40af');
+            createProfileChart('oxygen', ctdData.depths, ctdData.profiles.oxygen, 'mg/L', '#06b6d4', '#0891b2');
+            createProfileChart('fluorescence', ctdData.depths, ctdData.profiles.fluorescence, 'RFU', '#10b981', '#059669');
+            createProfileChart('chlorophyll', ctdData.depths, ctdData.profiles.chlorophyll, 'μg/L', '#22c55e', '#16a34a');
+            createProfileChart('turbidity', ctdData.depths, ctdData.profiles.turbidityProfile, 'NTU', '#f59e0b', '#d97706');
+        }
+        
+        function createProfileChart(chartId, depths, values, unit, color1, color2) {
+            const ctx = document.getElementById(chartId + '-chart').getContext('2d');
+            
+            if (charts[chartId]) {
+                charts[chartId].destroy();
+            }
+            
+            const data = depths.map((depth, index) => ({
+                x: values[index],
+                y: depth
+            }));
+            
+            charts[chartId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: unit,
+                        data: data,
+                        borderColor: color1,
+                        backgroundColor: `${color1}20`,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0,
+                        pointHoverRadius: 4,
+                        pointBackgroundColor: color2,
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: color1,
+                            borderWidth: 2,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Depth: ${context[0].parsed.y.toFixed(0)} m`;
+                                },
+                                label: function(context) {
+                                    return `${context.parsed.x.toFixed(2)} ${unit}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: unit,
+                                font: { size: 12, weight: 'bold' },
+                                color: '#0f172a'
+                            },
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 10 }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { size: 12, weight: 'bold' },
+                                color: '#0f172a'
+                            },
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)',
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 10 },
+                                stepSize: 20
+                            },
+                            reverse: true // Surface at top
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c12a18e30c88ab',t:'MTc1NDY3ODY2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
