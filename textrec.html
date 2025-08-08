@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scientific Data File Processor</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 40px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,8 50,10 T100,10 L100,0 L0,0 Z" fill="rgba(102,126,234,0.2)"/></svg>') repeat-x;
+            background-size: 200px 20px;
+            animation: dataFlow 8s linear infinite;
+        }
+        
+        @keyframes dataFlow {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-200px); }
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section h3 {
+            color: #2d3748;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .file-upload {
+            border: 3px dashed #cbd5e0;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background: #f7fafc;
+        }
+        
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #edf2f7;
+        }
+        
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #e6fffa;
+            transform: scale(1.02);
+        }
+        
+        .file-upload input[type="file"] {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3em;
+            color: #a0aec0;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            color: #4a5568;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            color: #718096;
+            font-size: 0.9em;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102,126,234,0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        }
+        
+        .visualization-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .data-preview {
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+            border: 2px solid #e2e8f0;
+            max-height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #38b2ac;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #2d3748;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            color: #4a5568;
+            margin-top: 5px;
+        }
+        
+        .chart-container {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px solid #e2e8f0;
+        }
+        
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .variable-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .variable-item {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .variable-item input[type="checkbox"] {
+            width: auto;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #3182ce;
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #dd6b20;
+        }
+        
+        .success-panel {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #38a169;
+        }
+        
+        .example-section {
+            background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border: 2px solid #dd6b20;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Scientific Data File Processor</h1>
+            <p>Load, analyze, and visualize time-series data from text files by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- File Upload Section -->
+                <div class="section">
+                    <h3>📁 Load Data File</h3>
+                    <div class="file-upload" id="fileUpload">
+                        <input type="file" id="fileInput" accept=".txt,.cnv,.dat,.csv,.log">
+                        <div class="upload-icon">📄</div>
+                        <div class="upload-text">Click or drag file here</div>
+                        <div class="upload-hint">Supports .txt, .cnv, .dat, .csv, .log files</div>
+                    </div>
+                    <button class="btn btn-warning" onclick="loadExampleData()">📋 Load Example Data</button>
+                </div>
+                
+                <!-- Parsing Options -->
+                <div class="section">
+                    <h3>⚙️ Parsing Options</h3>
+                    <div class="input-group">
+                        <label for="delimiter">Column Delimiter:</label>
+                        <select id="delimiter">
+                            <option value="auto">Auto-detect</option>
+                            <option value=" ">Space</option>
+                            <option value="\t">Tab</option>
+                            <option value=",">Comma</option>
+                            <option value=";">Semicolon</option>
+                            <option value="|">Pipe</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="skipLines">Skip Header Lines:</label>
+                        <input type="number" id="skipLines" value="0" min="0" max="100">
+                    </div>
+                    <div class="input-group">
+                        <label for="timeColumn">Time Column Index:</label>
+                        <input type="number" id="timeColumn" value="0" min="0">
+                    </div>
+                    <div class="input-group">
+                        <label for="timeFormat">Time Format:</label>
+                        <select id="timeFormat">
+                            <option value="auto">Auto-detect</option>
+                            <option value="iso">ISO (YYYY-MM-DD HH:MM:SS)</option>
+                            <option value="decimal">Decimal Days</option>
+                            <option value="julian">Julian Days</option>
+                            <option value="timestamp">Unix Timestamp</option>
+                            <option value="excel">Excel Serial Date</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="parseData()" id="parseBtn" disabled>🔍 Parse Data</button>
+                </div>
+                
+                <!-- Variable Selection -->
+                <div class="section">
+                    <h3>📈 Variables to Plot</h3>
+                    <div id="variableList" class="variable-list">
+                        <div class="info-panel">Load a file to see available variables</div>
+                    </div>
+                    <button class="btn btn-success" onclick="plotData()" id="plotBtn" disabled>📊 Plot Selected Variables</button>
+                </div>
+                
+                <!-- Export Options -->
+                <div class="section">
+                    <h3>💾 Export Data</h3>
+                    <div class="input-group">
+                        <label for="exportFormat">Export Format:</label>
+                        <select id="exportFormat">
+                            <option value="csv">CSV (Comma-separated)</option>
+                            <option value="tsv">TSV (Tab-separated)</option>
+                            <option value="json">JSON</option>
+                            <option value="matlab">MATLAB (.m)</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="exportData()" id="exportBtn" disabled>📥 Export Organized Data</button>
+                </div>
+            </div>
+            
+            <div class="visualization-panel">
+                <!-- File Info -->
+                <div class="stats-grid" id="fileStats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="fileName">-</div>
+                        <div class="stat-label">File Name</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="fileSize">-</div>
+                        <div class="stat-label">File Size</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="dataRows">-</div>
+                        <div class="stat-label">Data Rows</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="dataColumns">-</div>
+                        <div class="stat-label">Columns</div>
+                    </div>
+                </div>
+                
+                <!-- Data Preview -->
+                <div class="chart-container">
+                    <div class="chart-title">Raw Data Preview</div>
+                    <div id="dataPreview" class="data-preview">Load a file to see data preview...</div>
+                </div>
+                
+                <!-- Time Series Plot -->
+                <div class="chart-container">
+                    <div class="chart-title">Time Series Plot</div>
+                    <canvas id="timeSeriesChart"></canvas>
+                </div>
+                
+                <!-- Example Data Section -->
+                <div class="example-section">
+                    <h3>📋 Example Data Format</h3>
+                    <p><strong>Oceanographic CTD Data Example:</strong></p>
+                    <div class="data-preview">
+# CTD Cast Data - Station A1
+# Date: 2024-01-15
+# Latitude: 45.2341N, Longitude: -125.8765W
+DateTime,Depth_m,Temperature_C,Salinity_PSU,Pressure_dbar,Oxygen_ml_L,Fluorescence_mg_m3
+2024-01-15 08:00:00,0.5,12.45,33.21,1.2,6.8,2.1
+2024-01-15 08:00:30,1.0,12.43,33.23,2.1,6.7,2.3
+2024-01-15 08:01:00,1.5,12.41,33.25,3.0,6.6,2.5
+2024-01-15 08:01:30,2.0,12.38,33.28,4.1,6.5,2.8</div>
+                    <p><strong>Supported formats:</strong> Space-separated, comma-separated, tab-separated. Time can be in various formats including ISO datetime, decimal days, or Julian days.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let fileData = {
+            raw: '',
+            parsed: [],
+            headers: [],
+            timeColumn: 0,
+            variables: [],
+            fileName: '',
+            fileSize: 0
+        };
+        
+        let chart = null;
+        
+        // File upload handling
+        document.getElementById('fileInput').addEventListener('change', handleFileSelect);
+        
+        const fileUpload = document.getElementById('fileUpload');
+        fileUpload.addEventListener('click', () => document.getElementById('fileInput').click());
+        fileUpload.addEventListener('dragover', handleDragOver);
+        fileUpload.addEventListener('drop', handleFileDrop);
+        fileUpload.addEventListener('dragenter', e => {
+            e.preventDefault();
+            fileUpload.classList.add('dragover');
+        });
+        fileUpload.addEventListener('dragleave', e => {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+        });
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleFileDrop(e) {
+            e.preventDefault();
+            fileUpload.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+        
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+        
+        function processFile(file) {
+            fileData.fileName = file.name;
+            fileData.fileSize = file.size;
+            
+            updateFileStats();
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                fileData.raw = e.target.result;
+                showDataPreview();
+                document.getElementById('parseBtn').disabled = false;
+                showMessage('success', `📁 File "${file.name}" loaded successfully (${formatFileSize(file.size)})`);
+            };
+            reader.readAsText(file);
+        }
+        
+        function loadExampleData() {
+            const exampleData = `# CTD Cast Data - Station A1
+# Date: 2024-01-15  
+# Latitude: 45.2341N, Longitude: -125.8765W
+# Instrument: SBE 25 CTD
+DateTime,Depth_m,Temperature_C,Salinity_PSU,Pressure_dbar,Oxygen_ml_L,Fluorescence_mg_m3,Turbidity_NTU
+2024-01-15 08:00:00,0.5,12.45,33.21,1.2,6.8,2.1,0.8
+2024-01-15 08:00:30,1.0,12.43,33.23,2.1,6.7,2.3,0.9
+2024-01-15 08:01:00,1.5,12.41,33.25,3.0,6.6,2.5,1.1
+2024-01-15 08:01:30,2.0,12.38,33.28,4.1,6.5,2.8,1.2
+2024-01-15 08:02:00,2.5,12.35,33.31,5.0,6.4,3.1,1.4
+2024-01-15 08:02:30,3.0,12.31,33.35,6.1,6.3,3.5,1.6
+2024-01-15 08:03:00,3.5,12.27,33.39,7.2,6.1,3.8,1.8
+2024-01-15 08:03:30,4.0,12.22,33.44,8.1,6.0,4.2,2.1
+2024-01-15 08:04:00,4.5,12.17,33.49,9.2,5.8,4.6,2.3
+2024-01-15 08:04:30,5.0,12.11,33.55,10.1,5.7,5.1,2.6
+2024-01-15 08:05:00,5.5,12.05,33.61,11.2,5.5,5.5,2.8
+2024-01-15 08:05:30,6.0,11.98,33.68,12.1,5.4,6.0,3.1
+2024-01-15 08:06:00,6.5,11.91,33.75,13.2,5.2,6.4,3.4
+2024-01-15 08:06:30,7.0,11.83,33.83,14.1,5.1,6.9,3.7
+2024-01-15 08:07:00,7.5,11.75,33.91,15.2,4.9,7.3,4.0
+2024-01-15 08:07:30,8.0,11.66,34.00,16.1,4.8,7.8,4.3
+2024-01-15 08:08:00,8.5,11.57,34.09,17.2,4.6,8.2,4.6
+2024-01-15 08:08:30,9.0,11.47,34.19,18.1,4.5,8.7,4.9
+2024-01-15 08:09:00,9.5,11.37,34.29,19.2,4.3,9.1,5.2
+2024-01-15 08:09:30,10.0,11.26,34.40,20.1,4.2,9.6,5.5`;
+            
+            fileData.raw = exampleData;
+            fileData.fileName = 'example_ctd_data.txt';
+            fileData.fileSize = exampleData.length;
+            
+            updateFileStats();
+            showDataPreview();
+            document.getElementById('parseBtn').disabled = false;
+            
+            // Set appropriate parsing options for example
+            document.getElementById('delimiter').value = ',';
+            document.getElementById('skipLines').value = '4';
+            document.getElementById('timeColumn').value = '0';
+            document.getElementById('timeFormat').value = 'iso';
+            
+            showMessage('success', '📋 Example oceanographic CTD data loaded! Click "Parse Data" to process.');
+        }
+        
+        function parseData() {
+            const delimiter = document.getElementById('delimiter').value;
+            const skipLines = parseInt(document.getElementById('skipLines').value);
+            const timeColumn = parseInt(document.getElementById('timeColumn').value);
+            const timeFormat = document.getElementById('timeFormat').value;
+            
+            try {
+                const lines = fileData.raw.split('\n').filter(line => line.trim());
+                
+                // Skip header lines
+                const dataLines = lines.slice(skipLines);
+                
+                if (dataLines.length === 0) {
+                    throw new Error('No data lines found after skipping headers');
+                }
+                
+                // Detect delimiter if auto
+                let actualDelimiter = delimiter;
+                if (delimiter === 'auto') {
+                    actualDelimiter = detectDelimiter(dataLines[0]);
+                }
+                
+                // Parse first line to get headers
+                const firstLine = dataLines[0].split(actualDelimiter === ' ' ? /\s+/ : actualDelimiter);
+                fileData.headers = firstLine.map((header, i) => header.trim() || `Column_${i + 1}`);
+                
+                // Parse all data lines
+                fileData.parsed = [];
+                for (let i = 1; i < dataLines.length; i++) {
+                    const values = dataLines[i].split(actualDelimiter === ' ' ? /\s+/ : actualDelimiter);
+                    if (values.length === fileData.headers.length) {
+                        const row = {};
+                        fileData.headers.forEach((header, j) => {
+                            if (j === timeColumn) {
+                                row[header] = parseTimeValue(values[j], timeFormat);
+                            } else {
+                                const numValue = parseFloat(values[j]);
+                                row[header] = isNaN(numValue) ? values[j] : numValue;
+                            }
+                        });
+                        fileData.parsed.push(row);
+                    }
+                }
+                
+                fileData.timeColumn = timeColumn;
+                fileData.variables = fileData.headers.filter((_, i) => i !== timeColumn);
+                
+                updateFileStats();
+                updateVariableList();
+                document.getElementById('plotBtn').disabled = false;
+                
+                showMessage('success', `✅ Data parsed successfully! Found ${fileData.parsed.length} rows and ${fileData.variables.length} variables.`);
+                
+            } catch (error) {
+                showMessage('warning', `⚠️ Parsing error: ${error.message}`);
+            }
+        }
+        
+        function detectDelimiter(line) {
+            const delimiters = [',', '\t', ';', '|', ' '];
+            let maxCount = 0;
+            let bestDelimiter = ' ';
+            
+            delimiters.forEach(delim => {
+                const count = (line.match(new RegExp(delim === ' ' ? '\\s+' : '\\' + delim, 'g')) || []).length;
+                if (count > maxCount) {
+                    maxCount = count;
+                    bestDelimiter = delim;
+                }
+            });
+            
+            return bestDelimiter;
+        }
+        
+        function parseTimeValue(value, format) {
+            switch (format) {
+                case 'auto':
+                    // Try different formats
+                    if (value.includes('-') && value.includes(':')) {
+                        return new Date(value);
+                    } else if (!isNaN(parseFloat(value))) {
+                        const num = parseFloat(value);
+                        if (num > 2000000) { // Unix timestamp
+                            return new Date(num * 1000);
+                        } else if (num > 25000) { // Excel serial date
+                            return new Date((num - 25569) * 86400 * 1000);
+                        } else { // Decimal days
+                            return new Date(2024, 0, 1 + num);
+                        }
+                    }
+                    return new Date(value);
+                    
+                case 'iso':
+                    return new Date(value);
+                    
+                case 'decimal':
+                    return new Date(2024, 0, 1 + parseFloat(value));
+                    
+                case 'julian':
+                    return new Date((parseFloat(value) - 2440587.5) * 86400000);
+                    
+                case 'timestamp':
+                    return new Date(parseFloat(value) * 1000);
+                    
+                case 'excel':
+                    return new Date((parseFloat(value) - 25569) * 86400 * 1000);
+                    
+                default:
+                    return new Date(value);
+            }
+        }
+        
+        function updateFileStats() {
+            document.getElementById('fileName').textContent = fileData.fileName || '-';
+            document.getElementById('fileSize').textContent = fileData.fileSize ? formatFileSize(fileData.fileSize) : '-';
+            document.getElementById('dataRows').textContent = fileData.parsed.length || '-';
+            document.getElementById('dataColumns').textContent = fileData.headers.length || '-';
+        }
+        
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function showDataPreview() {
+            const preview = document.getElementById('dataPreview');
+            const lines = fileData.raw.split('\n').slice(0, 10);
+            preview.textContent = lines.join('\n') + (fileData.raw.split('\n').length > 10 ? '\n... (showing first 10 lines)' : '');
+        }
+        
+        function updateVariableList() {
+            const container = document.getElementById('variableList');
+            
+            if (fileData.variables.length === 0) {
+                container.innerHTML = '<div class="info-panel">No variables found</div>';
+                return;
+            }
+            
+            let html = '';
+            fileData.variables.forEach((variable, index) => {
+                html += `
+                    <div class="variable-item">
+                        <input type="checkbox" id="var_${index}" value="${variable}" ${index < 5 ? 'checked' : ''}>
+                        <label for="var_${index}">${variable}</label>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function plotData() {
+            const selectedVars = [];
+            fileData.variables.forEach((variable, index) => {
+                const checkbox = document.getElementById(`var_${index}`);
+                if (checkbox && checkbox.checked) {
+                    selectedVars.push(variable);
+                }
+            });
+            
+            if (selectedVars.length === 0) {
+                showMessage('warning', '⚠️ Please select at least one variable to plot');
+                return;
+            }
+            
+            const ctx = document.getElementById('timeSeriesChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            const timeHeader = fileData.headers[fileData.timeColumn];
+            const colors = [
+                '#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a',
+                '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3', '#d299c2'
+            ];
+            
+            const datasets = selectedVars.map((variable, index) => ({
+                label: variable,
+                data: fileData.parsed.map(row => ({
+                    x: row[timeHeader],
+                    y: row[variable]
+                })),
+                borderColor: colors[index % colors.length],
+                backgroundColor: colors[index % colors.length] + '20',
+                borderWidth: 2,
+                pointRadius: 1,
+                tension: 0.1,
+                fill: false
+            }));
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                displayFormats: {
+                                    minute: 'HH:mm',
+                                    hour: 'MMM dd HH:mm',
+                                    day: 'MMM dd',
+                                    month: 'MMM yyyy'
+                                }
+                            },
+                            title: {
+                                display: true,
+                                text: timeHeader
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Values'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+            
+            document.getElementById('exportBtn').disabled = false;
+            showMessage('success', `📊 Plotted ${selectedVars.length} variables successfully!`);
+        }
+        
+        function exportData() {
+            const format = document.getElementById('exportFormat').value;
+            let content = '';
+            let filename = `processed_${fileData.fileName.split('.')[0]}_${new Date().toISOString().slice(0, 10)}`;
+            
+            switch (format) {
+                case 'csv':
+                    content = generateCSV();
+                    filename += '.csv';
+                    break;
+                case 'tsv':
+                    content = generateTSV();
+                    filename += '.tsv';
+                    break;
+                case 'json':
+                    content = generateJSON();
+                    filename += '.json';
+                    break;
+                case 'matlab':
+                    content = generateMATLAB();
+                    filename += '.m';
+                    break;
+            }
+            
+            downloadFile(content, filename);
+            showMessage('success', `📥 Data exported as ${format.toUpperCase()}`);
+        }
+        
+        function generateCSV() {
+            let csv = fileData.headers.join(',') + '\n';
+            
+            fileData.parsed.forEach(row => {
+                const values = fileData.headers.map(header => {
+                    const value = row[header];
+                    if (value instanceof Date) {
+                        return value.toISOString();
+                    }
+                    return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+                });
+                csv += values.join(',') + '\n';
+            });
+            
+            return csv;
+        }
+        
+        function generateTSV() {
+            let tsv = fileData.headers.join('\t') + '\n';
+            
+            fileData.parsed.forEach(row => {
+                const values = fileData.headers.map(header => {
+                    const value = row[header];
+                    if (value instanceof Date) {
+                        return value.toISOString();
+                    }
+                    return value;
+                });
+                tsv += values.join('\t') + '\n';
+            });
+            
+            return tsv;
+        }
+        
+        function generateJSON() {
+            const data = {
+                metadata: {
+                    originalFile: fileData.fileName,
+                    processedDate: new Date().toISOString(),
+                    timeColumn: fileData.headers[fileData.timeColumn],
+                    variables: fileData.variables,
+                    totalRows: fileData.parsed.length
+                },
+                headers: fileData.headers,
+                data: fileData.parsed.map(row => {
+                    const processedRow = {};
+                    fileData.headers.forEach(header => {
+                        const value = row[header];
+                        processedRow[header] = value instanceof Date ? value.toISOString() : value;
+                    });
+                    return processedRow;
+                })
+            };
+            
+            return JSON.stringify(data, null, 2);
+        }
+        
+        function generateMATLAB() {
+            let matlab = `% Processed data from ${fileData.fileName}\n`;
+            matlab += `% Generated: ${new Date().toISOString()}\n\n`;
+            
+            const timeHeader = fileData.headers[fileData.timeColumn];
+            matlab += `% Time vector\n`;
+            matlab += `${timeHeader.replace(/[^a-zA-Z0-9]/g, '_')} = [\n`;
+            
+            fileData.parsed.forEach((row, i) => {
+                const timeValue = row[timeHeader];
+                if (timeValue instanceof Date) {
+                    matlab += `    datenum('${timeValue.toISOString()}')`;
+                } else {
+                    matlab += `    ${timeValue}`;
+                }
+                if (i < fileData.parsed.length - 1) matlab += ',';
+                matlab += '\n';
+            });
+            matlab += '];\n\n';
+            
+            // Add variables
+            fileData.variables.forEach(variable => {
+                const varName = variable.replace(/[^a-zA-Z0-9]/g, '_');
+                matlab += `% ${variable}\n`;
+                matlab += `${varName} = [`;
+                
+                const values = fileData.parsed.map(row => row[variable]);
+                matlab += values.join(', ');
+                matlab += '];\n\n';
+            });
+            
+            return matlab;
+        }
+        
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function showMessage(type, message) {
+            const existingMessage = document.querySelector('.temp-message');
+            if (existingMessage) existingMessage.remove();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `${type === 'success' ? 'success-panel' : type === 'warning' ? 'warning-panel' : 'info-panel'} temp-message`;
+            messageDiv.innerHTML = message;
+            
+            document.querySelector('.visualization-panel').insertBefore(messageDiv, document.querySelector('.stats-grid'));
+            
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.remove();
+                }
+            }, 5000);
+        }
+        
+        // Initialize
+        window.onload = function() {
+            showMessage('info', '👋 Welcome! Load a data file or try the example to get started. The tool automatically detects time columns and separates variables for plotting.');
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c1caf5c7f388ab',t:'MTc1NDY4NTI0OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
