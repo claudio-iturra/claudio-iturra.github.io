@@ -1,0 +1,1860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Physical Oceanography Profile Analyzer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c4a6e 0%, #0369a1 30%, #0284c7 70%, #0ea5e9 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            background: rgba(0,0,0,0.2);
+            padding: 40px;
+            border-radius: 25px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #38bdf8, #0ea5e9, #0284c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 1200px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 450px 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .input-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .input-section h2 {
+            color: #0c4a6e;
+            margin-bottom: 30px;
+            font-size: 1.8rem;
+            border-bottom: 4px solid #0ea5e9;
+            padding-bottom: 15px;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #0c4a6e;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .optional-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .input-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            height: 120px;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+        
+        .input-group textarea:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            background: white;
+            box-shadow: 0 0 15px rgba(14, 165, 233, 0.2);
+        }
+        
+        .help-text {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            font-style: italic;
+            line-height: 1.4;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0c4a6e, #0ea5e9);
+            color: white;
+            border: none;
+            padding: 20px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 25px rgba(14, 165, 233, 0.3);
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(14, 165, 233, 0.4);
+        }
+        
+        .sample-data-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .sample-data-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .results-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .results-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .results-header h2 {
+            color: #0c4a6e;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .parameter-card {
+            background: linear-gradient(135deg, #f8fafc, #e0f2fe);
+            border-radius: 20px;
+            padding: 30px;
+            border-left: 6px solid #0ea5e9;
+            transition: all 0.3s;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+        
+        .parameter-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+        
+        .parameter-card h3 {
+            color: #0c4a6e;
+            margin-bottom: 18px;
+            font-size: 1.3rem;
+            text-align: center;
+            font-weight: 700;
+        }
+        
+        .parameter-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #0ea5e9;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .parameter-unit {
+            font-size: 1.1rem;
+            color: #64748b;
+            text-align: center;
+            font-style: italic;
+            font-weight: 500;
+        }
+        
+        .charts-section {
+            background: rgba(255,255,255,0.95);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .charts-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+        
+        .charts-header h2 {
+            color: #0c4a6e;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .chart-categories {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .category-btn {
+            padding: 12px 25px;
+            border: 2px solid #0ea5e9;
+            background: transparent;
+            color: #0ea5e9;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .category-btn.active {
+            background: linear-gradient(135deg, #0ea5e9, #0284c7);
+            color: white;
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.3);
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 35px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 550px;
+            background: linear-gradient(135deg, #f8fafc, #ffffff);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .chart-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .chart-title {
+            text-align: center;
+            color: #0c4a6e;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .chart-canvas {
+            height: 450px;
+        }
+        
+        .error-message {
+            background: linear-gradient(135deg, #fef2f2, #fecaca);
+            border: 2px solid #f87171;
+            color: #991b1b;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border: 2px solid #7dd3fc;
+            color: #0c4a6e;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .info-panel h4 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+        
+        .info-panel ul {
+            margin-left: 25px;
+        }
+        
+        .info-panel li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-section {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-container {
+                height: 450px;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Physical Oceanography Profile Analyzer</h1>
+            <p>Advanced coastal ocean analysis tool for vertical profiles. Calculate density, Richardson number, Brunt-Väisälä frequency, thermoclines, haloclines, stratification parameters, and comprehensive physical oceanography metrics with adjustable profile visualizations by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="input-section">
+                <h2>📊 Ocean Profile Data Input</h2>
+                
+                <div class="info-panel">
+                    <h4>🔬 Physical Oceanography Analysis:</h4>
+                    <ul>
+                        <li>Density profile calculation (UNESCO EOS-80)</li>
+                        <li>Richardson number analysis</li>
+                        <li>Brunt-Väisälä frequency computation</li>
+                        <li>Thermocline & halocline detection</li>
+                        <li>Stratification & mixing parameters</li>
+                        <li>Velocity shear analysis (if provided)</li>
+                        <li>Water mass identification</li>
+                        <li>Stability & turbulence indicators</li>
+                    </ul>
+                </div>
+                
+                <button class="sample-data-btn" onclick="loadSampleData()">📋 Load Sample Coastal Data</button>
+                
+                <div class="input-group">
+                    <label for="depth-data">🏔️ Depth Profile (m)</label>
+                    <textarea id="depth-data" placeholder="Enter depth values (meters), one per line:
+0
+5
+10
+15
+20
+25
+30
+40
+50
+75
+100
+125
+150"></textarea>
+                    <div class="help-text">Depth measurements from surface to bottom (meters). Use consistent intervals.</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="temp-data">🌡️ Temperature Time Series (°C)</label>
+                    <textarea id="temp-data" placeholder="Enter temperature values for each depth:
+24.5
+24.2
+23.8
+22.1
+19.8
+17.2
+15.6
+13.4
+11.8
+10.2
+8.9
+7.8
+7.1"></textarea>
+                    <div class="help-text">Temperature measurements at each depth level (Celsius)</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="salinity-data">🧂 Salinity Vertical Profile (PSU)</label>
+                    <textarea id="salinity-data" placeholder="Enter salinity values for each depth:
+33.2
+33.4
+33.9
+34.3
+34.7
+35.0
+35.2
+35.5
+35.7
+35.8
+35.9
+36.1
+36.2"></textarea>
+                    <div class="help-text">Salinity measurements in Practical Salinity Units (PSU)</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="oxygen-data">🫧 Dissolved Oxygen Profile (mg/L)</label>
+                    <textarea id="oxygen-data" placeholder="Enter dissolved oxygen values for each depth:
+8.2
+7.8
+7.1
+6.5
+5.8
+4.9
+3.8
+2.5
+1.8
+1.2
+0.8
+0.5
+0.3
+0.2
+0.1"></textarea>
+                    <div class="help-text">Dissolved oxygen concentration measurements (mg/L or ml/L)</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="fluorescence-data">🌟 Fluorescence Profile (RFU)</label>
+                    <textarea id="fluorescence-data" placeholder="Enter fluorescence values for each depth:
+0.8
+1.2
+2.1
+3.8
+5.2
+4.9
+3.1
+2.0
+1.5
+1.1
+0.9
+0.7
+0.5
+0.4
+0.3"></textarea>
+                    <div class="help-text">Chlorophyll fluorescence measurements (Relative Fluorescence Units)</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="velocity-data">
+                        🌊 Horizontal Velocity Profile (m/s)
+                        <span class="optional-badge">Optional</span>
+                    </label>
+                    <textarea id="velocity-data" placeholder="Enter horizontal velocity values (m/s):
+0.15
+0.12
+0.08
+0.05
+0.03
+0.02
+0.01
+0.008
+0.005
+0.003
+0.002
+0.001
+0.0005"></textarea>
+                    <div class="help-text">Horizontal current velocity measurements at each depth (m/s). Used for Richardson number and shear calculations.</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="vertical-velocity-data">
+                        ⬆️ Vertical Velocity Profile (m/s)
+                        <span class="optional-badge">Optional</span>
+                    </label>
+                    <textarea id="vertical-velocity-data" placeholder="Enter vertical velocity values (m/s):
+0.001
+0.0008
+0.0005
+0.0003
+0.0001
+-0.0001
+-0.0003
+-0.0005
+-0.0008
+-0.001
+-0.0012
+-0.0015
+-0.002"></textarea>
+                    <div class="help-text">Vertical velocity measurements (m/s). Positive = upward, negative = downward. Used for upwelling/downwelling analysis.</div>
+                </div>
+                
+                <button class="calculate-btn" onclick="analyzeOceanProfiles()">🧮 Analyze Physical Oceanography</button>
+                
+                <div id="error-container"></div>
+            </div>
+            
+            <div class="results-section">
+                <div class="results-header">
+                    <h2>📈 Physical Oceanography Parameters</h2>
+                    <p>Comprehensive analysis of water column dynamics and structure</p>
+                </div>
+                
+                <div id="parameters-grid" class="parameters-grid">
+                    <div class="parameter-card">
+                        <h3>🌡️ Thermocline Depth</h3>
+                        <div class="parameter-value" id="thermocline-value">-</div>
+                        <div class="parameter-unit">meters</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🧂 Halocline Depth</h3>
+                        <div class="parameter-value" id="halocline-value">-</div>
+                        <div class="parameter-unit">meters</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>⚖️ Pycnocline Depth</h3>
+                        <div class="parameter-value" id="pycnocline-value">-</div>
+                        <div class="parameter-unit">meters</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🌊 Mixed Layer Depth</h3>
+                        <div class="parameter-value" id="mld-value">-</div>
+                        <div class="parameter-unit">meters</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>📊 Max Brunt-Väisälä Frequency</h3>
+                        <div class="parameter-value" id="bv-freq-value">-</div>
+                        <div class="parameter-unit">rad/s</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🔢 Min Richardson Number</h3>
+                        <div class="parameter-value" id="richardson-value">-</div>
+                        <div class="parameter-unit">dimensionless</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🌀 Stratification Parameter</h3>
+                        <div class="parameter-value" id="stratification-value">-</div>
+                        <div class="parameter-unit">s⁻²</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>💫 Mixing Intensity</h3>
+                        <div class="parameter-value" id="mixing-value">-</div>
+                        <div class="parameter-unit">index</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>⚖️ Surface Density</h3>
+                        <div class="parameter-value" id="surface-density-value">-</div>
+                        <div class="parameter-unit">kg/m³</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>📏 Density Range</h3>
+                        <div class="parameter-value" id="density-range-value">-</div>
+                        <div class="parameter-unit">kg/m³</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🌊 Velocity Shear Max</h3>
+                        <div class="parameter-value" id="shear-value">-</div>
+                        <div class="parameter-unit">s⁻¹</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🔒 Water Column Stability</h3>
+                        <div class="parameter-value" id="stability-value">-</div>
+                        <div class="parameter-unit">%</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🫧 Oxycline Depth</h3>
+                        <div class="parameter-value" id="oxycline-value">-</div>
+                        <div class="parameter-unit">meters</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>🌟 Fluorescence Maximum</h3>
+                        <div class="parameter-value" id="fluor-max-value">-</div>
+                        <div class="parameter-unit">meters</div>
+                    </div>
+                    
+                    <div class="parameter-card">
+                        <h3>⬆️ Upwelling Intensity</h3>
+                        <div class="parameter-value" id="upwelling-value">-</div>
+                        <div class="parameter-unit">m/s</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="charts-section">
+            <div class="charts-header">
+                <h2>📊 Physical Oceanography Profiles</h2>
+                <p>Vertical profiles with adjustable x-axis scaling for detailed analysis</p>
+            </div>
+            
+            <div class="chart-categories">
+                <button class="category-btn active" onclick="showChartCategory('basic')">Basic Profiles</button>
+                <button class="category-btn" onclick="showChartCategory('calculated')">Calculated Properties</button>
+                <button class="category-btn" onclick="showChartCategory('dynamics')">Ocean Dynamics</button>
+                <button class="category-btn" onclick="showChartCategory('analysis')">Advanced Analysis</button>
+            </div>
+            
+            <div id="basic-charts" class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-title">🌡️ Temperature Profile</div>
+                    <canvas id="temperature-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🧂 Salinity Profile</div>
+                    <canvas id="salinity-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">⚖️ Density Profile</div>
+                    <canvas id="density-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🌊 Horizontal Velocity Profile</div>
+                    <canvas id="velocity-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🫧 Dissolved Oxygen Profile</div>
+                    <canvas id="oxygen-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🌟 Fluorescence Profile</div>
+                    <canvas id="fluorescence-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">⬆️ Vertical Velocity Profile</div>
+                    <canvas id="vertical-velocity-chart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div id="calculated-charts" class="charts-grid" style="display: none;">
+                <div class="chart-container">
+                    <div class="chart-title">📊 Brunt-Väisälä Frequency</div>
+                    <canvas id="bv-frequency-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🔢 Richardson Number</div>
+                    <canvas id="richardson-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🌀 Stratification Parameter</div>
+                    <canvas id="stratification-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">💫 Mixing Parameter</div>
+                    <canvas id="mixing-chart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div id="dynamics-charts" class="charts-grid" style="display: none;">
+                <div class="chart-container">
+                    <div class="chart-title">🌊 Velocity Shear Profile</div>
+                    <canvas id="shear-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📈 Temperature Gradient</div>
+                    <canvas id="temp-gradient-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📈 Salinity Gradient</div>
+                    <canvas id="salinity-gradient-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📈 Density Gradient</div>
+                    <canvas id="density-gradient-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📈 Oxygen Gradient</div>
+                    <canvas id="oxygen-gradient-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📈 Fluorescence Gradient</div>
+                    <canvas id="fluorescence-gradient-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">⬆️ Vertical Velocity Shear</div>
+                    <canvas id="vertical-shear-chart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div id="analysis-charts" class="charts-grid" style="display: none;">
+                <div class="chart-container">
+                    <div class="chart-title">🌊 Temperature-Salinity Diagram</div>
+                    <canvas id="ts-diagram-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🔒 Stability Analysis</div>
+                    <canvas id="stability-analysis-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🌀 Turbulence Indicators</div>
+                    <canvas id="turbulence-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">📊 Multi-Parameter Overview</div>
+                    <canvas id="overview-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🫧 Oxygen-Temperature Relationship</div>
+                    <canvas id="ot-diagram-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🌟 Fluorescence-Depth Analysis</div>
+                    <canvas id="fluor-depth-chart" class="chart-canvas"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">🌊 Velocity Vector Analysis</div>
+                    <canvas id="velocity-vector-chart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let charts = {};
+        let oceanData = {};
+        
+        function showChartCategory(category) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            document.querySelectorAll('.charts-grid').forEach(grid => grid.style.display = 'none');
+            
+            const categoryMap = {
+                'basic': 'basic-charts',
+                'calculated': 'calculated-charts',
+                'dynamics': 'dynamics-charts',
+                'analysis': 'analysis-charts'
+            };
+            
+            document.getElementById(categoryMap[category]).style.display = 'grid';
+        }
+        
+        function parseData(dataString) {
+            if (!dataString.trim()) return [];
+            return dataString.split(/[,\n\r\t]/)
+                .map(val => val.trim())
+                .filter(val => val !== '')
+                .map(val => parseFloat(val))
+                .filter(val => !isNaN(val));
+        }
+        
+        function loadSampleData() {
+            document.getElementById('depth-data').value = '0\n5\n10\n15\n20\n25\n30\n40\n50\n60\n75\n100\n125\n150\n200';
+            document.getElementById('temp-data').value = '24.5\n24.2\n23.8\n22.1\n19.8\n17.2\n15.6\n13.4\n11.8\n10.2\n8.9\n7.8\n7.1\n6.8\n6.5';
+            document.getElementById('salinity-data').value = '33.2\n33.4\n33.9\n34.3\n34.7\n35.0\n35.2\n35.5\n35.7\n35.8\n35.9\n36.1\n36.2\n36.3\n36.4';
+            document.getElementById('oxygen-data').value = '8.2\n7.8\n7.1\n6.5\n5.8\n4.9\n3.8\n2.5\n1.8\n1.2\n0.8\n0.5\n0.3\n0.2\n0.1';
+            document.getElementById('fluorescence-data').value = '0.8\n1.2\n2.1\n3.8\n5.2\n4.9\n3.1\n2.0\n1.5\n1.1\n0.9\n0.7\n0.5\n0.4\n0.3';
+            document.getElementById('velocity-data').value = '0.15\n0.12\n0.08\n0.05\n0.03\n0.02\n0.01\n0.008\n0.005\n0.003\n0.002\n0.001\n0.0008\n0.0005\n0.0003';
+            document.getElementById('vertical-velocity-data').value = '0.001\n0.0008\n0.0005\n0.0003\n0.0001\n-0.0001\n-0.0003\n-0.0005\n-0.0008\n-0.001\n-0.0012\n-0.0015\n-0.002\n-0.0025\n-0.003';
+        }
+        
+        // UNESCO EOS-80 equation of state for seawater density
+        function calculateDensity(temp, salinity, depth = 0) {
+            const T = temp;
+            const S = salinity;
+            const P = depth / 10; // Convert depth to pressure (dbar)
+            
+            // Pure water density at atmospheric pressure
+            const rho_w = 999.842594 + 6.793952e-2 * T - 9.095290e-3 * T * T + 
+                         1.001685e-4 * T * T * T - 1.120083e-6 * T * T * T * T + 
+                         6.536332e-9 * T * T * T * T * T;
+            
+            // Salinity contribution
+            const A = 8.24493e-1 - 4.0899e-3 * T + 7.6438e-5 * T * T - 
+                     8.2467e-7 * T * T * T + 5.3875e-9 * T * T * T * T;
+            const B = -5.72466e-3 + 1.0227e-4 * T - 1.6546e-6 * T * T;
+            const C = 4.8314e-4;
+            
+            const rho_s = rho_w + A * S + B * S * Math.sqrt(S) + C * S * S;
+            
+            // Pressure correction
+            const K = 19652.21 + 148.4206 * T - 2.327105 * T * T + 
+                     1.360477e-2 * T * T * T - 5.155288e-5 * T * T * T * T;
+            const Ks = 54.6746 - 0.603459 * T + 1.09987e-2 * T * T - 6.1670e-5 * T * T * T;
+            const Kw = K + Ks * S;
+            
+            const rho = rho_s / (1 - P / Kw);
+            
+            return rho;
+        }
+        
+        // Calculate Brunt-Väisälä frequency
+        function calculateBruntVaisalaFrequency(depths, densities) {
+            const N2 = [];
+            const N = [];
+            const g = 9.81;
+            
+            for (let i = 1; i < depths.length; i++) {
+                const dz = depths[i] - depths[i-1];
+                const drho = densities[i] - densities[i-1];
+                const rho_avg = (densities[i] + densities[i-1]) / 2;
+                
+                if (dz > 0 && rho_avg > 0) {
+                    const n2 = -(g / rho_avg) * (drho / dz);
+                    N2.push(n2);
+                    N.push(Math.sqrt(Math.max(0, n2)));
+                } else {
+                    N2.push(0);
+                    N.push(0);
+                }
+            }
+            
+            return { N2, N, depths: depths.slice(1).map((d, i) => (d + depths[i]) / 2) };
+        }
+        
+        // Calculate Richardson number
+        function calculateRichardsonNumber(depths, densities, velocities) {
+            if (velocities.length === 0) return { Ri: [], depths: [] };
+            
+            const Ri = [];
+            const riDepths = [];
+            const g = 9.81;
+            
+            for (let i = 1; i < depths.length - 1; i++) {
+                const dz = depths[i+1] - depths[i-1];
+                const drho = densities[i+1] - densities[i-1];
+                const du = velocities[i+1] - velocities[i-1];
+                const rho_avg = (densities[i+1] + densities[i-1]) / 2;
+                
+                if (dz > 0 && rho_avg > 0 && Math.abs(du) > 1e-10) {
+                    const N2 = -(g / rho_avg) * (drho / dz);
+                    const shear2 = Math.pow(du / dz, 2);
+                    const ri = N2 / shear2;
+                    Ri.push(ri);
+                    riDepths.push(depths[i]);
+                }
+            }
+            
+            return { Ri, depths: riDepths };
+        }
+        
+        // Calculate velocity shear
+        function calculateVelocityShear(depths, velocities) {
+            if (velocities.length === 0) return { shear: [], depths: [] };
+            
+            const shear = [];
+            const shearDepths = [];
+            
+            for (let i = 1; i < depths.length; i++) {
+                const dz = depths[i] - depths[i-1];
+                const du = velocities[i] - velocities[i-1];
+                
+                if (dz > 0) {
+                    shear.push(Math.abs(du / dz));
+                    shearDepths.push((depths[i] + depths[i-1]) / 2);
+                }
+            }
+            
+            return { shear, depths: shearDepths };
+        }
+        
+        // Calculate gradients
+        function calculateGradient(depths, values) {
+            const gradients = [];
+            const gradDepths = [];
+            
+            for (let i = 1; i < depths.length; i++) {
+                const dz = depths[i] - depths[i-1];
+                const dval = values[i] - values[i-1];
+                if (dz > 0) {
+                    gradients.push(Math.abs(dval / dz));
+                    gradDepths.push((depths[i] + depths[i-1]) / 2);
+                }
+            }
+            
+            return { gradients, depths: gradDepths };
+        }
+        
+        // Find cline depths
+        function findClineDepth(depths, values) {
+            const gradData = calculateGradient(depths, values);
+            let maxGradient = 0;
+            let clineDepth = 0;
+            
+            for (let i = 0; i < gradData.gradients.length; i++) {
+                if (gradData.gradients[i] > maxGradient) {
+                    maxGradient = gradData.gradients[i];
+                    clineDepth = gradData.depths[i];
+                }
+            }
+            
+            return clineDepth;
+        }
+        
+        // Calculate mixed layer depth
+        function calculateMixedLayerDepth(depths, densities) {
+            const surfaceDensity = densities[0];
+            const densityCriterion = 0.125; // kg/m³
+            
+            for (let i = 1; i < depths.length; i++) {
+                if (Math.abs(densities[i] - surfaceDensity) > densityCriterion) {
+                    return depths[i];
+                }
+            }
+            
+            return depths[depths.length - 1];
+        }
+        
+        // Calculate stratification parameter
+        function calculateStratificationParameter(depths, densities) {
+            const bvData = calculateBruntVaisalaFrequency(depths, densities);
+            return bvData.N2.length > 0 ? Math.max(...bvData.N2.filter(n2 => n2 > 0)) : 0;
+        }
+        
+        // Calculate mixing intensity
+        function calculateMixingIntensity(depths, densities, velocities) {
+            if (velocities.length === 0) return 0;
+            
+            const riData = calculateRichardsonNumber(depths, densities, velocities);
+            if (riData.Ri.length === 0) return 0;
+            
+            let unstableCount = 0;
+            for (let ri of riData.Ri) {
+                if (ri < 0.25) unstableCount++; // Critical Richardson number
+            }
+            
+            return unstableCount / riData.Ri.length;
+        }
+        
+        // Calculate water column stability
+        function calculateStability(depths, densities) {
+            const bvData = calculateBruntVaisalaFrequency(depths, densities);
+            let stableCount = 0;
+            
+            for (let n2 of bvData.N2) {
+                if (n2 > 0) stableCount++;
+            }
+            
+            return bvData.N2.length > 0 ? stableCount / bvData.N2.length : 0;
+        }
+        
+        // Find fluorescence maximum depth
+        function findFluorescenceMaximum(depths, fluorescences) {
+            let maxFluor = 0;
+            let maxDepth = 0;
+            
+            for (let i = 0; i < fluorescences.length; i++) {
+                if (fluorescences[i] > maxFluor) {
+                    maxFluor = fluorescences[i];
+                    maxDepth = depths[i];
+                }
+            }
+            
+            return maxDepth;
+        }
+        
+        // Calculate upwelling intensity (average positive vertical velocity)
+        function calculateUpwellingIntensity(verticalVelocities) {
+            if (verticalVelocities.length === 0) return null;
+            
+            const upwardVelocities = verticalVelocities.filter(v => v > 0);
+            if (upwardVelocities.length === 0) return 0;
+            
+            return upwardVelocities.reduce((sum, v) => sum + v, 0) / upwardVelocities.length;
+        }
+        
+        function showError(message) {
+            const errorContainer = document.getElementById('error-container');
+            errorContainer.innerHTML = `<div class="error-message">⚠️ ${message}</div>`;
+        }
+        
+        function clearError() {
+            document.getElementById('error-container').innerHTML = '';
+        }
+        
+        function analyzeOceanProfiles() {
+            clearError();
+            
+            try {
+                const depths = parseData(document.getElementById('depth-data').value);
+                const temperatures = parseData(document.getElementById('temp-data').value);
+                const salinities = parseData(document.getElementById('salinity-data').value);
+                const oxygens = parseData(document.getElementById('oxygen-data').value);
+                const fluorescences = parseData(document.getElementById('fluorescence-data').value);
+                const velocities = parseData(document.getElementById('velocity-data').value);
+                const verticalVelocities = parseData(document.getElementById('vertical-velocity-data').value);
+                
+                // Validation
+                if (depths.length === 0 || temperatures.length === 0 || salinities.length === 0 || 
+                    oxygens.length === 0 || fluorescences.length === 0) {
+                    throw new Error('Please provide depth, temperature, salinity, oxygen, and fluorescence data.');
+                }
+                
+                if (depths.length !== temperatures.length || depths.length !== salinities.length || 
+                    depths.length !== oxygens.length || depths.length !== fluorescences.length) {
+                    throw new Error('Depth, temperature, salinity, oxygen, and fluorescence arrays must have the same length.');
+                }
+                
+                if (velocities.length > 0 && velocities.length !== depths.length) {
+                    throw new Error('If provided, horizontal velocity array must have the same length as other parameters.');
+                }
+                
+                if (verticalVelocities.length > 0 && verticalVelocities.length !== depths.length) {
+                    throw new Error('If provided, vertical velocity array must have the same length as other parameters.');
+                }
+                
+                if (depths.length < 3) {
+                    throw new Error('At least 3 data points are required for gradient calculations.');
+                }
+                
+                // Calculate density profile
+                const densities = [];
+                for (let i = 0; i < depths.length; i++) {
+                    densities.push(calculateDensity(temperatures[i], salinities[i], depths[i]));
+                }
+                
+                // Calculate all oceanographic parameters
+                const thermoclineDepth = findClineDepth(depths, temperatures);
+                const haloclineDepth = findClineDepth(depths, salinities);
+                const pycnoclineDepth = findClineDepth(depths, densities);
+                const oxyclineDepth = findClineDepth(depths, oxygens);
+                const fluorMaxDepth = findFluorescenceMaximum(depths, fluorescences);
+                const mixedLayerDepth = calculateMixedLayerDepth(depths, densities);
+                const stratificationParam = calculateStratificationParameter(depths, densities);
+                const mixingIntensity = calculateMixingIntensity(depths, densities, velocities);
+                const stability = calculateStability(depths, densities);
+                const upwellingIntensity = calculateUpwellingIntensity(verticalVelocities);
+                
+                const bvData = calculateBruntVaisalaFrequency(depths, densities);
+                const maxBVFreq = bvData.N.length > 0 ? Math.max(...bvData.N) : 0;
+                
+                const riData = calculateRichardsonNumber(depths, densities, velocities);
+                const minRichardson = riData.Ri.length > 0 ? Math.min(...riData.Ri) : 0;
+                
+                const shearData = calculateVelocityShear(depths, velocities);
+                const maxShear = shearData.shear.length > 0 ? Math.max(...shearData.shear) : 0;
+                
+                const verticalShearData = calculateVelocityShear(depths, verticalVelocities);
+                
+                const tempGradData = calculateGradient(depths, temperatures);
+                const salinityGradData = calculateGradient(depths, salinities);
+                const densityGradData = calculateGradient(depths, densities);
+                const oxygenGradData = calculateGradient(depths, oxygens);
+                const fluorGradData = calculateGradient(depths, fluorescences);
+                
+                // Calculate ranges
+                const densityRange = Math.max(...densities) - Math.min(...densities);
+                
+                // Update parameter displays
+                document.getElementById('thermocline-value').textContent = 
+                    thermoclineDepth > 0 ? thermoclineDepth.toFixed(1) : 'N/A';
+                document.getElementById('halocline-value').textContent = 
+                    haloclineDepth > 0 ? haloclineDepth.toFixed(1) : 'N/A';
+                document.getElementById('pycnocline-value').textContent = 
+                    pycnoclineDepth > 0 ? pycnoclineDepth.toFixed(1) : 'N/A';
+                document.getElementById('oxycline-value').textContent = 
+                    oxyclineDepth > 0 ? oxyclineDepth.toFixed(1) : 'N/A';
+                document.getElementById('fluor-max-value').textContent = 
+                    fluorMaxDepth > 0 ? fluorMaxDepth.toFixed(1) : 'N/A';
+                document.getElementById('upwelling-value').textContent = 
+                    upwellingIntensity !== null ? upwellingIntensity.toExponential(2) : 'N/A';
+                document.getElementById('mld-value').textContent = 
+                    mixedLayerDepth > 0 ? mixedLayerDepth.toFixed(1) : 'N/A';
+                document.getElementById('bv-freq-value').textContent = 
+                    maxBVFreq > 0 ? maxBVFreq.toExponential(2) : 'N/A';
+                document.getElementById('richardson-value').textContent = 
+                    riData.Ri.length > 0 ? minRichardson.toFixed(2) : 'N/A';
+                document.getElementById('stratification-value').textContent = 
+                    stratificationParam > 0 ? stratificationParam.toExponential(2) : 'N/A';
+                document.getElementById('mixing-value').textContent = 
+                    (mixingIntensity * 100).toFixed(1) + '%';
+                document.getElementById('surface-density-value').textContent = 
+                    densities[0].toFixed(2);
+                document.getElementById('density-range-value').textContent = 
+                    densityRange.toFixed(2);
+                document.getElementById('shear-value').textContent = 
+                    maxShear > 0 ? maxShear.toExponential(2) : 'N/A';
+                document.getElementById('stability-value').textContent = 
+                    (stability * 100).toFixed(1);
+                
+                // Store data for charts
+                oceanData = {
+                    depths, temperatures, salinities, oxygens, fluorescences, velocities, verticalVelocities, densities,
+                    bvData, riData, shearData, verticalShearData, tempGradData, salinityGradData, densityGradData, 
+                    oxygenGradData, fluorGradData, thermoclineDepth, haloclineDepth, pycnoclineDepth, oxyclineDepth, fluorMaxDepth
+                };
+                
+                // Create all charts
+                createAllCharts();
+                
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+        
+        function createAllCharts() {
+            // Destroy existing charts
+            Object.values(charts).forEach(chart => {
+                if (chart && typeof chart.destroy === 'function') {
+                    chart.destroy();
+                }
+            });
+            charts = {};
+            
+            const { depths, temperatures, salinities, oxygens, fluorescences, velocities, verticalVelocities, densities,
+                    bvData, riData, shearData, verticalShearData, tempGradData, salinityGradData, densityGradData, 
+                    oxygenGradData, fluorGradData } = oceanData;
+            
+            // Create basic profile charts
+            createDepthProfileChart('temperature-chart', 'temperature', temperatures, depths, 'Temperature (°C)', 'rgb(255, 99, 132)');
+            createDepthProfileChart('salinity-chart', 'salinity', salinities, depths, 'Salinity (PSU)', 'rgb(54, 162, 235)');
+            createDepthProfileChart('density-chart', 'density', densities, depths, 'Density (kg/m³)', 'rgb(153, 102, 255)');
+            createDepthProfileChart('oxygen-chart', 'oxygen', oxygens, depths, 'Dissolved Oxygen (mg/L)', 'rgb(34, 197, 94)');
+            createDepthProfileChart('fluorescence-chart', 'fluorescence', fluorescences, depths, 'Fluorescence (RFU)', 'rgb(251, 191, 36)');
+            
+            if (velocities.length > 0) {
+                createDepthProfileChart('velocity-chart', 'velocity', velocities, depths, 'Horizontal Velocity (m/s)', 'rgb(75, 192, 192)');
+            } else {
+                createEmptyChart('velocity-chart', 'No horizontal velocity data provided');
+            }
+            
+            if (verticalVelocities.length > 0) {
+                createDepthProfileChart('vertical-velocity-chart', 'verticalvelocity', verticalVelocities, depths, 'Vertical Velocity (m/s)', 'rgb(168, 85, 247)');
+            } else {
+                createEmptyChart('vertical-velocity-chart', 'No vertical velocity data provided');
+            }
+            
+            // Create calculated parameter charts
+            if (bvData.N.length > 0) {
+                createDepthProfileChart('bv-frequency-chart', 'bvfrequency', bvData.N, bvData.depths, 'Brunt-Väisälä Frequency (rad/s)', 'rgb(255, 205, 86)');
+                createDepthProfileChart('stratification-chart', 'stratification', bvData.N2, bvData.depths, 'Stratification Parameter (s⁻²)', 'rgb(75, 192, 192)');
+            } else {
+                createEmptyChart('bv-frequency-chart', 'Insufficient data for BV frequency');
+                createEmptyChart('stratification-chart', 'Insufficient data for stratification');
+            }
+            
+            if (riData.Ri.length > 0) {
+                createDepthProfileChart('richardson-chart', 'richardson', riData.Ri, riData.depths, 'Richardson Number', 'rgb(255, 159, 64)');
+            } else {
+                createEmptyChart('richardson-chart', 'No velocity data for Richardson number');
+            }
+            
+            // Calculate mixing parameter (inverse of Richardson number where Ri < 0.25)
+            if (riData.Ri.length > 0) {
+                const mixingParam = riData.Ri.map(ri => ri < 0.25 ? 1 : 0);
+                createDepthProfileChart('mixing-chart', 'mixing', mixingParam, riData.depths, 'Mixing Parameter (0=Stable, 1=Mixing)', 'rgb(34, 197, 94)');
+            } else {
+                createEmptyChart('mixing-chart', 'No velocity data for mixing analysis');
+            }
+            
+            // Create dynamics charts
+            if (shearData.shear.length > 0) {
+                createDepthProfileChart('shear-chart', 'shear', shearData.shear, shearData.depths, 'Velocity Shear (s⁻¹)', 'rgb(168, 85, 247)');
+            } else {
+                createEmptyChart('shear-chart', 'No velocity data for shear calculation');
+            }
+            
+            if (tempGradData.gradients.length > 0) {
+                createDepthProfileChart('temp-gradient-chart', 'tempgradient', tempGradData.gradients, tempGradData.depths, 'Temperature Gradient (°C/m)', 'rgb(255, 99, 132)');
+            } else {
+                createEmptyChart('temp-gradient-chart', 'Insufficient data for temperature gradient');
+            }
+            
+            if (salinityGradData.gradients.length > 0) {
+                createDepthProfileChart('salinity-gradient-chart', 'salinitygradient', salinityGradData.gradients, salinityGradData.depths, 'Salinity Gradient (PSU/m)', 'rgb(54, 162, 235)');
+            } else {
+                createEmptyChart('salinity-gradient-chart', 'Insufficient data for salinity gradient');
+            }
+            
+            if (densityGradData.gradients.length > 0) {
+                createDepthProfileChart('density-gradient-chart', 'densitygradient', densityGradData.gradients, densityGradData.depths, 'Density Gradient (kg/m³/m)', 'rgb(153, 102, 255)');
+            } else {
+                createEmptyChart('density-gradient-chart', 'Insufficient data for density gradient');
+            }
+            
+            if (oxygenGradData.gradients.length > 0) {
+                createDepthProfileChart('oxygen-gradient-chart', 'oxygengradient', oxygenGradData.gradients, oxygenGradData.depths, 'Oxygen Gradient (mg/L/m)', 'rgb(34, 197, 94)');
+            } else {
+                createEmptyChart('oxygen-gradient-chart', 'Insufficient data for oxygen gradient');
+            }
+            
+            if (fluorGradData.gradients.length > 0) {
+                createDepthProfileChart('fluorescence-gradient-chart', 'fluorgradient', fluorGradData.gradients, fluorGradData.depths, 'Fluorescence Gradient (RFU/m)', 'rgb(251, 191, 36)');
+            } else {
+                createEmptyChart('fluorescence-gradient-chart', 'Insufficient data for fluorescence gradient');
+            }
+            
+            if (verticalShearData.shear && verticalShearData.shear.length > 0) {
+                createDepthProfileChart('vertical-shear-chart', 'verticalshear', verticalShearData.shear, verticalShearData.depths, 'Vertical Velocity Shear (s⁻¹)', 'rgb(168, 85, 247)');
+            } else {
+                createEmptyChart('vertical-shear-chart', 'No vertical velocity data for shear calculation');
+            }
+            
+            // Create analysis charts
+            createTSDiagram();
+            createStabilityAnalysis();
+            createTurbulenceIndicators();
+            createOverviewChart();
+            createOTDiagram();
+            createFluorescenceDepthAnalysis();
+            createVelocityVectorAnalysis();
+        }
+        
+        function createDepthProfileChart(canvasId, chartKey, values, depths, xLabel, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            // Create proper data points for variable vs depth plotting
+            const dataPoints = [];
+            const minLength = Math.min(values.length, depths.length);
+            
+            for (let i = 0; i < minLength; i++) {
+                if (!isNaN(values[i]) && !isNaN(depths[i]) && isFinite(values[i]) && isFinite(depths[i])) {
+                    dataPoints.push({
+                        x: values[i],  // Variable value on x-axis
+                        y: depths[i]   // Depth on y-axis (positive values)
+                    });
+                }
+            }
+            
+            if (dataPoints.length === 0) {
+                createEmptyChart(canvasId, 'No valid data points available');
+                return;
+            }
+            
+            // Calculate appropriate x-axis range and formatting
+            const xValues = dataPoints.map(point => point.x);
+            const minX = Math.min(...xValues);
+            const maxX = Math.max(...xValues);
+            const xRange = maxX - minX;
+            const xPadding = xRange * 0.1; // 10% padding
+            
+            charts[chartKey] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: xLabel,
+                        data: dataPoints,
+                        borderColor: color,
+                        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.2)'),
+                        borderWidth: 3,
+                        pointRadius: 6,
+                        pointHoverRadius: 10,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        fill: false,
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0,0,0,0.8)',
+                            titleColor: '#ffffff',
+                            bodyColor: '#ffffff',
+                            borderColor: color,
+                            borderWidth: 2,
+                            callbacks: {
+                                title: function(context) {
+                                    return `Depth: ${context[0].parsed.y.toFixed(1)} m`;
+                                },
+                                label: function(context) {
+                                    const value = context.parsed.x;
+                                    let formattedValue;
+                                    
+                                    if (Math.abs(value) < 0.001) {
+                                        formattedValue = value.toExponential(2);
+                                    } else if (Math.abs(value) < 0.1) {
+                                        formattedValue = value.toFixed(4);
+                                    } else if (Math.abs(value) < 10) {
+                                        formattedValue = value.toFixed(3);
+                                    } else {
+                                        formattedValue = value.toFixed(2);
+                                    }
+                                    
+                                    return `${xLabel}: ${formattedValue}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { 
+                            type: 'linear',
+                            position: 'bottom',
+                            title: { 
+                                display: true, 
+                                text: xLabel,
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e',
+                                padding: { top: 10, bottom: 5 }
+                            },
+                            min: minX - xPadding,
+                            max: maxX + xPadding,
+                            grid: { 
+                                color: 'rgba(0,0,0,0.15)',
+                                drawBorder: true,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 12, weight: '500' },
+                                padding: 8,
+                                maxTicksLimit: 8,
+                                callback: function(value) {
+                                    // Smart formatting based on value magnitude
+                                    if (Math.abs(value) < 0.001) {
+                                        return value.toExponential(1);
+                                    } else if (Math.abs(value) < 0.1) {
+                                        return value.toFixed(3);
+                                    } else if (Math.abs(value) < 1) {
+                                        return value.toFixed(2);
+                                    } else if (Math.abs(value) < 100) {
+                                        return value.toFixed(1);
+                                    } else {
+                                        return value.toFixed(0);
+                                    }
+                                }
+                            },
+                            border: {
+                                color: '#374151',
+                                width: 2
+                            }
+                        },
+                        y: { 
+                            type: 'linear',
+                            position: 'left',
+                            title: { 
+                                display: true, 
+                                text: 'Depth (m)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e',
+                                padding: { left: 5, right: 10 }
+                            },
+                            grid: { 
+                                color: 'rgba(0,0,0,0.15)',
+                                drawBorder: true,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: '#374151',
+                                font: { size: 12, weight: '500' },
+                                padding: 8,
+                                maxTicksLimit: 10,
+                                callback: function(value) {
+                                    return value.toFixed(0) + 'm';
+                                }
+                            },
+                            border: {
+                                color: '#374151',
+                                width: 2
+                            },
+                            reverse: true  // Reverse y-axis so surface (0m) is at top
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createEmptyChart(canvasId, message) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.font = '16px Arial';
+            ctx.fillStyle = '#64748b';
+            ctx.textAlign = 'center';
+            ctx.fillText(message, ctx.canvas.width/2, ctx.canvas.height/2);
+        }
+        
+        function createTSDiagram() {
+            const ctx = document.getElementById('ts-diagram-chart').getContext('2d');
+            const { depths, temperatures, salinities } = oceanData;
+            
+            charts.tsdiagram = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'T-S Points',
+                        data: temperatures.map((temp, i) => ({x: salinities[i], y: temp})),
+                        backgroundColor: depths.map((depth, i) => {
+                            const intensity = depth / Math.max(...depths);
+                            return `rgba(${Math.floor(255 * intensity)}, ${Math.floor(100 * (1-intensity))}, ${Math.floor(255 * (1-intensity))}, 0.8)`;
+                        }),
+                        borderColor: 'rgb(75, 192, 192)',
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: 'Salinity (PSU)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            border: { color: '#374151', width: 2 }
+                        },
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Temperature (°C)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            border: { color: '#374151', width: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    return `Depth: ${depths[context.dataIndex]?.toFixed(1) || 'N/A'} m`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createStabilityAnalysis() {
+            const ctx = document.getElementById('stability-analysis-chart').getContext('2d');
+            const { bvData } = oceanData;
+            
+            if (!bvData || bvData.N2.length === 0) {
+                createEmptyChart('stability-analysis-chart', 'Insufficient data for stability analysis');
+                return;
+            }
+            
+            const stabilityData = bvData.N2.map(n2 => n2 > 0 ? 1 : 0);
+            
+            createDepthProfileChart('stability-analysis-chart', 'stabilityanalysis', stabilityData, bvData.depths, 'Stability Index (0=Unstable, 1=Stable)', 'rgb(34, 197, 94)');
+        }
+        
+        function createTurbulenceIndicators() {
+            const ctx = document.getElementById('turbulence-chart').getContext('2d');
+            const { riData } = oceanData;
+            
+            if (!riData || riData.Ri.length === 0) {
+                createEmptyChart('turbulence-chart', 'No velocity data for turbulence analysis');
+                return;
+            }
+            
+            // Turbulence indicator: 1 where Ri < 0.25 (critical Richardson number)
+            const turbulenceData = riData.Ri.map(ri => ri < 0.25 ? 1 : 0);
+            
+            createDepthProfileChart('turbulence-chart', 'turbulence', turbulenceData, riData.depths, 'Turbulence Indicator (0=Laminar, 1=Turbulent)', 'rgb(239, 68, 68)');
+        }
+        
+        function createOverviewChart() {
+            const ctx = document.getElementById('overview-chart').getContext('2d');
+            const { depths, temperatures, salinities, oxygens, fluorescences, densities } = oceanData;
+            
+            // Normalize data to 0-1 scale for comparison
+            const normalizeArray = (arr) => {
+                const min = Math.min(...arr);
+                const max = Math.max(...arr);
+                const range = max - min;
+                return range > 0 ? arr.map(val => (val - min) / range) : arr.map(() => 0);
+            };
+            
+            const normTemp = normalizeArray(temperatures);
+            const normSal = normalizeArray(salinities);
+            const normDens = normalizeArray(densities);
+            const normOxy = normalizeArray(oxygens);
+            const normFluor = normalizeArray(fluorescences);
+            
+            charts.overview = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Temperature (normalized)',
+                            data: normTemp.map((temp, i) => ({x: temp, y: depths[i]})),
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: false
+                        },
+                        {
+                            label: 'Salinity (normalized)',
+                            data: normSal.map((sal, i) => ({x: sal, y: depths[i]})),
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: false
+                        },
+                        {
+                            label: 'Density (normalized)',
+                            data: normDens.map((dens, i) => ({x: dens, y: depths[i]})),
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: false
+                        },
+                        {
+                            label: 'Oxygen (normalized)',
+                            data: normOxy.map((oxy, i) => ({x: oxy, y: depths[i]})),
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: false
+                        },
+                        {
+                            label: 'Fluorescence (normalized)',
+                            data: normFluor.map((fluor, i) => ({x: fluor, y: depths[i]})),
+                            borderColor: 'rgb(251, 191, 36)',
+                            backgroundColor: 'rgba(251, 191, 36, 0.1)',
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: 'Normalized Values (0-1)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            min: 0,
+                            max: 1,
+                            border: { color: '#374151', width: 2 }
+                        },
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Depth (m)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            reverse: true,
+                            border: { color: '#374151', width: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createOTDiagram() {
+            const ctx = document.getElementById('ot-diagram-chart').getContext('2d');
+            const { depths, temperatures, oxygens } = oceanData;
+            
+            charts.otdiagram = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'O-T Points',
+                        data: temperatures.map((temp, i) => ({x: temp, y: oxygens[i]})),
+                        backgroundColor: depths.map((depth, i) => {
+                            const intensity = depth / Math.max(...depths);
+                            return `rgba(${Math.floor(255 * (1-intensity))}, ${Math.floor(150 * intensity)}, ${Math.floor(255 * intensity)}, 0.8)`;
+                        }),
+                        borderColor: 'rgb(34, 197, 94)',
+                        pointRadius: 8,
+                        pointHoverRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: 'Temperature (°C)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            border: { color: '#374151', width: 2 }
+                        },
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Dissolved Oxygen (mg/L)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            border: { color: '#374151', width: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                afterLabel: function(context) {
+                                    return `Depth: ${depths[context.dataIndex]?.toFixed(1) || 'N/A'} m`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createFluorescenceDepthAnalysis() {
+            const ctx = document.getElementById('fluor-depth-chart').getContext('2d');
+            const { depths, fluorescences, fluorMaxDepth } = oceanData;
+            
+            charts.fluordepth = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Fluorescence Profile',
+                            data: fluorescences.map((fluor, i) => ({x: fluor, y: depths[i]})),
+                            borderColor: 'rgb(251, 191, 36)',
+                            backgroundColor: 'rgba(251, 191, 36, 0.2)',
+                            borderWidth: 3,
+                            pointRadius: 6,
+                            fill: true
+                        },
+                        {
+                            label: 'Fluorescence Maximum',
+                            data: [{x: Math.max(...fluorescences), y: fluorMaxDepth}],
+                            borderColor: 'rgb(239, 68, 68)',
+                            backgroundColor: 'rgb(239, 68, 68)',
+                            pointRadius: 12,
+                            pointStyle: 'star',
+                            showLine: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: 'Fluorescence (RFU)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            border: { color: '#374151', width: 2 }
+                        },
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Depth (m)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            reverse: true,
+                            border: { color: '#374151', width: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createVelocityVectorAnalysis() {
+            const ctx = document.getElementById('velocity-vector-chart').getContext('2d');
+            const { depths, velocities, verticalVelocities } = oceanData;
+            
+            if (velocities.length === 0 && verticalVelocities.length === 0) {
+                createEmptyChart('velocity-vector-chart', 'No velocity data available for vector analysis');
+                return;
+            }
+            
+            const datasets = [];
+            
+            if (velocities.length > 0) {
+                datasets.push({
+                    label: 'Horizontal Velocity',
+                    data: velocities.map((vel, i) => ({x: vel, y: depths[i]})),
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    fill: false
+                });
+            }
+            
+            if (verticalVelocities.length > 0) {
+                datasets.push({
+                    label: 'Vertical Velocity',
+                    data: verticalVelocities.map((vel, i) => ({x: vel, y: depths[i]})),
+                    borderColor: 'rgb(168, 85, 247)',
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 5,
+                    fill: false
+                });
+            }
+            
+            charts.velocityvector = new Chart(ctx, {
+                type: 'line',
+                data: { datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            title: { 
+                                display: true, 
+                                text: 'Velocity (m/s)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            border: { color: '#374151', width: 2 }
+                        },
+                        y: { 
+                            title: { 
+                                display: true, 
+                                text: 'Depth (m)',
+                                font: { size: 16, weight: 'bold' },
+                                color: '#0c4a6e'
+                            },
+                            reverse: true,
+                            border: { color: '#374151', width: 2 }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c0ffc9572888b2',t:'MTc1NDY3NjkyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
