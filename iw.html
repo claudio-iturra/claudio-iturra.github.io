@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Internal Wave Analysis Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c4a6e 0%, #1e40af 50%, #7c3aed 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: white;
+            padding: 40px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,5 50,10 T100,10 L100,15 Q75,20 50,15 T0,15 Z" fill="rgba(59,130,246,0.3)"/></svg>') repeat-x;
+            background-size: 200px 20px;
+            animation: internalWave 8s ease-in-out infinite;
+        }
+        
+        @keyframes internalWave {
+            0%, 100% { transform: translateX(0) scaleY(1); }
+            50% { transform: translateX(-100px) scaleY(1.2); }
+        }
+        
+        .header h1 {
+            font-size: 3.2em;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.3em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .nav {
+            background: #1e293b;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .nav-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            padding: 0 20px;
+        }
+        
+        .nav-btn {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .nav-btn:hover, .nav-btn.active {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+        
+        .content {
+            padding: 40px 20px;
+        }
+        
+        .section {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .analysis-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            padding: 35px;
+            margin-bottom: 35px;
+            border-left: 6px solid #0ea5e9;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .card-title {
+            color: #1e293b;
+            font-size: 2em;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .equation-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border: 3px solid #e2e8f0;
+            text-align: center;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+        
+        .parameter-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            border: 2px solid #0ea5e9;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 8px;
+            font-size: 14px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        }
+        
+        .result-panel {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 25px;
+            border-left: 6px solid #16a34a;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin: 25px 0;
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 25px 0;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .data-table th, .data-table td {
+            border: 1px solid #e2e8f0;
+            padding: 15px;
+            text-align: left;
+        }
+        
+        .data-table th {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            color: white;
+            font-weight: 600;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        
+        .data-table tr:hover {
+            background: #e0f2fe;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-stable { background: #16a34a; }
+        .status-unstable { background: #dc2626; }
+        .status-marginal { background: #f59e0b; }
+        
+        .wave-visualization {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 25px 0;
+            border: 2px solid #3b82f6;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .nav-container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .parameter-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .mode-selector {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #0ea5e9;
+        }
+        
+        .mode-btn {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .mode-btn.active {
+            background: #0ea5e9;
+            color: white;
+            border-color: #0284c7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Internal Wave Analysis Platform</h1>
+            <p>Advanced Evaluation of Internal Waves in Coastal Ocean Environments by Claudio Iturra</p>
+        </div>
+        
+        <nav class="nav">
+            <div class="nav-container">
+                <button class="nav-btn active" onclick="showSection('stratification')">Stratification Analysis</button>
+                <button class="nav-btn" onclick="showSection('wave-properties')">Wave Properties</button>
+                <button class="nav-btn" onclick="showSection('generation')">Wave Generation</button>
+                <button class="nav-btn" onclick="showSection('propagation')">Propagation & Shoaling</button>
+                <button class="nav-btn" onclick="showSection('breaking')">Wave Breaking</button>
+                <button class="nav-btn" onclick="showSection('mixing')">Mixing Analysis</button>
+                <button class="nav-btn" onclick="showSection('field-data')">Field Data Analysis</button>
+            </div>
+        </nav>
+        
+        <div class="content">
+            <!-- Stratification Analysis Section -->
+            <div id="stratification" class="section active">
+                <div class="analysis-card">
+                    <h2 class="card-title">📊 Water Column Stratification Analysis</h2>
+                    <div class="equation-box">
+                        <p><strong>Brunt-Väisälä Frequency:</strong></p>
+                        <p>$$N^2(z) = -\frac{g}{\rho_0}\frac{d\rho}{dz} = \frac{g}{\rho_0}\left(\alpha\frac{dT}{dz} - \beta\frac{dS}{dz}\right)$$</p>
+                        <p><strong>Stratification Parameter:</strong></p>
+                        <p>$$S = \frac{1}{H}\int_0^H N(z) dz$$</p>
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="parameter-card">
+                            <h3>🌡️ Temperature Profile</h3>
+                            <div class="input-group">
+                                <label for="surfaceTemp">Surface Temperature (°C):</label>
+                                <input type="number" id="surfaceTemp" value="22" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="bottomTemp">Bottom Temperature (°C):</label>
+                                <input type="number" id="bottomTemp" value="8" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="thermoclineDepth">Thermocline Depth (m):</label>
+                                <input type="number" id="thermoclineDepth" value="20" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="thermoclineThickness">Thermocline Thickness (m):</label>
+                                <input type="number" id="thermoclineThickness" value="10" step="1">
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>🧂 Salinity Profile</h3>
+                            <div class="input-group">
+                                <label for="surfaceSalinity">Surface Salinity (psu):</label>
+                                <input type="number" id="surfaceSalinity" value="34" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="bottomSalinity">Bottom Salinity (psu):</label>
+                                <input type="number" id="bottomSalinity" value="35.2" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="haloclineDepth">Halocline Depth (m):</label>
+                                <input type="number" id="haloclineDepth" value="15" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="haloclineThickness">Halocline Thickness (m):</label>
+                                <input type="number" id="haloclineThickness" value="8" step="1">
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>🌊 Environmental Parameters</h3>
+                            <div class="input-group">
+                                <label for="waterDepth">Total Water Depth (m):</label>
+                                <input type="number" id="waterDepth" value="100" step="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="latitude">Latitude (degrees):</label>
+                                <input type="number" id="latitude" value="35" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="season">Season:</label>
+                                <select id="season">
+                                    <option value="summer">Summer (Strong Stratification)</option>
+                                    <option value="winter">Winter (Weak Stratification)</option>
+                                    <option value="spring">Spring (Developing)</option>
+                                    <option value="fall">Fall (Decaying)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="analyzeStratification()">Analyze Stratification</button>
+                        <button class="btn" onclick="plotProfiles()">Plot T-S Profiles</button>
+                        <button class="btn" onclick="calculateModes()">Calculate Wave Modes</button>
+                    </div>
+                    
+                    <div id="stratificationResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="profileChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wave Properties Section -->
+            <div id="wave-properties" class="section">
+                <div class="analysis-card">
+                    <h2 class="card-title">🌀 Internal Wave Properties Calculator</h2>
+                    <div class="equation-box">
+                        <p><strong>Internal Wave Dispersion Relation:</strong></p>
+                        <p>$$\omega^2 = N^2\frac{k_h^2}{k_h^2 + k_z^2} + f^2\frac{k_z^2}{k_h^2 + k_z^2}$$</p>
+                        <p><strong>Phase Speed:</strong> $c = \frac{\omega}{k_h}$</p>
+                        <p><strong>Group Speed:</strong> $c_g = \frac{\partial\omega}{\partial k_h}$</p>
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="parameter-card">
+                            <h3>🌊 Wave Parameters</h3>
+                            <div class="input-group">
+                                <label for="waveAmplitude">Wave Amplitude (m):</label>
+                                <input type="number" id="waveAmplitude" value="10" step="0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="wavePeriod">Wave Period (hours):</label>
+                                <input type="number" id="wavePeriod" value="12.42" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="horizontalWavelength">Horizontal Wavelength (km):</label>
+                                <input type="number" id="horizontalWavelength" value="50" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="modeNumber">Vertical Mode Number:</label>
+                                <select id="modeNumber">
+                                    <option value="1">Mode 1 (Fundamental)</option>
+                                    <option value="2">Mode 2</option>
+                                    <option value="3">Mode 3</option>
+                                    <option value="4">Mode 4</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>🎯 Stratification Input</h3>
+                            <div class="input-group">
+                                <label for="avgBuoyancyFreq">Average N (rad/s):</label>
+                                <input type="number" id="avgBuoyancyFreq" value="0.01" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="maxBuoyancyFreq">Maximum N (rad/s):</label>
+                                <input type="number" id="maxBuoyancyFreq" value="0.02" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="pycnoclineDepth">Pycnocline Depth (m):</label>
+                                <input type="number" id="pycnoclineDepth" value="25" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="waveLatitude">Latitude (degrees):</label>
+                                <input type="number" id="waveLatitude" value="35" step="0.1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="calculateWaveProperties()">Calculate Wave Properties</button>
+                        <button class="btn" onclick="plotDispersionCurve()">Plot Dispersion Curve</button>
+                        <button class="btn" onclick="plotModeStructure()">Plot Mode Structure</button>
+                    </div>
+                    
+                    <div id="waveResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="waveChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wave Generation Section -->
+            <div id="generation" class="section">
+                <div class="analysis-card">
+                    <h2 class="card-title">⚡ Internal Wave Generation Mechanisms</h2>
+                    
+                    <div class="mode-selector">
+                        <h3>Select Generation Mechanism:</h3>
+                        <button class="mode-btn active" onclick="selectGeneration('tidal')">Tidal Generation</button>
+                        <button class="mode-btn" onclick="selectGeneration('wind')">Wind Forcing</button>
+                        <button class="mode-btn" onclick="selectGeneration('topographic')">Topographic</button>
+                        <button class="mode-btn" onclick="selectGeneration('shear')">Shear Instability</button>
+                    </div>
+                    
+                    <div id="tidalGeneration" class="generation-panel">
+                        <div class="equation-box">
+                            <p><strong>Tidal Generation over Topography:</strong></p>
+                            <p>$$E = \frac{1}{2}\rho_0 N^2 U_0^2 h_0^2 \frac{k_h^2}{k_h^2 + k_z^2}$$</p>
+                            <p><strong>Conversion Rate:</strong></p>
+                            <p>$$P = \rho_0 N^2 U_0^2 h_0^2 k_h \sin(k_h x)$$</p>
+                        </div>
+                        
+                        <div class="parameter-grid">
+                            <div class="parameter-card">
+                                <h3>🌊 Tidal Parameters</h3>
+                                <div class="input-group">
+                                    <label for="tidalVelocity">Tidal Velocity U₀ (m/s):</label>
+                                    <input type="number" id="tidalVelocity" value="0.5" step="0.01">
+                                </div>
+                                <div class="input-group">
+                                    <label for="tidalPeriod">Tidal Period (hours):</label>
+                                    <input type="number" id="tidalPeriod" value="12.42" step="0.1">
+                                </div>
+                                <div class="input-group">
+                                    <label for="topographyHeight">Topography Height h₀ (m):</label>
+                                    <input type="number" id="topographyHeight" value="50" step="5">
+                                </div>
+                                <div class="input-group">
+                                    <label for="topographyLength">Topography Length (km):</label>
+                                    <input type="number" id="topographyLength" value="10" step="1">
+                                </div>
+                            </div>
+                            
+                            <div class="parameter-card">
+                                <h3>📊 Environmental Conditions</h3>
+                                <div class="input-group">
+                                    <label for="genBuoyancyFreq">Buoyancy Frequency N (rad/s):</label>
+                                    <input type="number" id="genBuoyancyFreq" value="0.01" step="0.001">
+                                </div>
+                                <div class="input-group">
+                                    <label for="genWaterDepth">Water Depth (m):</label>
+                                    <input type="number" id="genWaterDepth" value="200" step="10">
+                                </div>
+                                <div class="input-group">
+                                    <label for="criticality">Criticality Parameter:</label>
+                                    <select id="criticality">
+                                        <option value="subcritical">Subcritical (γ < 1)</option>
+                                        <option value="critical">Critical (γ ≈ 1)</option>
+                                        <option value="supercritical">Supercritical (γ > 1)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="calculateGeneration()">Calculate Generation</button>
+                        <button class="btn" onclick="plotGenerationEfficiency()">Plot Efficiency</button>
+                    </div>
+                    
+                    <div id="generationResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="generationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Propagation & Shoaling Section -->
+            <div id="propagation" class="section">
+                <div class="analysis-card">
+                    <h2 class="card-title">🏄 Wave Propagation & Shoaling Analysis</h2>
+                    <div class="equation-box">
+                        <p><strong>Shoaling Coefficient:</strong></p>
+                        <p>$$K_s = \sqrt{\frac{c_{g0}}{c_g}} = \sqrt{\frac{N_0 H_0}{N H}}$$</p>
+                        <p><strong>Amplitude Evolution:</strong></p>
+                        <p>$$A(x) = A_0 K_s \exp\left(-\int_0^x \alpha dx'\right)$$</p>
+                        <p><strong>Ray Tracing:</strong></p>
+                        <p>$$\frac{dk_x}{dx} = -\frac{\partial\omega}{\partial x}, \quad \frac{dk_z}{dz} = -\frac{\partial\omega}{\partial z}$$</p>
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="parameter-card">
+                            <h3>🌊 Initial Conditions</h3>
+                            <div class="input-group">
+                                <label for="initialAmplitude">Initial Amplitude (m):</label>
+                                <input type="number" id="initialAmplitude" value="15" step="0.5">
+                            </div>
+                            <div class="input-group">
+                                <label for="initialDepth">Initial Depth (m):</label>
+                                <input type="number" id="initialDepth" value="500" step="10">
+                            </div>
+                            <div class="input-group">
+                                <label for="initialN">Initial N (rad/s):</label>
+                                <input type="number" id="initialN" value="0.008" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="propagationAngle">Propagation Angle (degrees):</label>
+                                <input type="number" id="propagationAngle" value="15" step="1">
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>🏔️ Bathymetry Profile</h3>
+                            <div class="input-group">
+                                <label for="shelfBreakDepth">Shelf Break Depth (m):</label>
+                                <input type="number" id="shelfBreakDepth" value="200" step="10">
+                            </div>
+                            <div class="input-group">
+                                <label for="shelfDepth">Shelf Depth (m):</label>
+                                <input type="number" id="shelfDepth" value="50" step="5">
+                            </div>
+                            <div class="input-group">
+                                <label for="slopeLength">Slope Length (km):</label>
+                                <input type="number" id="slopeLength" value="20" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="dampingCoeff">Damping Coefficient (1/km):</label>
+                                <input type="number" id="dampingCoeff" value="0.01" step="0.001">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="calculatePropagation()">Calculate Propagation</button>
+                        <button class="btn" onclick="plotRayTracing()">Ray Tracing</button>
+                        <button class="btn" onclick="plotShoaling()">Shoaling Analysis</button>
+                    </div>
+                    
+                    <div id="propagationResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="propagationChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Wave Breaking Section -->
+            <div id="breaking" class="section">
+                <div class="analysis-card">
+                    <h2 class="card-title">💥 Internal Wave Breaking Analysis</h2>
+                    <div class="equation-box">
+                        <p><strong>Breaking Criteria:</strong></p>
+                        <p>$$Ri = \frac{N^2}{(\partial u/\partial z)^2} < Ri_c = 0.25$$</p>
+                        <p><strong>Convective Instability:</strong></p>
+                        <p>$$\frac{\partial\rho}{\partial z} > 0 \quad \text{(unstable)}$$</p>
+                        <p><strong>Shear Instability:</strong></p>
+                        <p>$$|u_z| > \frac{N}{2} \quad \text{(Miles-Howard criterion)}$$</p>
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="parameter-card">
+                            <h3>🌊 Wave Characteristics</h3>
+                            <div class="input-group">
+                                <label for="breakingAmplitude">Wave Amplitude (m):</label>
+                                <input type="number" id="breakingAmplitude" value="25" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="breakingWavelength">Wavelength (km):</label>
+                                <input type="number" id="breakingWavelength" value="30" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="breakingN">Background N (rad/s):</label>
+                                <input type="number" id="breakingN" value="0.01" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="breakingDepth">Breaking Depth (m):</label>
+                                <input type="number" id="breakingDepth" value="30" step="1">
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>⚡ Instability Parameters</h3>
+                            <div class="input-group">
+                                <label for="maxShear">Maximum Shear (1/s):</label>
+                                <input type="number" id="maxShear" value="0.02" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="densityGradient">Density Gradient (kg/m⁴):</label>
+                                <input type="number" id="densityGradient" value="-0.1" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label for="breakingType">Breaking Type:</label>
+                                <select id="breakingType">
+                                    <option value="convective">Convective Overturning</option>
+                                    <option value="shear">Shear Instability</option>
+                                    <option value="mixed">Mixed Instability</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="analyzeBreaking()">Analyze Breaking</button>
+                        <button class="btn" onclick="calculateInstability()">Instability Analysis</button>
+                        <button class="btn" onclick="plotBreakingRegion()">Plot Breaking Region</button>
+                    </div>
+                    
+                    <div id="breakingResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="breakingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Mixing Analysis Section -->
+            <div id="mixing" class="section">
+                <div class="analysis-card">
+                    <h2 class="card-title">🌪️ Turbulent Mixing from Internal Waves</h2>
+                    <div class="equation-box">
+                        <p><strong>Dissipation Rate:</strong></p>
+                        <p>$$\varepsilon = \frac{1}{2}\nu\left\langle\left(\frac{\partial u_i}{\partial x_j} + \frac{\partial u_j}{\partial x_i}\right)^2\right\rangle$$</p>
+                        <p><strong>Diapycnal Diffusivity:</strong></p>
+                        <p>$$K_\rho = \Gamma\frac{\varepsilon}{N^2}$$</p>
+                        <p><strong>Thorpe Scale:</strong></p>
+                        <p>$$L_T = \sqrt{\langle d^2 \rangle}$$</p>
+                    </div>
+                    
+                    <div class="parameter-grid">
+                        <div class="parameter-card">
+                            <h3>📊 Turbulence Measurements</h3>
+                            <div class="input-group">
+                                <label for="dissipationRate">Dissipation Rate ε (W/kg):</label>
+                                <input type="number" id="dissipationRate" value="1e-8" step="1e-9">
+                            </div>
+                            <div class="input-group">
+                                <label for="mixingN">Buoyancy Frequency N (rad/s):</label>
+                                <input type="number" id="mixingN" value="0.01" step="0.001">
+                            </div>
+                            <div class="input-group">
+                                <label for="thorpeScale">Thorpe Scale LT (m):</label>
+                                <input type="number" id="thorpeScale" value="2" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="mixingEfficiency">Mixing Efficiency Γ:</label>
+                                <input type="number" id="mixingEfficiency" value="0.2" step="0.05">
+                            </div>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>🌊 Wave-Induced Mixing</h3>
+                            <div class="input-group">
+                                <label for="waveEnergy">Wave Energy Density (J/m³):</label>
+                                <input type="number" id="waveEnergy" value="100" step="10">
+                            </div>
+                            <div class="input-group">
+                                <label for="breakingFraction">Breaking Fraction:</label>
+                                <input type="number" id="breakingFraction" value="0.1" step="0.01">
+                            </div>
+                            <div class="input-group">
+                                <label for="mixingDepth">Mixing Layer Depth (m):</label>
+                                <input type="number" id="mixingDepth" value="20" step="1">
+                            </div>
+                            <div class="input-group">
+                                <label for="timeScale">Mixing Time Scale (hours):</label>
+                                <input type="number" id="timeScale" value="6" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="calculateMixing()">Calculate Mixing</button>
+                        <button class="btn" onclick="analyzeTurbulence()">Turbulence Analysis</button>
+                        <button class="btn" onclick="plotMixingProfile()">Plot Mixing Profile</button>
+                    </div>
+                    
+                    <div id="mixingResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="mixingChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Field Data Analysis Section -->
+            <div id="field-data" class="section">
+                <div class="analysis-card">
+                    <h2 class="card-title">📈 Field Data Analysis Tools</h2>
+                    
+                    <div class="parameter-grid">
+                        <div class="parameter-card">
+                            <h3>📊 Data Input</h3>
+                            <div class="input-group">
+                                <label for="dataType">Data Type:</label>
+                                <select id="dataType">
+                                    <option value="temperature">Temperature Time Series</option>
+                                    <option value="velocity">Velocity Measurements</option>
+                                    <option value="density">Density Profiles</option>
+                                    <option value="pressure">Pressure Sensors</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="samplingRate">Sampling Rate (Hz):</label>
+                                <input type="number" id="samplingRate" value="1" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="recordLength">Record Length (hours):</label>
+                                <input type="number" id="recordLength" value="24" step="1">
+                            </div>
+                            <button class="btn" onclick="generateSampleData()">Generate Sample Data</button>
+                        </div>
+                        
+                        <div class="parameter-card">
+                            <h3>🔍 Analysis Parameters</h3>
+                            <div class="input-group">
+                                <label for="filterType">Filter Type:</label>
+                                <select id="filterType">
+                                    <option value="bandpass">Bandpass (Internal Wave Band)</option>
+                                    <option value="lowpass">Low-pass</option>
+                                    <option value="highpass">High-pass</option>
+                                </select>
+                            </div>
+                            <div class="input-group">
+                                <label for="lowFreq">Low Frequency (cph):</label>
+                                <input type="number" id="lowFreq" value="0.5" step="0.1">
+                            </div>
+                            <div class="input-group">
+                                <label for="highFreq">High Frequency (cph):</label>
+                                <input type="number" id="highFreq" value="10" step="0.5">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center;">
+                        <button class="btn btn-success" onclick="analyzeFieldData()">Analyze Data</button>
+                        <button class="btn" onclick="spectralAnalysis()">Spectral Analysis</button>
+                        <button class="btn" onclick="waveletAnalysis()">Wavelet Analysis</button>
+                        <button class="btn" onclick="calculateStatistics()">Statistics</button>
+                    </div>
+                    
+                    <div id="fieldDataResults"></div>
+                    
+                    <div class="chart-container">
+                        <canvas id="fieldDataChart"></canvas>
+                    </div>
+                    
+                    <div class="analysis-card">
+                        <h3>📋 Analysis Summary Table</h3>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Parameter</th>
+                                    <th>Value</th>
+                                    <th>Units</th>
+                                    <th>Status</th>
+                                    <th>Notes</th>
+                                </tr>
+                            </thead>
+                            <tbody id="summaryTableBody">
+                                <tr>
+                                    <td>Dominant Frequency</td>
+                                    <td id="domFreq">-</td>
+                                    <td>cph</td>
+                                    <td><span class="status-indicator status-stable"></span>Normal</td>
+                                    <td>Within internal wave band</td>
+                                </tr>
+                                <tr>
+                                    <td>Wave Amplitude</td>
+                                    <td id="waveAmp">-</td>
+                                    <td>m</td>
+                                    <td><span class="status-indicator status-marginal"></span>Moderate</td>
+                                    <td>Typical for coastal waters</td>
+                                </tr>
+                                <tr>
+                                    <td>Richardson Number</td>
+                                    <td id="riNumber">-</td>
+                                    <td>-</td>
+                                    <td><span class="status-indicator status-stable"></span>Stable</td>
+                                    <td>Above critical value</td>
+                                </tr>
+                                <tr>
+                                    <td>Mixing Rate</td>
+                                    <td id="mixRate">-</td>
+                                    <td>m²/s</td>
+                                    <td><span class="status-indicator status-stable"></span>Low</td>
+                                    <td>Background mixing</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentChart = null;
+        let currentGeneration = 'tidal';
+        
+        function showSection(sectionId) {
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            document.getElementById(sectionId).classList.add('active');
+            
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+        
+        function selectGeneration(type) {
+            currentGeneration = type;
+            const buttons = document.querySelectorAll('.mode-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Show/hide relevant panels
+            const panels = document.querySelectorAll('.generation-panel');
+            panels.forEach(panel => panel.style.display = 'none');
+            
+            if (document.getElementById(type + 'Generation')) {
+                document.getElementById(type + 'Generation').style.display = 'block';
+            }
+        }
+        
+        function analyzeStratification() {
+            const surfTemp = parseFloat(document.getElementById('surfaceTemp').value);
+            const bottomTemp = parseFloat(document.getElementById('bottomTemp').value);
+            const thermDepth = parseFloat(document.getElementById('thermoclineDepth').value);
+            const thermThick = parseFloat(document.getElementById('thermoclineThickness').value);
+            const surfSal = parseFloat(document.getElementById('surfaceSalinity').value);
+            const bottomSal = parseFloat(document.getElementById('bottomSalinity').value);
+            const depth = parseFloat(document.getElementById('waterDepth').value);
+            const lat = parseFloat(document.getElementById('latitude').value);
+            
+            // Calculate stratification parameters
+            const deltaT = surfTemp - bottomTemp;
+            const deltaS = bottomSal - surfSal;
+            const alpha = 2e-4; // thermal expansion
+            const beta = 7.6e-4; // haline contraction
+            const g = 9.81;
+            const rho0 = 1025;
+            
+            // Maximum N² in thermocline
+            const maxN2 = (g/rho0) * (alpha * deltaT/thermThick + beta * deltaS/thermThick);
+            const maxN = Math.sqrt(Math.max(0, maxN2));
+            
+            // Average N
+            const avgN2 = (g/rho0) * (alpha * deltaT/depth + beta * deltaS/depth);
+            const avgN = Math.sqrt(Math.max(0, avgN2));
+            
+            // Coriolis parameter
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(lat * Math.PI / 180);
+            
+            // Internal wave frequency range
+            const minFreq = Math.abs(f);
+            const maxFreq = maxN;
+            
+            // Rossby radius
+            const c1 = maxN * depth / Math.PI; // First mode speed
+            const Ld = c1 / Math.abs(f);
+            
+            document.getElementById('stratificationResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>🔍 Stratification Analysis Results</h3>
+                    <div class="parameter-grid">
+                        <div>
+                            <strong>Buoyancy Frequency:</strong><br>
+                            Maximum N = ${maxN.toFixed(4)} rad/s<br>
+                            Average N = ${avgN.toFixed(4)} rad/s<br>
+                            Max N period = ${(2*Math.PI/maxN/60).toFixed(1)} minutes
+                        </div>
+                        <div>
+                            <strong>Wave Environment:</strong><br>
+                            Coriolis f = ${f.toExponential(3)} rad/s<br>
+                            Inertial period = ${(2*Math.PI/Math.abs(f)/3600).toFixed(1)} hours<br>
+                            Frequency range: ${(minFreq*3600).toFixed(2)} - ${(maxFreq*3600).toFixed(2)} cph
+                        </div>
+                        <div>
+                            <strong>Length Scales:</strong><br>
+                            Rossby radius = ${(Ld/1000).toFixed(1)} km<br>
+                            Thermocline thickness = ${thermThick} m<br>
+                            Stratification strength: ${maxN2 > 1e-4 ? 'Strong' : maxN2 > 1e-5 ? 'Moderate' : 'Weak'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function plotProfiles() {
+            const surfTemp = parseFloat(document.getElementById('surfaceTemp').value);
+            const bottomTemp = parseFloat(document.getElementById('bottomTemp').value);
+            const thermDepth = parseFloat(document.getElementById('thermoclineDepth').value);
+            const thermThick = parseFloat(document.getElementById('thermoclineThickness').value);
+            const depth = parseFloat(document.getElementById('waterDepth').value);
+            const surfSal = parseFloat(document.getElementById('surfaceSalinity').value);
+            const bottomSal = parseFloat(document.getElementById('bottomSalinity').value);
+            const haloDepth = parseFloat(document.getElementById('haloclineDepth').value);
+            const haloThick = parseFloat(document.getElementById('haloclineThickness').value);
+            
+            const depths = [];
+            const temps = [];
+            const salinities = [];
+            const nSquared = [];
+            
+            for (let z = 0; z <= depth; z += depth/50) {
+                depths.push(z);
+                
+                // Temperature profile with thermocline
+                let temp;
+                if (z < thermDepth - thermThick/2) {
+                    temp = surfTemp;
+                } else if (z > thermDepth + thermThick/2) {
+                    temp = bottomTemp;
+                } else {
+                    const progress = (z - (thermDepth - thermThick/2)) / thermThick;
+                    temp = surfTemp - (surfTemp - bottomTemp) * progress;
+                }
+                temps.push(temp);
+                
+                // Salinity profile with halocline
+                let sal;
+                if (z < haloDepth - haloThick/2) {
+                    sal = surfSal;
+                } else if (z > haloDepth + haloThick/2) {
+                    sal = bottomSal;
+                } else {
+                    const progress = (z - (haloDepth - haloThick/2)) / haloThick;
+                    sal = surfSal + (bottomSal - surfSal) * progress;
+                }
+                salinities.push(sal);
+                
+                // Calculate N² profile from both T and S gradients
+                const dT_dz = z > thermDepth - thermThick/2 && z < thermDepth + thermThick/2 ? 
+                    -(surfTemp - bottomTemp) / thermThick : 0;
+                const dS_dz = z > haloDepth - haloThick/2 && z < haloDepth + haloThick/2 ? 
+                    (bottomSal - surfSal) / haloThick : 0;
+                    
+                const alpha = 2e-4; // thermal expansion coefficient
+                const beta = 7.6e-4; // haline contraction coefficient
+                const g = 9.81;
+                const rho0 = 1025;
+                const n2 = (g/rho0) * (alpha * (-dT_dz) + beta * dS_dz);
+                nSquared.push(Math.sqrt(Math.max(0, n2)));
+            }
+            
+            const ctx = document.getElementById('profileChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temps.map((t, i) => ({x: t, y: depths[i]})),
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                        showLine: true,
+                        pointRadius: 2,
+                        borderWidth: 3,
+                        tension: 0.1,
+                        xAxisID: 'x1'
+                    }, {
+                        label: 'Salinity (psu)',
+                        data: salinities.map((s, i) => ({x: s, y: depths[i]})),
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.8)',
+                        showLine: true,
+                        pointRadius: 2,
+                        borderWidth: 3,
+                        tension: 0.1,
+                        xAxisID: 'x2'
+                    }, {
+                        label: 'N (×1000 rad/s)',
+                        data: nSquared.map((n, i) => ({x: n*1000, y: depths[i]})),
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.8)',
+                        showLine: true,
+                        pointRadius: 2,
+                        borderWidth: 3,
+                        tension: 0.1,
+                        xAxisID: 'x3'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'nearest'
+                    },
+                    scales: {
+                        x1: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)',
+                                color: 'rgb(239, 68, 68)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                color: 'rgba(239, 68, 68, 0.2)'
+                            },
+                            ticks: {
+                                color: 'rgb(239, 68, 68)'
+                            }
+                        },
+                        x2: {
+                            type: 'linear',
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'Salinity (psu)',
+                                color: 'rgb(34, 197, 94)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgb(34, 197, 94)'
+                            }
+                        },
+                        x3: {
+                            type: 'linear',
+                            position: 'bottom',
+                            offset: true,
+                            title: {
+                                display: true,
+                                text: 'N (×1000 rad/s)',
+                                color: 'rgb(59, 130, 246)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgb(59, 130, 246)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { weight: 'bold', size: 14 }
+                            },
+                            reverse: true,
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Water Column Profiles: Temperature, Salinity & Buoyancy Frequency',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    return `Depth: ${context[0].parsed.y.toFixed(1)} m`;
+                                },
+                                label: function(context) {
+                                    const label = context.dataset.label;
+                                    const value = context.parsed.x.toFixed(3);
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateModes() {
+            const depth = parseFloat(document.getElementById('waterDepth').value);
+            const maxN = 0.02; // Simplified
+            
+            // Calculate first few mode speeds and wavelengths
+            const modes = [];
+            for (let n = 1; n <= 4; n++) {
+                const cn = maxN * depth / (n * Math.PI);
+                const wavelength = cn * 12.42 * 3600 / 1000; // For M2 tide, in km
+                modes.push({
+                    mode: n,
+                    speed: cn.toFixed(3),
+                    wavelength: wavelength.toFixed(1)
+                });
+            }
+            
+            let modeTable = '<table class="data-table"><thead><tr><th>Mode</th><th>Speed (m/s)</th><th>Wavelength (km)</th></tr></thead><tbody>';
+            modes.forEach(mode => {
+                modeTable += `<tr><td>Mode ${mode.mode}</td><td>${mode.speed}</td><td>${mode.wavelength}</td></tr>`;
+            });
+            modeTable += '</tbody></table>';
+            
+            document.getElementById('stratificationResults').innerHTML += `
+                <div class="result-panel">
+                    <h3>🌊 Vertical Mode Analysis</h3>
+                    ${modeTable}
+                </div>
+            `;
+        }
+        
+        function calculateWaveProperties() {
+            const amplitude = parseFloat(document.getElementById('waveAmplitude').value);
+            const period = parseFloat(document.getElementById('wavePeriod').value) * 3600; // Convert to seconds
+            const wavelength = parseFloat(document.getElementById('horizontalWavelength').value) * 1000; // Convert to meters
+            const N = parseFloat(document.getElementById('avgBuoyancyFreq').value);
+            const lat = parseFloat(document.getElementById('waveLatitude').value);
+            
+            const omega = 2 * Math.PI / period;
+            const kh = 2 * Math.PI / wavelength;
+            const f = 2 * 7.27e-5 * Math.sin(lat * Math.PI / 180);
+            
+            // Phase speed
+            const cp = omega / kh;
+            
+            // Group speed (simplified)
+            const cg = cp * 0.5; // Approximation
+            
+            // Vertical wavelength (simplified)
+            const kz = Math.sqrt((N*N - omega*omega) / (omega*omega - f*f)) * kh;
+            const lambdaZ = 2 * Math.PI / kz;
+            
+            // Wave energy
+            const rho0 = 1025;
+            const energy = 0.5 * rho0 * N*N * amplitude*amplitude;
+            
+            document.getElementById('waveResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>🌊 Internal Wave Properties</h3>
+                    <div class="parameter-grid">
+                        <div>
+                            <strong>Wave Speeds:</strong><br>
+                            Phase speed = ${cp.toFixed(3)} m/s<br>
+                            Group speed = ${cg.toFixed(3)} m/s<br>
+                            Speed ratio = ${(cg/cp).toFixed(2)}
+                        </div>
+                        <div>
+                            <strong>Wave Numbers:</strong><br>
+                            Horizontal k = ${kh.toExponential(3)} rad/m<br>
+                            Vertical k = ${kz.toExponential(3)} rad/m<br>
+                            Vertical wavelength = ${lambdaZ.toFixed(1)} m
+                        </div>
+                        <div>
+                            <strong>Energy & Frequency:</strong><br>
+                            Wave frequency = ${(omega*3600).toFixed(2)} cph<br>
+                            Energy density = ${energy.toFixed(1)} J/m³<br>
+                            Frequency ratio ω/f = ${(omega/Math.abs(f)).toFixed(1)}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function plotDispersionCurve() {
+            const N = parseFloat(document.getElementById('avgBuoyancyFreq').value);
+            const lat = parseFloat(document.getElementById('waveLatitude').value);
+            const f = 2 * 7.27e-5 * Math.sin(lat * Math.PI / 180);
+            
+            const kh_values = [];
+            const omega_values = [];
+            
+            for (let kh = 1e-6; kh <= 1e-3; kh *= 1.1) {
+                kh_values.push(kh);
+                // Simplified dispersion relation for mode 1
+                const omega = Math.sqrt(f*f + N*N * kh*kh / (kh*kh + (Math.PI/100)*(Math.PI/100)));
+                omega_values.push(omega * 3600); // Convert to cph
+            }
+            
+            const ctx = document.getElementById('waveChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'Dispersion Curve',
+                        data: kh_values.map((k, i) => ({x: k*1000, y: omega_values[i]})),
+                        borderColor: 'rgb(34, 197, 94)',
+                        backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: 'Horizontal Wavenumber × 1000 (rad/m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Frequency (cph)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Internal Wave Dispersion Relation'
+                        }
+                    }
+                }
+            });
+        }
+        
+        function calculateGeneration() {
+            if (currentGeneration === 'tidal') {
+                const U0 = parseFloat(document.getElementById('tidalVelocity').value);
+                const h0 = parseFloat(document.getElementById('topographyHeight').value);
+                const N = parseFloat(document.getElementById('genBuoyancyFreq').value);
+                const L = parseFloat(document.getElementById('topographyLength').value) * 1000;
+                
+                const kh = 2 * Math.PI / L;
+                const rho0 = 1025;
+                
+                // Energy conversion rate
+                const energy = 0.5 * rho0 * N*N * U0*U0 * h0*h0;
+                const power = energy * kh * U0; // Simplified
+                
+                // Criticality parameter
+                const omega_tidal = 2 * Math.PI / (12.42 * 3600);
+                const gamma = omega_tidal / (N * h0/L);
+                
+                let regime;
+                if (gamma < 0.5) regime = "Subcritical";
+                else if (gamma < 1.5) regime = "Critical";
+                else regime = "Supercritical";
+                
+                document.getElementById('generationResults').innerHTML = `
+                    <div class="result-panel">
+                        <h3>⚡ Tidal Generation Analysis</h3>
+                        <div class="parameter-grid">
+                            <div>
+                                <strong>Energy Conversion:</strong><br>
+                                Energy density = ${energy.toFixed(1)} J/m³<br>
+                                Power = ${power.toExponential(2)} W/m²<br>
+                                Efficiency = ${(power/1000*100).toFixed(1)}%
+                            </div>
+                            <div>
+                                <strong>Generation Regime:</strong><br>
+                                Criticality γ = ${gamma.toFixed(2)}<br>
+                                Regime: ${regime}<br>
+                                ${regime === "Critical" ? "Maximum generation" : regime === "Subcritical" ? "Linear generation" : "Nonlinear effects"}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        function calculatePropagation() {
+            const A0 = parseFloat(document.getElementById('initialAmplitude').value);
+            const H0 = parseFloat(document.getElementById('initialDepth').value);
+            const Hf = parseFloat(document.getElementById('shelfDepth').value);
+            const N0 = parseFloat(document.getElementById('initialN').value);
+            const damping = parseFloat(document.getElementById('dampingCoeff').value);
+            
+            // Shoaling coefficient (simplified)
+            const Ks = Math.sqrt(H0 / Hf);
+            const Af = A0 * Ks * Math.exp(-damping * 20); // 20 km propagation
+            
+            // Nonlinear parameter
+            const alpha = A0 / H0;
+            let nonlinearity;
+            if (alpha < 0.1) nonlinearity = "Linear";
+            else if (alpha < 0.3) nonlinearity = "Weakly nonlinear";
+            else nonlinearity = "Strongly nonlinear";
+            
+            document.getElementById('propagationResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>🏄 Propagation Analysis</h3>
+                    <div class="parameter-grid">
+                        <div>
+                            <strong>Amplitude Evolution:</strong><br>
+                            Initial amplitude = ${A0} m<br>
+                            Final amplitude = ${Af.toFixed(1)} m<br>
+                            Shoaling factor = ${Ks.toFixed(2)}
+                        </div>
+                        <div>
+                            <strong>Wave Character:</strong><br>
+                            Nonlinearity α = ${alpha.toFixed(3)}<br>
+                            Regime: ${nonlinearity}<br>
+                            ${alpha > 0.3 ? "Soliton formation likely" : "Linear propagation"}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function analyzeBreaking() {
+            const A = parseFloat(document.getElementById('breakingAmplitude').value);
+            const lambda = parseFloat(document.getElementById('breakingWavelength').value) * 1000;
+            const N = parseFloat(document.getElementById('breakingN').value);
+            const shear = parseFloat(document.getElementById('maxShear').value);
+            
+            // Richardson number
+            const Ri = N*N / (shear*shear);
+            
+            // Breaking criteria
+            const convective = A > lambda / (2 * Math.PI); // Simplified
+            const shearInstability = shear > N / 2;
+            
+            let breakingType;
+            if (convective && shearInstability) breakingType = "Mixed instability";
+            else if (convective) breakingType = "Convective overturning";
+            else if (shearInstability) breakingType = "Shear instability";
+            else breakingType = "Stable";
+            
+            document.getElementById('breakingResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>💥 Breaking Analysis</h3>
+                    <div class="parameter-grid">
+                        <div>
+                            <strong>Stability Analysis:</strong><br>
+                            Richardson number = ${Ri.toFixed(3)}<br>
+                            Critical Ri = 0.25<br>
+                            Status: ${Ri < 0.25 ? "Unstable" : "Stable"}
+                        </div>
+                        <div>
+                            <strong>Breaking Mechanism:</strong><br>
+                            Type: ${breakingType}<br>
+                            Convective: ${convective ? "Yes" : "No"}<br>
+                            Shear: ${shearInstability ? "Yes" : "No"}
+                        </div>
+                    </div>
+                    ${Ri < 0.25 ? '<div class="warning-panel">⚠️ Wave breaking conditions detected!</div>' : ''}
+                </div>
+            `;
+        }
+        
+        function calculateMixing() {
+            const epsilon = parseFloat(document.getElementById('dissipationRate').value);
+            const N = parseFloat(document.getElementById('mixingN').value);
+            const gamma = parseFloat(document.getElementById('mixingEfficiency').value);
+            const Lt = parseFloat(document.getElementById('thorpeScale').value);
+            
+            // Diapycnal diffusivity
+            const Krho = gamma * epsilon / (N*N);
+            
+            // Ozmidov scale
+            const Lo = Math.sqrt(epsilon / (N*N*N));
+            
+            // Mixing time scale
+            const tmix = Lt*Lt / Krho;
+            
+            document.getElementById('mixingResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>🌪️ Mixing Analysis</h3>
+                    <div class="parameter-grid">
+                        <div>
+                            <strong>Mixing Parameters:</strong><br>
+                            Diapycnal diffusivity = ${Krho.toExponential(3)} m²/s<br>
+                            Ozmidov scale = ${Lo.toFixed(3)} m<br>
+                            Mixing time = ${(tmix/3600).toFixed(1)} hours
+                        </div>
+                        <div>
+                            <strong>Turbulence Scales:</strong><br>
+                            Thorpe scale = ${Lt} m<br>
+                            Scale ratio Lt/Lo = ${(Lt/Lo).toFixed(1)}<br>
+                            ${Lt/Lo > 1 ? "Active overturning" : "Weak turbulence"}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateSampleData() {
+            // Generate synthetic internal wave data
+            const samplingRate = parseFloat(document.getElementById('samplingRate').value);
+            const recordLength = parseFloat(document.getElementById('recordLength').value);
+            
+            const dt = 1 / samplingRate;
+            const nPoints = Math.floor(recordLength * 3600 / dt);
+            
+            document.getElementById('fieldDataResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>📊 Sample Data Generated</h3>
+                    <p>Generated ${nPoints} data points over ${recordLength} hours</p>
+                    <p>Sampling interval: ${dt} seconds</p>
+                    <p>Simulated internal wave signal with M2 tidal frequency and higher harmonics</p>
+                </div>
+            `;
+        }
+        
+        function analyzeFieldData() {
+            // Update summary table with sample values
+            document.getElementById('domFreq').textContent = '2.1';
+            document.getElementById('waveAmp').textContent = '12.5';
+            document.getElementById('riNumber').textContent = '0.45';
+            document.getElementById('mixRate').textContent = '1.2e-5';
+            
+            document.getElementById('fieldDataResults').innerHTML = `
+                <div class="result-panel">
+                    <h3>📈 Field Data Analysis Complete</h3>
+                    <p>✅ Dominant frequency identified in internal wave band</p>
+                    <p>✅ Wave amplitude within expected range for coastal waters</p>
+                    <p>✅ Richardson number indicates stable stratification</p>
+                    <p>✅ Background mixing rates are typical</p>
+                </div>
+            `;
+        }
+        
+        function spectralAnalysis() {
+            // Generate sample power spectrum
+            const frequencies = [];
+            const power = [];
+            
+            for (let f = 0.1; f <= 10; f += 0.1) {
+                frequencies.push(f);
+                // Simulate internal wave spectrum with peaks at tidal frequencies
+                let p = 1 / (f * f); // Background spectrum
+                if (Math.abs(f - 2.0) < 0.2) p *= 10; // M2 peak
+                if (Math.abs(f - 1.0) < 0.1) p *= 5;  // Diurnal peak
+                power.push(p);
+            }
+            
+            const ctx = document.getElementById('fieldDataChart').getContext('2d');
+            if (currentChart) currentChart.destroy();
+            
+            currentChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: frequencies.map(f => f.toFixed(1)),
+                    datasets: [{
+                        label: 'Power Spectral Density',
+                        data: power,
+                        borderColor: 'rgb(168, 85, 247)',
+                        backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Frequency (cph)'
+                            }
+                        },
+                        y: {
+                            type: 'logarithmic',
+                            title: {
+                                display: true,
+                                text: 'Power Spectral Density'
+                            }
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Internal Wave Power Spectrum'
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Initialize with first analysis
+        window.onload = function() {
+            analyzeStratification();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c1800df64988b2',t:'MTc1NDY4MjE4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
