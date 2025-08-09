@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Heat Flux & Temperature Profile Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-blue-800 to-teal-700 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-white mb-4">🌊 Coastal Ocean Heat Flux & Temperature Profile Analyzer</h1>
+            <p class="text-blue-100 text-lg">Complete evaluation of air-sea heat exchange and vertical ocean temperature structure by Claudio Iturra</p>
+        </div>
+
+        <!-- Main Calculator -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Input Parameters -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        📊 Coastal Ocean Parameters
+                    </h2>
+                    
+                    <!-- Atmospheric Parameters -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-blue-700 mb-3">🌤️ Atmospheric Conditions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Air Temperature (°C)</label>
+                                <input type="number" id="airTemp" value="22" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Relative Humidity (%)</label>
+                                <input type="number" id="humidity" value="75" step="1" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Wind Speed (m/s)</label>
+                                <input type="number" id="windSpeed" value="6" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Air Pressure (hPa)</label>
+                                <input type="number" id="airPressure" value="1015" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Wind Direction (°)</label>
+                                <input type="number" id="windDirection" value="270" step="1" min="0" max="360" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Air Stability</label>
+                                <select id="airStability" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                    <option value="stable">Stable</option>
+                                    <option value="neutral" selected>Neutral</option>
+                                    <option value="unstable">Unstable</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ocean Surface Parameters -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-teal-700 mb-3">🌊 Ocean Surface Conditions</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Sea Surface Temp (°C)</label>
+                                <input type="number" id="seaTemp" value="19" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Salinity (PSU)</label>
+                                <input type="number" id="salinity" value="34.5" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Wave Height (m)</label>
+                                <input type="number" id="waveHeight" value="2.0" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Wave Period (s)</label>
+                                <input type="number" id="wavePeriod" value="8" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Current Speed (m/s)</label>
+                                <input type="number" id="currentSpeed" value="0.25" step="0.01" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Current Direction (°)</label>
+                                <input type="number" id="currentDirection" value="180" step="1" min="0" max="360" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Radiation Parameters -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-yellow-700 mb-3">☀️ Radiation & Environmental</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Solar Radiation (W/m²)</label>
+                                <input type="number" id="solarRad" value="850" step="1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Cloud Cover (%)</label>
+                                <input type="number" id="cloudCover" value="25" step="1" min="0" max="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Solar Zenith Angle (°)</label>
+                                <input type="number" id="solarZenith" value="30" step="1" min="0" max="90" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Water Turbidity (NTU)</label>
+                                <input type="number" id="turbidity" value="2.5" step="0.1" min="0" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="calculateAllFluxes()" class="w-full bg-gradient-to-r from-blue-600 to-teal-600 text-white font-bold py-3 px-6 rounded-lg hover:from-blue-700 hover:to-teal-700 transition duration-300 shadow-lg">
+                        🔬 Calculate Complete Heat Flux Analysis
+                    </button>
+                </div>
+
+                <!-- Results Display -->
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                        📈 Heat Flux Components
+                    </h2>
+                    
+                    <div id="results" class="space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <p class="text-gray-600 text-center">Enter parameters and calculate to see comprehensive heat flux analysis</p>
+                        </div>
+                    </div>
+
+                    <!-- Heat Flux Chart -->
+                    <div class="mt-6">
+                        <canvas id="heatFluxChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Profile Section -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                🌡️ Coastal Ocean Temperature Profile (0-100m Depth)
+            </h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Profile Controls -->
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-700 mb-4">Ocean Structure Parameters</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Mixed Layer Depth (m)</label>
+                            <input type="number" id="mixedLayerDepth" value="25" step="1" min="5" max="60" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Thermocline Strength (°C/m)</label>
+                            <input type="number" id="thermoclineStrength" value="0.18" step="0.01" min="0.05" max="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Deep Water Temp (°C)</label>
+                            <input type="number" id="deepWaterTemp" value="7.5" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Coastal Upwelling</label>
+                            <select id="upwelling" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="none">No Upwelling</option>
+                                <option value="weak">Weak Upwelling</option>
+                                <option value="moderate" selected>Moderate Upwelling</option>
+                                <option value="strong">Strong Upwelling</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tidal Mixing</label>
+                            <select id="tidalMixing" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="low">Low</option>
+                                <option value="moderate" selected>Moderate</option>
+                                <option value="high">High</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Time Period</label>
+                            <select id="timePeriod" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="dawn">Dawn (06:00)</option>
+                                <option value="morning">Morning (09:00)</option>
+                                <option value="noon" selected>Noon (12:00)</option>
+                                <option value="afternoon">Afternoon (15:00)</option>
+                                <option value="evening">Evening (18:00)</option>
+                                <option value="night">Night (21:00)</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Heat Flux Scenario</label>
+                            <select id="fluxScenario" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="current">Current Conditions</option>
+                                <option value="enhanced_heating">Enhanced Heating (+200 W/m²)</option>
+                                <option value="enhanced_cooling">Enhanced Cooling (-200 W/m²)</option>
+                                <option value="storm">Storm Conditions</option>
+                                <option value="calm">Calm Conditions</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button onclick="updateTemperatureProfile()" class="w-full mt-6 bg-gradient-to-r from-teal-600 to-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:from-teal-700 hover:to-blue-700 transition duration-300 shadow-lg">
+                        📊 Update Temperature Profile
+                    </button>
+                </div>
+                
+                <!-- Temperature Profile Chart -->
+                <div class="lg:col-span-2">
+                    <canvas id="temperatureProfileChart" width="600" height="500"></canvas>
+                    
+                    <!-- Profile Analysis -->
+                    <div id="profileAnalysis" class="mt-6 bg-gradient-to-r from-blue-50 to-teal-50 p-6 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-700 mb-4 text-lg">📋 Temperature Profile Analysis</h4>
+                        <div id="profileStats" class="text-sm text-gray-700">
+                            <!-- Stats will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heat Flux Impact Analysis -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🔄 Heat Flux Impact on Ocean Structure</h2>
+            <div id="impactAnalysis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Impact cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Information Panel -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">🧠 Coastal Ocean Heat Exchange Processes</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="bg-red-50 p-4 rounded-lg border-l-4 border-red-500">
+                    <h3 class="font-bold text-red-700 mb-2">Sensible Heat Flux</h3>
+                    <p class="text-sm text-gray-700">Direct heat transfer due to temperature differences between air and sea surface, enhanced by wind speed and atmospheric stability</p>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
+                    <h3 class="font-bold text-blue-700 mb-2">Latent Heat Flux</h3>
+                    <p class="text-sm text-gray-700">Heat transfer through evaporation/condensation, strongly dependent on humidity gradients and wind conditions</p>
+                </div>
+                <div class="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-500">
+                    <h3 class="font-bold text-yellow-700 mb-2">Solar Radiation</h3>
+                    <p class="text-sm text-gray-700">Shortwave radiation penetration, affected by cloud cover, solar angle, and water turbidity in coastal areas</p>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg border-l-4 border-purple-500">
+                    <h3 class="font-bold text-purple-700 mb-2">Longwave Radiation</h3>
+                    <p class="text-sm text-gray-700">Thermal radiation exchange between ocean surface and atmosphere, influenced by cloud cover and atmospheric moisture</p>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-gray-50 p-6 rounded-lg">
+                <h3 class="font-bold text-gray-800 mb-3">🌊 Coastal Ocean Characteristics</h3>
+                <p class="text-sm text-gray-700 mb-3">
+                    Coastal oceans exhibit unique heat exchange patterns due to:
+                </p>
+                <ul class="text-sm text-gray-700 space-y-1 ml-4">
+                    <li>• <strong>Shallow water effects:</strong> Enhanced mixing and rapid temperature changes</li>
+                    <li>• <strong>Upwelling processes:</strong> Cold deep water brought to surface, affecting heat balance</li>
+                    <li>• <strong>Tidal mixing:</strong> Periodic vertical mixing affecting temperature stratification</li>
+                    <li>• <strong>Land-sea interactions:</strong> Modified wind patterns and thermal contrasts</li>
+                    <li>• <strong>Freshwater inputs:</strong> Rivers and runoff affecting salinity and density structure</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let heatFluxChart = null;
+        let profileChart = null;
+        let currentNetHeatFlux = 0;
+
+        function calculateAllFluxes() {
+            // Get all input values
+            const params = {
+                airTemp: parseFloat(document.getElementById('airTemp').value),
+                seaTemp: parseFloat(document.getElementById('seaTemp').value),
+                humidity: parseFloat(document.getElementById('humidity').value),
+                windSpeed: parseFloat(document.getElementById('windSpeed').value),
+                airPressure: parseFloat(document.getElementById('airPressure').value),
+                windDirection: parseFloat(document.getElementById('windDirection').value),
+                airStability: document.getElementById('airStability').value,
+                salinity: parseFloat(document.getElementById('salinity').value),
+                waveHeight: parseFloat(document.getElementById('waveHeight').value),
+                wavePeriod: parseFloat(document.getElementById('wavePeriod').value),
+                currentSpeed: parseFloat(document.getElementById('currentSpeed').value),
+                currentDirection: parseFloat(document.getElementById('currentDirection').value),
+                solarRad: parseFloat(document.getElementById('solarRad').value),
+                cloudCover: parseFloat(document.getElementById('cloudCover').value),
+                solarZenith: parseFloat(document.getElementById('solarZenith').value),
+                turbidity: parseFloat(document.getElementById('turbidity').value)
+            };
+
+            // Calculate comprehensive heat flux components
+            const fluxResults = calculateComprehensiveHeatFlux(params);
+            
+            // Store for profile calculations
+            currentNetHeatFlux = fluxResults.netHeatFlux;
+            
+            // Display results
+            displayComprehensiveResults(fluxResults);
+            
+            // Update heat flux chart
+            updateHeatFluxChart(fluxResults);
+            
+            // Update temperature profile
+            updateTemperatureProfile();
+        }
+
+        function calculateComprehensiveHeatFlux(params) {
+            // Physical constants
+            const cp_air = 1004; // Specific heat of air (J/kg/K)
+            const Lv = 2.45e6; // Latent heat of vaporization (J/kg)
+            const sigma = 5.67e-8; // Stefan-Boltzmann constant
+            const kappa = 0.4; // von Karman constant
+            
+            // Air density calculation
+            const rho_air = params.airPressure * 100 / (287 * (params.airTemp + 273.15));
+            
+            // Stability corrections
+            const stabilityFactor = {
+                'stable': 0.8,
+                'neutral': 1.0,
+                'unstable': 1.3
+            }[params.airStability];
+            
+            // Enhanced transfer coefficients for coastal conditions
+            const roughness = Math.max(0.0001, 0.011 * params.windSpeed * params.windSpeed / 9.81 + 
+                                     0.018 * params.waveHeight / params.wavePeriod);
+            
+            const Ch = (0.0011 + 0.000043 * params.windSpeed) * stabilityFactor; // Heat transfer coefficient
+            const Ce = (0.0013 + 0.000043 * params.windSpeed) * stabilityFactor; // Moisture transfer coefficient
+            const Cd = (0.0012 + 0.000025 * params.windSpeed) * stabilityFactor; // Drag coefficient
+            
+            // Sensible Heat Flux with stability corrections
+            const sensibleHeat = rho_air * cp_air * Ch * params.windSpeed * (params.seaTemp - params.airTemp);
+            
+            // Latent Heat Flux with salinity effects
+            const es_air = 6.112 * Math.exp(17.67 * params.airTemp / (params.airTemp + 243.5));
+            const es_sea = 6.112 * Math.exp(17.67 * params.seaTemp / (params.seaTemp + 243.5));
+            
+            // Salinity correction for vapor pressure
+            const salinityCorrection = 1 - 0.000537 * params.salinity;
+            const es_sea_corrected = es_sea * salinityCorrection;
+            
+            const ea = es_air * params.humidity / 100;
+            const qs_sea = 0.622 * es_sea_corrected / (params.airPressure - 0.378 * es_sea_corrected);
+            const qa = 0.622 * ea / (params.airPressure - 0.378 * ea);
+            
+            const latentHeat = rho_air * Lv * Ce * params.windSpeed * (qs_sea - qa);
+            
+            // Solar Radiation with coastal effects
+            const cloudFactor = 1 - 0.75 * (params.cloudCover / 100) * (params.cloudCover / 100);
+            const zenithFactor = Math.cos(params.solarZenith * Math.PI / 180);
+            const turbidityFactor = Math.exp(-0.1 * params.turbidity);
+            
+            const solarHeatFlux = params.solarRad * cloudFactor * zenithFactor * turbidityFactor * 0.94;
+            
+            // Longwave Radiation with enhanced atmospheric effects
+            const emissivity_ocean = 0.97;
+            const emissivity_atm = 0.7 + 0.17 * Math.sqrt(ea / 10); // Humidity dependent
+            
+            const longwaveOut = emissivity_ocean * sigma * Math.pow(params.seaTemp + 273.15, 4);
+            const longwaveIn = emissivity_atm * sigma * Math.pow(params.airTemp + 273.15, 4) * 
+                              (1 + 0.22 * Math.pow(params.cloudCover / 100, 2));
+            const longwaveNet = longwaveIn - longwaveOut;
+            
+            // Wave-enhanced mixing effects
+            const waveBreakingEffect = Math.pow(params.waveHeight, 1.5) * params.windSpeed * 2.5;
+            
+            // Current advection effects
+            const advectionEffect = params.currentSpeed * 100 * Math.cos((params.windDirection - params.currentDirection) * Math.PI / 180);
+            
+            // Coastal upwelling effect (simplified)
+            const upwellingEffect = params.windSpeed * Math.sin(params.windDirection * Math.PI / 180) * 15;
+            
+            // Net Heat Flux
+            const netHeatFlux = solarHeatFlux + longwaveNet + sensibleHeat + latentHeat;
+            
+            return {
+                sensibleHeat,
+                latentHeat,
+                solarHeatFlux,
+                longwaveNet,
+                longwaveIn,
+                longwaveOut,
+                netHeatFlux,
+                waveBreakingEffect,
+                advectionEffect,
+                upwellingEffect,
+                transferCoefficients: { Ch, Ce, Cd },
+                atmosphericFactors: { cloudFactor, zenithFactor, turbidityFactor },
+                params
+            };
+        }
+
+        function displayComprehensiveResults(results) {
+            const resultsDiv = document.getElementById('results');
+            
+            const getFluxColor = (value) => {
+                if (value > 0) return 'text-red-600 bg-red-50';
+                else return 'text-blue-600 bg-blue-50';
+            };
+
+            const getFluxDirection = (value) => {
+                return value > 0 ? '↑ Ocean to Atmosphere' : '↓ Atmosphere to Ocean';
+            };
+
+            resultsDiv.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200">
+                        <h4 class="font-bold text-red-700 mb-2">🌡️ Sensible Heat Flux</h4>
+                        <p class="text-2xl font-bold ${getFluxColor(results.sensibleHeat)}">${results.sensibleHeat.toFixed(1)} W/m²</p>
+                        <p class="text-sm text-gray-600">${getFluxDirection(results.sensibleHeat)}</p>
+                        <p class="text-xs text-gray-500 mt-1">Transfer coeff: ${(results.transferCoefficients.Ch * 1000).toFixed(2)} × 10⁻³</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-700 mb-2">💨 Latent Heat Flux</h4>
+                        <p class="text-2xl font-bold ${getFluxColor(results.latentHeat)}">${results.latentHeat.toFixed(1)} W/m²</p>
+                        <p class="text-sm text-gray-600">${getFluxDirection(results.latentHeat)}</p>
+                        <p class="text-xs text-gray-500 mt-1">Evaporation: ${(results.latentHeat / 2.45e6 * 86400).toFixed(2)} mm/day</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
+                        <h4 class="font-bold text-yellow-700 mb-2">☀️ Solar Heat Input</h4>
+                        <p class="text-2xl font-bold text-yellow-600">${results.solarHeatFlux.toFixed(1)} W/m²</p>
+                        <p class="text-sm text-gray-600">↓ Into Ocean</p>
+                        <p class="text-xs text-gray-500 mt-1">Efficiency: ${(results.solarHeatFlux / results.params.solarRad * 100).toFixed(1)}%</p>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                        <h4 class="font-bold text-purple-700 mb-2">🌙 Net Longwave</h4>
+                        <p class="text-2xl font-bold ${getFluxColor(results.longwaveNet)}">${results.longwaveNet.toFixed(1)} W/m²</p>
+                        <p class="text-sm text-gray-600">${getFluxDirection(results.longwaveNet)}</p>
+                        <p class="text-xs text-gray-500 mt-1">In: ${results.longwaveIn.toFixed(0)} | Out: ${results.longwaveOut.toFixed(0)} W/m²</p>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-gradient-to-r from-teal-50 to-teal-100 p-6 rounded-lg border border-teal-200">
+                    <h4 class="font-bold text-teal-700 mb-3 text-xl">🌊 Comprehensive Heat Balance</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <p class="text-3xl font-bold ${getFluxColor(results.netHeatFlux)}">${results.netHeatFlux.toFixed(1)} W/m²</p>
+                            <p class="text-sm text-gray-600 mt-1">Net Heat Flux</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-semibold text-gray-700">${Math.abs(results.params.seaTemp - results.params.airTemp).toFixed(1)}°C</p>
+                            <p class="text-sm text-gray-600">ΔT Air-Sea</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-semibold text-gray-700">${results.waveBreakingEffect.toFixed(0)} W/m²</p>
+                            <p class="text-sm text-gray-600">Wave Mixing</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-lg font-semibold text-gray-700">${results.advectionEffect.toFixed(0)} W/m²</p>
+                            <p class="text-sm text-gray-600">Current Advection</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 bg-gray-50 p-4 rounded-lg">
+                    <h5 class="font-semibold text-gray-700 mb-2">📋 Coastal Ocean Interpretation:</h5>
+                    <p class="text-sm text-gray-600">
+                        ${results.netHeatFlux > 0 ? 
+                            '🔥 Ocean is losing heat to atmosphere. Surface cooling promotes convective mixing and may trigger upwelling circulation. Enhanced evaporation increases atmospheric moisture.' : 
+                            '❄️ Ocean is gaining heat from atmosphere. Surface warming increases stratification, reduces mixing depth, and may suppress upwelling. Coastal thermal contrasts are enhanced.'
+                        }
+                        ${Math.abs(results.netHeatFlux) > 200 ? ' Strong heat flux conditions will significantly impact vertical ocean structure.' : ''}
+                    </p>
+                </div>
+            `;
+        }
+
+        function updateHeatFluxChart(data) {
+            const ctx = document.getElementById('heatFluxChart').getContext('2d');
+            
+            if (heatFluxChart) {
+                heatFluxChart.destroy();
+            }
+            
+            heatFluxChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Sensible\nHeat', 'Latent\nHeat', 'Solar\nInput', 'Net\nLongwave', 'Wave\nMixing', 'Current\nAdvection'],
+                    datasets: [{
+                        label: 'Heat Flux (W/m²)',
+                        data: [
+                            data.sensibleHeat, 
+                            data.latentHeat, 
+                            data.solarHeatFlux, 
+                            data.longwaveNet,
+                            data.waveBreakingEffect,
+                            data.advectionEffect
+                        ],
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(245, 158, 11, 0.7)',
+                            'rgba(147, 51, 234, 0.7)',
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(236, 72, 153, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(245, 158, 11, 1)',
+                            'rgba(147, 51, 234, 1)',
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(236, 72, 153, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Coastal Ocean Heat Flux Components',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Heat Flux (W/m²)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTemperatureProfile() {
+            const seaTemp = parseFloat(document.getElementById('seaTemp').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixedLayerDepth').value);
+            const thermoclineStrength = parseFloat(document.getElementById('thermoclineStrength').value);
+            const deepWaterTemp = parseFloat(document.getElementById('deepWaterTemp').value);
+            const upwelling = document.getElementById('upwelling').value;
+            const tidalMixing = document.getElementById('tidalMixing').value;
+            const timePeriod = document.getElementById('timePeriod').value;
+            const fluxScenario = document.getElementById('fluxScenario').value;
+            
+            // Generate base temperature profile
+            const depths = [];
+            const baseTemperatures = [];
+            const modifiedTemperatures = [];
+            
+            // Upwelling effects
+            const upwellingEffects = {
+                'none': 0,
+                'weak': -0.5,
+                'moderate': -1.2,
+                'strong': -2.5
+            };
+            
+            // Tidal mixing effects
+            const tidalMixingEffects = {
+                'low': 1.0,
+                'moderate': 1.3,
+                'high': 1.8
+            };
+            
+            const upwellingTemp = upwellingEffects[upwelling];
+            const mixingFactor = tidalMixingEffects[tidalMixing];
+            
+            for (let depth = 0; depth <= 100; depth += 1) {
+                depths.push(depth);
+                
+                let baseTemp;
+                const adjustedMixedLayer = mixedLayerDepth * mixingFactor;
+                
+                if (depth <= adjustedMixedLayer) {
+                    // Mixed layer with upwelling effects
+                    baseTemp = seaTemp + upwellingTemp * (depth / adjustedMixedLayer);
+                } else if (depth <= adjustedMixedLayer + 35) {
+                    // Thermocline
+                    const thermoclineDepth = depth - adjustedMixedLayer;
+                    const thermoclineTemp = seaTemp + upwellingTemp;
+                    baseTemp = thermoclineTemp - (thermoclineDepth * thermoclineStrength);
+                } else {
+                    // Deep water transition
+                    const deepDepth = depth - adjustedMixedLayer - 35;
+                    const thermoclineBottomTemp = seaTemp + upwellingTemp - (35 * thermoclineStrength);
+                    baseTemp = thermoclineBottomTemp - (deepDepth / 30) * (thermoclineBottomTemp - deepWaterTemp);
+                }
+                
+                baseTemp = Math.max(baseTemp, deepWaterTemp);
+                baseTemperatures.push(baseTemp);
+                
+                // Apply heat flux modifications
+                let heatFluxEffect = calculateHeatFluxEffect(depth, adjustedMixedLayer, timePeriod, fluxScenario);
+                
+                modifiedTemperatures.push(Math.max(baseTemp + heatFluxEffect, deepWaterTemp));
+            }
+            
+            // Update profile chart
+            updateProfileChart(depths, baseTemperatures, modifiedTemperatures);
+            
+            // Update analysis
+            updateProfileAnalysis(baseTemperatures, modifiedTemperatures, mixedLayerDepth, currentNetHeatFlux, upwelling, tidalMixing);
+            
+            // Update impact analysis
+            updateImpactAnalysis(currentNetHeatFlux, fluxScenario, upwelling);
+        }
+        
+        function calculateHeatFluxEffect(depth, mixedLayerDepth, timePeriod, fluxScenario) {
+            // Time-dependent multipliers
+            const timeMultipliers = {
+                'dawn': -0.3,
+                'morning': 0.5,
+                'noon': 1.0,
+                'afternoon': 0.7,
+                'evening': -0.1,
+                'night': -0.6
+            };
+            
+            // Scenario modifications
+            const scenarioMultipliers = {
+                'current': 1.0,
+                'enhanced_heating': 1.8,
+                'enhanced_cooling': -1.5,
+                'storm': -0.8,
+                'calm': 1.2
+            };
+            
+            let netFlux = currentNetHeatFlux * timeMultipliers[timePeriod] * scenarioMultipliers[fluxScenario];
+            
+            // Depth-dependent heat flux penetration
+            let heatFluxEffect = 0;
+            
+            if (depth <= mixedLayerDepth) {
+                // Surface mixed layer - direct heat flux impact
+                const penetrationFactor = Math.exp(-depth / (mixedLayerDepth * 0.6));
+                heatFluxEffect = (netFlux / (4186 * 1025 * mixedLayerDepth)) * 3600 * penetrationFactor;
+            } else if (depth <= mixedLayerDepth + 25) {
+                // Upper thermocline - reduced impact
+                const thermoclineDepth = depth - mixedLayerDepth;
+                const attenuationFactor = Math.exp(-thermoclineDepth / 15);
+                heatFluxEffect = (netFlux / (4186 * 1025 * mixedLayerDepth)) * 3600 * 0.15 * attenuationFactor;
+            }
+            
+            return heatFluxEffect;
+        }
+        
+        function updateProfileChart(depths, baseTemps, modifiedTemps) {
+            const ctx = document.getElementById('temperatureProfileChart').getContext('2d');
+            
+            if (profileChart) {
+                profileChart.destroy();
+            }
+            
+            profileChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [
+                        {
+                            label: 'Base Temperature Profile',
+                            data: depths.map((depth, i) => ({x: baseTemps[i], y: depth})),
+                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.2,
+                            pointRadius: 0
+                        },
+                        {
+                            label: 'Modified by Heat Flux',
+                            data: depths.map((depth, i) => ({x: modifiedTemps[i], y: depth})),
+                            borderColor: 'rgba(239, 68, 68, 0.9)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.2,
+                            borderDash: [8, 4],
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Coastal Ocean Temperature Profile (0-100m)',
+                            font: {
+                                size: 18,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            reverse: true,
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+        
+        function updateProfileAnalysis(baseTemps, modifiedTemps, mixedLayerDepth, netHeatFlux, upwelling, tidalMixing) {
+            const surfaceTemp = modifiedTemps[0];
+            const mixedLayerTemp = modifiedTemps[Math.floor(mixedLayerDepth)];
+            const thermoclineTemp = modifiedTemps[Math.floor(mixedLayerDepth + 20)];
+            const deepTemp = modifiedTemps[99];
+            
+            const tempGradient = (surfaceTemp - deepTemp) / 100;
+            const stratification = surfaceTemp - deepTemp;
+            const thermoclineStrength = (mixedLayerTemp - thermoclineTemp) / 20;
+            
+            // Calculate heat content (simplified)
+            const heatContent = modifiedTemps.reduce((sum, temp, i) => {
+                return sum + (temp * 4186 * 1025 * 1); // J/m² per meter
+            }, 0) / 1e9; // Convert to GJ/m²
+            
+            // Temperature change due to heat flux
+            const tempChange = modifiedTemps[0] - baseTemps[0];
+            
+            document.getElementById('profileStats').innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white p-4 rounded-lg border">
+                        <h5 class="font-semibold text-blue-700 mb-3">Temperature Structure</h5>
+                        <p><strong>Surface:</strong> ${surfaceTemp.toFixed(2)}°C</p>
+                        <p><strong>Mixed Layer:</strong> ${mixedLayerTemp.toFixed(2)}°C</p>
+                        <p><strong>Thermocline:</strong> ${thermoclineTemp.toFixed(2)}°C</p>
+                        <p><strong>Deep Water:</strong> ${deepTemp.toFixed(2)}°C</p>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg border">
+                        <h5 class="font-semibold text-teal-700 mb-3">Ocean Dynamics</h5>
+                        <p><strong>Stratification:</strong> ${stratification.toFixed(2)}°C</p>
+                        <p><strong>Thermocline Strength:</strong> ${thermoclineStrength.toFixed(3)}°C/m</p>
+                        <p><strong>Heat Content:</strong> ${heatContent.toFixed(2)} GJ/m²</p>
+                        <p><strong>Upwelling:</strong> ${upwelling.charAt(0).toUpperCase() + upwelling.slice(1)}</p>
+                    </div>
+                    
+                    <div class="bg-white p-4 rounded-lg border">
+                        <h5 class="font-semibold text-purple-700 mb-3">Heat Flux Impact</h5>
+                        <p><strong>Net Heat Flux:</strong> ${netHeatFlux.toFixed(1)} W/m²</p>
+                        <p><strong>Surface ΔT:</strong> ${tempChange.toFixed(3)}°C</p>
+                        <p><strong>Tidal Mixing:</strong> ${tidalMixing.charAt(0).toUpperCase() + tidalMixing.slice(1)}</p>
+                        <p><strong>Mixing Depth:</strong> ${mixedLayerDepth}m</p>
+                    </div>
+                </div>
+                
+                <div class="mt-4 p-4 bg-white rounded border-l-4 ${netHeatFlux > 0 ? 'border-red-400' : 'border-blue-400'}">
+                    <h5 class="font-semibold mb-2">🌊 Coastal Ocean Response:</h5>
+                    <p class="text-sm">
+                        ${netHeatFlux > 0 ? 
+                            `<strong>Ocean Heat Loss (${netHeatFlux.toFixed(1)} W/m²):</strong> Surface cooling increases density, promoting convective mixing and potentially triggering coastal upwelling. Enhanced evaporation increases atmospheric moisture content. Stratification weakens, allowing deeper mixing.` : 
+                            `<strong>Ocean Heat Gain (${Math.abs(netHeatFlux).toFixed(1)} W/m²):</strong> Surface warming decreases density, strengthening stratification and reducing mixing depth. Thermal contrast with deeper waters increases. Upwelling may be suppressed due to enhanced surface buoyancy.`
+                        }
+                        ${Math.abs(tempChange) > 0.1 ? ` Surface temperature change of ${Math.abs(tempChange).toFixed(2)}°C significantly impacts coastal circulation patterns.` : ''}
+                    </p>
+                </div>
+            `;
+        }
+        
+        function updateImpactAnalysis(netHeatFlux, fluxScenario, upwelling) {
+            const impactDiv = document.getElementById('impactAnalysis');
+            
+            const impacts = [
+                {
+                    title: "🌡️ Thermal Stratification",
+                    impact: netHeatFlux > 0 ? "Weakening" : "Strengthening",
+                    description: netHeatFlux > 0 ? 
+                        "Surface cooling reduces stratification, promoting vertical mixing and nutrient transport from deeper waters." :
+                        "Surface warming increases stratification, creating a barrier to vertical mixing and concentrating nutrients in deeper layers.",
+                    color: netHeatFlux > 0 ? "border-blue-400 bg-blue-50" : "border-red-400 bg-red-50"
+                },
+                {
+                    title: "🌊 Coastal Upwelling",
+                    impact: upwelling === 'strong' ? "Enhanced" : upwelling === 'none' ? "Suppressed" : "Moderate",
+                    description: `Current upwelling conditions (${upwelling}) combined with heat flux effects ${netHeatFlux > 0 ? 'promote' : 'inhibit'} the transport of cold, nutrient-rich deep water to the surface.`,
+                    color: upwelling === 'strong' ? "border-green-400 bg-green-50" : "border-yellow-400 bg-yellow-50"
+                },
+                {
+                    title: "🐟 Marine Ecosystem",
+                    impact: Math.abs(netHeatFlux) > 150 ? "Significant Impact" : "Moderate Impact",
+                    description: `Heat flux of ${netHeatFlux.toFixed(0)} W/m² ${Math.abs(netHeatFlux) > 150 ? 'significantly alters' : 'moderately affects'} primary productivity, fish distribution, and oxygen levels in coastal waters.`,
+                    color: Math.abs(netHeatFlux) > 150 ? "border-purple-400 bg-purple-50" : "border-gray-400 bg-gray-50"
+                }
+            ];
+            
+            impactDiv.innerHTML = impacts.map(impact => `
+                <div class="p-4 rounded-lg border-l-4 ${impact.color}">
+                    <h4 class="font-bold mb-2">${impact.title}</h4>
+                    <p class="font-semibold text-sm mb-2">Status: ${impact.impact}</p>
+                    <p class="text-sm text-gray-700">${impact.description}</p>
+                </div>
+            `).join('');
+        }
+
+        // Initialize with default calculations
+        calculateAllFluxes();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c87bba417888ac',t:'MTc1NDc1NTQwNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
