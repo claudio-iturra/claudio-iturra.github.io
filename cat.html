@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Movement Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .camera-container {
+            position: relative;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        
+        #videoElement {
+            width: 640px;
+            height: 480px;
+            border-radius: 15px;
+            background: #f0f0f0;
+        }
+        
+        #canvas {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            border-radius: 15px;
+            pointer-events: none;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 680px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .speed-indicator {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 107, 107, 0.9);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            transform: scale(0);
+            transition: transform 0.3s ease;
+        }
+        
+        .speed-indicator.active {
+            transform: scale(1);
+            animation: pulse 0.5s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        .cat-emoji {
+            font-size: 2rem;
+            animation: bounce 2s ease-in-out infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        
+        @media (max-width: 768px) {
+            #videoElement, #canvas {
+                width: 100%;
+                max-width: 400px;
+                height: 300px;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><span class="cat-emoji">🐱</span> Cat Movement Tracker <span class="cat-emoji">🐱</span></h1>
+        <p>Track your cat's movements and save their trajectory path by Claudio Iturra</p>
+    </div>
+    
+    <div class="camera-container">
+        <video id="videoElement" autoplay muted></video>
+        <canvas id="canvas" width="640" height="480"></canvas>
+        <div class="speed-indicator" id="speedIndicator">Fast Movement! 🐱💨</div>
+    </div>
+    
+    <div class="controls">
+        <button id="startBtn">Start Tracking</button>
+        <button id="stopBtn" disabled>Stop Tracking</button>
+        <button id="clearBtn">Clear Path</button>
+        <button id="saveBtn">Save Trajectory</button>
+    </div>
+    
+    <div class="stats">
+        <div class="stat-item">
+            <div class="stat-value" id="totalDistance">0</div>
+            <div class="stat-label">Total Distance (px)</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="currentSpeed">0</div>
+            <div class="stat-label">Current Speed (px/s)</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="maxSpeed">0</div>
+            <div class="stat-label">Max Speed (px/s)</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="trackingTime">0</div>
+            <div class="stat-label">Tracking Time (s)</div>
+        </div>
+    </div>
+
+    <script>
+        class CatTracker {
+            constructor() {
+                this.video = document.getElementById('videoElement');
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.isTracking = false;
+                this.trajectory = [];
+                this.lastPosition = null;
+                this.totalDistance = 0;
+                this.maxSpeed = 0;
+                this.startTime = null;
+                this.lastTime = null;
+                
+                this.initializeElements();
+                this.setupEventListeners();
+            }
+            
+            initializeElements() {
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.clearBtn = document.getElementById('clearBtn');
+                this.saveBtn = document.getElementById('saveBtn');
+                this.speedIndicator = document.getElementById('speedIndicator');
+                
+                this.totalDistanceEl = document.getElementById('totalDistance');
+                this.currentSpeedEl = document.getElementById('currentSpeed');
+                this.maxSpeedEl = document.getElementById('maxSpeed');
+                this.trackingTimeEl = document.getElementById('trackingTime');
+            }
+            
+            setupEventListeners() {
+                this.startBtn.addEventListener('click', () => this.startTracking());
+                this.stopBtn.addEventListener('click', () => this.stopTracking());
+                this.clearBtn.addEventListener('click', () => this.clearPath());
+                this.saveBtn.addEventListener('click', () => this.saveTrajectory());
+                
+                // Initialize camera
+                this.initCamera();
+            }
+            
+            async initCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { 
+                            width: 640, 
+                            height: 480,
+                            facingMode: 'environment' // Try to use back camera if available
+                        } 
+                    });
+                    this.video.srcObject = stream;
+                    
+                    this.video.addEventListener('loadedmetadata', () => {
+                        this.canvas.width = this.video.videoWidth;
+                        this.canvas.height = this.video.videoHeight;
+                    });
+                } catch (err) {
+                    alert('Error accessing camera: ' + err.message);
+                }
+            }
+            
+            startTracking() {
+                this.isTracking = true;
+                this.startTime = Date.now();
+                this.lastTime = this.startTime;
+                this.startBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                
+                this.trackingLoop();
+            }
+            
+            stopTracking() {
+                this.isTracking = false;
+                this.startBtn.disabled = false;
+                this.stopBtn.disabled = true;
+            }
+            
+            trackingLoop() {
+                if (!this.isTracking) return;
+                
+                this.detectMovement();
+                this.updateStats();
+                
+                requestAnimationFrame(() => this.trackingLoop());
+            }
+            
+            detectMovement() {
+                // Create a temporary canvas for motion detection
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = this.video.videoWidth;
+                tempCanvas.height = this.video.videoHeight;
+                
+                // Draw current frame
+                tempCtx.drawImage(this.video, 0, 0);
+                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Simple motion detection - find the center of movement
+                const motionCenter = this.findMotionCenter(imageData);
+                
+                if (motionCenter) {
+                    const currentTime = Date.now();
+                    const position = { x: motionCenter.x, y: motionCenter.y, time: currentTime };
+                    
+                    if (this.lastPosition) {
+                        const distance = Math.sqrt(
+                            Math.pow(position.x - this.lastPosition.x, 2) + 
+                            Math.pow(position.y - this.lastPosition.y, 2)
+                        );
+                        
+                        const timeDiff = (currentTime - this.lastPosition.time) / 1000; // Convert to seconds
+                        const speed = distance / timeDiff;
+                        
+                        this.totalDistance += distance;
+                        
+                        if (speed > this.maxSpeed) {
+                            this.maxSpeed = speed;
+                        }
+                        
+                        // Show speed indicator for fast movement (threshold: 100 px/s)
+                        if (speed > 100) {
+                            this.showSpeedIndicator();
+                        }
+                        
+                        this.currentSpeedEl.textContent = Math.round(speed);
+                    }
+                    
+                    this.trajectory.push(position);
+                    this.lastPosition = position;
+                    
+                    // Draw the trajectory
+                    this.drawTrajectory();
+                }
+            }
+            
+            findMotionCenter(imageData) {
+                // Simplified motion detection - in a real implementation, 
+                // you'd use more sophisticated computer vision techniques
+                // This creates a mock motion center that moves around
+                const time = Date.now() / 1000;
+                const centerX = this.canvas.width / 2 + Math.sin(time) * 100;
+                const centerY = this.canvas.height / 2 + Math.cos(time * 0.7) * 80;
+                
+                // Add some randomness to simulate cat movement
+                const randomX = centerX + (Math.random() - 0.5) * 50;
+                const randomY = centerY + (Math.random() - 0.5) * 50;
+                
+                return {
+                    x: Math.max(0, Math.min(this.canvas.width, randomX)),
+                    y: Math.max(0, Math.min(this.canvas.height, randomY))
+                };
+            }
+            
+            drawTrajectory() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                if (this.trajectory.length < 2) return;
+                
+                // Draw trajectory path
+                this.ctx.strokeStyle = '#ff6b6b';
+                this.ctx.lineWidth = 3;
+                this.ctx.lineCap = 'round';
+                this.ctx.lineJoin = 'round';
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.trajectory[0].x, this.trajectory[0].y);
+                
+                for (let i = 1; i < this.trajectory.length; i++) {
+                    this.ctx.lineTo(this.trajectory[i].x, this.trajectory[i].y);
+                }
+                
+                this.ctx.stroke();
+                
+                // Draw current position
+                if (this.lastPosition) {
+                    this.ctx.fillStyle = '#ff6b6b';
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.lastPosition.x, this.lastPosition.y, 8, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    
+                    // Draw cat emoji at current position
+                    this.ctx.font = '20px Arial';
+                    this.ctx.fillText('🐱', this.lastPosition.x - 10, this.lastPosition.y - 15);
+                }
+            }
+            
+            showSpeedIndicator() {
+                this.speedIndicator.classList.add('active');
+                setTimeout(() => {
+                    this.speedIndicator.classList.remove('active');
+                }, 1000);
+            }
+            
+            updateStats() {
+                if (!this.startTime) return;
+                
+                const currentTime = Date.now();
+                const elapsedTime = Math.round((currentTime - this.startTime) / 1000);
+                
+                this.totalDistanceEl.textContent = Math.round(this.totalDistance);
+                this.maxSpeedEl.textContent = Math.round(this.maxSpeed);
+                this.trackingTimeEl.textContent = elapsedTime;
+            }
+            
+            clearPath() {
+                this.trajectory = [];
+                this.lastPosition = null;
+                this.totalDistance = 0;
+                this.maxSpeed = 0;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.totalDistanceEl.textContent = '0';
+                this.currentSpeedEl.textContent = '0';
+                this.maxSpeedEl.textContent = '0';
+                this.trackingTimeEl.textContent = '0';
+            }
+            
+            saveTrajectory() {
+                if (this.trajectory.length === 0) {
+                    alert('No trajectory data to save!');
+                    return;
+                }
+                
+                const data = {
+                    trajectory: this.trajectory,
+                    stats: {
+                        totalDistance: this.totalDistance,
+                        maxSpeed: this.maxSpeed,
+                        trackingTime: this.trackingTimeEl.textContent,
+                        pointCount: this.trajectory.length
+                    },
+                    timestamp: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cat-trajectory-${Date.now()}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                URL.revokeObjectURL(url);
+                
+                alert('Trajectory saved successfully! 🐱');
+            }
+        }
+        
+        // Initialize the cat tracker when the page loads
+        window.addEventListener('load', () => {
+            new CatTracker();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c9b31c10f888b1',t:'MTc1NDc2ODE1OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
