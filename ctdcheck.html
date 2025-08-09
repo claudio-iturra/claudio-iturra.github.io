@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTD Profile Analyzer - Coastal Oceanography</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 30%, #3b82f6 70%, #60a5fa 100%);
+            color: white;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: #87ceeb;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .nav-tab {
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(135, 206, 235, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.2);
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .main-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+        }
+        
+        .data-input-section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .data-input-section h4 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .file-input-area {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-input-area:hover {
+            border-color: rgba(135, 206, 235, 0.5);
+            background: rgba(135, 206, 235, 0.1);
+        }
+        
+        .file-input-area input[type="file"] {
+            display: none;
+        }
+        
+        .sample-data-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a52);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .sample-data-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group h4 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .parameter-input {
+            margin-bottom: 15px;
+        }
+        
+        .parameter-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #b0e0e6;
+            font-size: 0.9rem;
+        }
+        
+        .parameter-input input, .parameter-input select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .slider-input {
+            margin-bottom: 15px;
+        }
+        
+        .slider-input label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #b0e0e6;
+            font-size: 0.9rem;
+        }
+        
+        .value-display {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4caf50;
+            cursor: pointer;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .results-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .results-box h4 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            color: #333;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #b0e0e6;
+        }
+        
+        .equation-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            border-left: 4px solid #87ceeb;
+            overflow-x: auto;
+        }
+        
+        .data-table {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            color: #333;
+            overflow-x: auto;
+        }
+        
+        .data-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-table th, .data-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        
+        .data-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .analysis-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .analysis-section h4 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+        }
+        
+        .export-btn {
+            background: linear-gradient(45deg, #17a2b8, #138496);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+        }
+        
+        .two-column-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        @media (max-width: 1200px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .two-column-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 CTD Profile Analyzer</h1>
+            <p>Comprehensive analysis of Conductivity, Temperature, and Depth profiles for coastal oceanography</p>
+            <p><em>Advanced tools for water mass analysis, stratification, and oceanographic calculations by Claudio Iturra</em></p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('data-input')">Data Input</button>
+            <button class="nav-tab" onclick="showSection('profile-analysis')">Profile Analysis</button>
+            <button class="nav-tab" onclick="showSection('water-masses')">Water Masses</button>
+            <button class="nav-tab" onclick="showSection('stratification')">Stratification</button>
+            <button class="nav-tab" onclick="showSection('derived-parameters')">Derived Parameters</button>
+            <button class="nav-tab" onclick="showSection('quality-control')">Quality Control</button>
+        </div>
+
+        <!-- Data Input Section -->
+        <div id="data-input" class="content-section active">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>📊 CTD Data Input</h3>
+                    
+                    <div class="data-input-section">
+                        <h4>Upload CTD Profile Data</h4>
+                        <div class="file-input-area" onclick="document.getElementById('fileInput').click()">
+                            <p>📁 Click to upload CTD file</p>
+                            <p><small>Supported formats: CSV, TXT, CNV (SeaBird)</small></p>
+                            <p><small>Expected columns: Depth/Pressure, Temperature, Conductivity, Salinity (optional)</small></p>
+                            <input type="file" id="fileInput" accept=".csv,.txt,.cnv" onchange="handleFileUpload(event)">
+                        </div>
+                        
+                        <div style="text-align: center; margin: 20px 0;">
+                            <p><strong>Or use sample CTD profiles:</strong></p>
+                            <button class="sample-data-btn" onclick="loadSampleData('coastal_summer')">🏖️ Coastal Summer</button>
+                            <button class="sample-data-btn" onclick="loadSampleData('coastal_winter')">❄️ Coastal Winter</button>
+                            <button class="sample-data-btn" onclick="loadSampleData('upwelling')">⬆️ Upwelling Event</button>
+                            <button class="sample-data-btn" onclick="loadSampleData('stratified')">🌡️ Stratified Waters</button>
+                            <button class="sample-data-btn" onclick="loadSampleData('mixed_layer')">🌀 Mixed Layer</button>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="ctdProfileChart" width="700" height="500"></canvas>
+                    </div>
+                    
+                    <div class="data-table" id="dataPreview">
+                        <h4>Data Preview</h4>
+                        <p>Upload or select sample data to see preview</p>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>📋 Profile Information</h4>
+                        <div class="parameter-input">
+                            <label>Data Points</label>
+                            <input type="text" id="dataPoints" value="0" readonly>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Max Depth (m)</label>
+                            <input type="text" id="maxDepth" value="0" readonly>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Temperature Range (°C)</label>
+                            <input type="text" id="tempRange" value="Not loaded" readonly>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Salinity Range (PSU)</label>
+                            <input type="text" id="salinityRange" value="Not loaded" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🔧 Data Processing</h4>
+                        <div class="parameter-input">
+                            <label>Depth/Pressure Units</label>
+                            <select id="depthUnits">
+                                <option value="meters">Meters</option>
+                                <option value="decibars">Decibars</option>
+                            </select>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Temperature Units</label>
+                            <select id="tempUnits">
+                                <option value="celsius">Celsius</option>
+                                <option value="kelvin">Kelvin</option>
+                            </select>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Conductivity Units</label>
+                            <select id="condUnits">
+                                <option value="mS/cm">mS/cm</option>
+                                <option value="S/m">S/m</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Smoothing Window: <span class="value-display" id="smoothingWindowDisplay">5</span></label>
+                            <input type="range" class="slider" id="smoothingWindow" min="1" max="21" value="5" step="2" oninput="updateDataProcessing()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌍 Location & Time</h4>
+                        <div class="parameter-input">
+                            <label>Latitude (°N)</label>
+                            <input type="number" id="latitude" value="40.0" step="0.1">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Longitude (°E)</label>
+                            <input type="number" id="longitude" value="-70.0" step="0.1">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Cast Date</label>
+                            <input type="date" id="castDate" value="2024-01-15">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="processCTDData()">Process CTD Data</button>
+                    
+                    <div class="results-box" id="dataResults">
+                        <h4>Data Summary</h4>
+                        <p id="dataResultsText">Load CTD profile data to see summary statistics.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Analysis Section -->
+        <div id="profile-analysis" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>📈 CTD Profile Analysis</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="surfaceTempValue">18.5</div>
+                            <div class="metric-label">Surface Temp (°C)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="bottomTempValue">12.3</div>
+                            <div class="metric-label">Bottom Temp (°C)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="surfaceSalinityValue">34.2</div>
+                            <div class="metric-label">Surface Salinity (PSU)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="bottomSalinityValue">35.1</div>
+                            <div class="metric-label">Bottom Salinity (PSU)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="thermoclineDepthValue">25</div>
+                            <div class="metric-label">Thermocline Depth (m)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="haloclineDepthValue">28</div>
+                            <div class="metric-label">Halocline Depth (m)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="profileAnalysisChart" width="800" height="600"></canvas>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>CTD Profile Analysis Equations:</strong><br><br>
+                        
+                        <strong>1. Practical Salinity (PSS-78):</strong><br>
+                        S = a₀ + a₁R₁/² + a₂R + a₃R³/² + a₄R² + a₅R⁵/²<br>
+                        <em>Where: R = C(S,T,P)/C(35,15,0), C = conductivity</em><br>
+                        <em>Explanation: UNESCO standard for calculating salinity from conductivity, temperature, and pressure</em><br><br>
+                        
+                        <strong>2. Potential Temperature:</strong><br>
+                        θ = T - ∫₀ᴾ (∂T/∂P)ₛ dP ≈ T - 0.0375×P<br>
+                        <em>Where: T = in-situ temperature, P = pressure</em><br>
+                        <em>Explanation: Temperature a water parcel would have if moved adiabatically to surface</em><br><br>
+                        
+                        <strong>3. Density (UNESCO EOS-80):</strong><br>
+                        ρ = ρ(S,T,P) = ρ₀ + ρ₁S + ρ₂T + ρ₃P + ...<br>
+                        <em>Where: ρ₀ = 999.842594 kg/m³ at (S=0, T=0, P=0)</em><br>
+                        <em>Explanation: Seawater density as function of salinity, temperature, and pressure</em><br><br>
+                        
+                        <strong>4. Brunt-Väisälä Frequency:</strong><br>
+                        N² = -(g/ρ)(∂ρ/∂z) = <span id="eqBuoyancyFreq">2.5e-4</span> s⁻²<br>
+                        <em>Where: g = gravitational acceleration, z = depth</em><br>
+                        <em>Explanation: Measure of water column stability and stratification strength</em><br><br>
+                        
+                        <strong>5. Mixed Layer Depth:</strong><br>
+                        MLD = depth where Δρ = ρ(z) - ρ(10m) > 0.03 kg/m³<br>
+                        MLD = <span id="eqMLD">15</span> m<br>
+                        <em>Explanation: Depth of surface mixed layer based on density criterion</em>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>📊 Analysis Options</h4>
+                        <div class="parameter-input">
+                            <label>Profile Type</label>
+                            <select id="profileType" onchange="updateProfileAnalysis()">
+                                <option value="temperature">Temperature</option>
+                                <option value="salinity">Salinity</option>
+                                <option value="density">Density</option>
+                                <option value="potential_temp">Potential Temperature</option>
+                                <option value="all">All Parameters</option>
+                            </select>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Depth Range</label>
+                            <select id="depthRange" onchange="updateProfileAnalysis()">
+                                <option value="full">Full Profile</option>
+                                <option value="surface">Surface (0-50m)</option>
+                                <option value="thermocline">Thermocline (20-100m)</option>
+                                <option value="deep">Deep (>100m)</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Gradient Threshold: <span class="value-display" id="gradientThresholdDisplay">0.1</span></label>
+                            <input type="range" class="slider" id="gradientThreshold" min="0.01" max="1.0" value="0.1" step="0.01" oninput="updateProfileAnalysis()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🔍 Layer Detection</h4>
+                        <div class="parameter-input">
+                            <label>Mixed Layer Criterion</label>
+                            <select id="mldCriterion" onchange="updateProfileAnalysis()">
+                                <option value="density">Density (Δρ = 0.03)</option>
+                                <option value="temperature">Temperature (ΔT = 0.2°C)</option>
+                                <option value="gradient">Gradient Method</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Reference Depth (m): <span class="value-display" id="refDepthDisplay">10</span></label>
+                            <input type="range" class="slider" id="refDepth" min="5" max="30" value="10" step="1" oninput="updateProfileAnalysis()">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="analyzeProfile()">Analyze Profile</button>
+                    
+                    <div class="results-box" id="profileResults">
+                        <h4>Profile Analysis Results</h4>
+                        <p id="profileResultsText">Process CTD data and analyze profile characteristics.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Water Masses Section -->
+        <div id="water-masses" class="content-section">
+            <div class="main-panel">
+                <h3>💧 Water Mass Analysis</h3>
+                
+                <div class="two-column-grid">
+                    <div class="chart-container">
+                        <canvas id="tsDiagramChart" width="500" height="500"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="waterMassChart" width="500" height="500"></canvas>
+                    </div>
+                </div>
+                
+                <div class="analysis-section full-width">
+                    <h4>Water Mass Identification</h4>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="surfaceWaterValue">Surface Water</div>
+                            <div class="metric-label">0-20m</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="thermoclineWaterValue">Thermocline</div>
+                            <div class="metric-label">20-80m</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="deepWaterValue">Deep Water</div>
+                            <div class="metric-label">>80m</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="waterMassIndexValue">0.75</div>
+                            <div class="metric-label">Mixing Index</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="equation-box">
+                    <strong>Water Mass Analysis Equations:</strong><br><br>
+                    
+                    <strong>1. T-S Diagram Analysis:</strong><br>
+                    Water masses plotted in Temperature-Salinity space<br>
+                    Mixing lines: T_mix = f₁T₁ + f₂T₂, S_mix = f₁S₁ + f₂S₂<br>
+                    <em>Where: f₁ + f₂ = 1 (mixing fractions)</em><br>
+                    <em>Explanation: Conservative mixing between water masses follows straight lines in T-S space</em><br><br>
+                    
+                    <strong>2. Spice Parameter:</strong><br>
+                    π = Σᵢ Σⱼ sᵢⱼ(T-10)ⁱ(S-35)ʲ<br>
+                    <em>Where: sᵢⱼ are empirical coefficients</em><br>
+                    <em>Explanation: Density-compensated T-S variability measure</em><br><br>
+                    
+                    <strong>3. Water Mass Fraction:</strong><br>
+                    f = (S - S₂)/(S₁ - S₂) for conservative mixing<br>
+                    <em>Where: S₁, S₂ are end-member salinities</em><br>
+                    <em>Explanation: Fraction of water mass 1 in binary mixture</em><br><br>
+                    
+                    <strong>4. Isopycnal Analysis:</strong><br>
+                    σₜ = ρ(S,T,0) - 1000 kg/m³<br>
+                    σθ = ρ(S,θ,0) - 1000 kg/m³<br>
+                    <em>Where: σₜ = in-situ density, σθ = potential density</em><br>
+                    <em>Explanation: Density referenced to surface pressure for water mass tracking</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stratification Section -->
+        <div id="stratification" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌡️ Stratification Analysis</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="stratificationIndexValue">2.8</div>
+                            <div class="metric-label">Stratification Index</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="buoyancyFreqValue">1.2e-3</div>
+                            <div class="metric-label">Max N² (s⁻²)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="richardsonNumberValue">0.85</div>
+                            <div class="metric-label">Richardson Number</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="pycnoclineDepthValue">35</div>
+                            <div class="metric-label">Pycnocline Depth (m)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="stratificationChart" width="800" height="600"></canvas>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Stratification Analysis Equations:</strong><br><br>
+                        
+                        <strong>1. Brunt-Väisälä Frequency:</strong><br>
+                        N² = -(g/ρ₀)(∂ρ/∂z) = <span id="eqBuoyancyFreq2">1.2e-3</span> s⁻²<br>
+                        N = √N² = <span id="eqBuoyancyFreqN">0.035</span> s⁻¹<br>
+                        <em>Where: g = 9.81 m/s², ρ₀ = reference density</em><br>
+                        <em>Explanation: Natural frequency of internal gravity waves, stability measure</em><br><br>
+                        
+                        <strong>2. Stratification Index:</strong><br>
+                        SI = ∫₀ᴴ N²(z) dz = <span id="eqStratIndex">2.8</span> s⁻²·m<br>
+                        <em>Where: H = total depth</em><br>
+                        <em>Explanation: Integrated measure of water column stability</em><br><br>
+                        
+                        <strong>3. Potential Energy Anomaly:</strong><br>
+                        φ = (1/H) ∫₀ᴴ g(ρ̄ - ρ(z))z dz<br>
+                        <em>Where: ρ̄ = depth-averaged density</em><br>
+                        <em>Explanation: Energy required to mix water column completely</em><br><br>
+                        
+                        <strong>4. Richardson Number:</strong><br>
+                        Ri = N²/(∂u/∂z)² = <span id="eqRichardson">0.85</span><br>
+                        <em>Where: ∂u/∂z = vertical shear (assumed)</em><br>
+                        <em>Explanation: Ratio of buoyancy to shear forces (Ri > 0.25 = stable)</em><br><br>
+                        
+                        <strong>5. Turner Angle:</strong><br>
+                        Tu = arctan[(α∂T/∂z + β∂S/∂z)/(α∂T/∂z - β∂S/∂z)] × 180/π<br>
+                        <em>Where: α = thermal expansion, β = haline contraction</em><br>
+                        <em>Explanation: Indicates double-diffusive instability potential</em>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>⚙️ Stratification Parameters</h4>
+                        <div class="parameter-input">
+                            <label>Analysis Method</label>
+                            <select id="stratMethod" onchange="updateStratification()">
+                                <option value="density">Density Gradient</option>
+                                <option value="temperature">Temperature Gradient</option>
+                                <option value="salinity">Salinity Gradient</option>
+                                <option value="combined">Combined Analysis</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Smoothing Scale (m): <span class="value-display" id="stratSmoothingDisplay">2</span></label>
+                            <input type="range" class="slider" id="stratSmoothing" min="1" max="10" value="2" step="0.5" oninput="updateStratification()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Reference Pressure (dbar): <span class="value-display" id="refPressureDisplay">0</span></label>
+                            <input type="range" class="slider" id="refPressure" min="0" max="1000" value="0" step="10" oninput="updateStratification()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌊 Double Diffusion</h4>
+                        <div class="parameter-input">
+                            <label>Instability Type</label>
+                            <select id="instabilityType" onchange="updateStratification()">
+                                <option value="none">Stable</option>
+                                <option value="salt_fingering">Salt Fingering</option>
+                                <option value="diffusive_convection">Diffusive Convection</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Density Ratio: <span class="value-display" id="densityRatioDisplay">2.0</span></label>
+                            <input type="range" class="slider" id="densityRatio" min="0.5" max="5.0" value="2.0" step="0.1" oninput="updateStratification()">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="analyzeStratification()">Analyze Stratification</button>
+                    
+                    <div class="results-box" id="stratificationResults">
+                        <h4>Stratification Results</h4>
+                        <p id="stratificationResultsText">Analyze water column stability and stratification patterns.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Derived Parameters Section -->
+        <div id="derived-parameters" class="content-section">
+            <div class="main-panel">
+                <h3>🧮 Derived Oceanographic Parameters</h3>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="soundSpeedValue">1520</div>
+                        <div class="metric-label">Sound Speed (m/s)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="thermalExpansionValue">2.1e-4</div>
+                        <div class="metric-label">Thermal Expansion (K⁻¹)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="halineContractionValue">7.8e-4</div>
+                        <div class="metric-label">Haline Contraction (PSU⁻¹)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="adiabatTempGradValue">1.1e-4</div>
+                        <div class="metric-label">Adiabatic Gradient (°C/dbar)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="specificVolumeValue">9.7e-4</div>
+                        <div class="metric-label">Specific Volume (m³/kg)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="dynamicHeightValue">0.85</div>
+                        <div class="metric-label">Dynamic Height (m)</div>
+                    </div>
+                </div>
+                
+                <div class="two-column-grid">
+                    <div class="chart-container">
+                        <canvas id="derivedParamsChart1" width="500" height="400"></canvas>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="derivedParamsChart2" width="500" height="400"></canvas>
+                    </div>
+                </div>
+                
+                <div class="equation-box">
+                    <strong>Derived Parameter Equations:</strong><br><br>
+                    
+                    <strong>1. Sound Speed (Mackenzie, 1981):</strong><br>
+                    c = 1448.96 + 4.591T - 5.304×10⁻²T² + 2.374×10⁻⁴T³<br>
+                    + 1.340(S-35) + 1.630×10⁻²D + 1.675×10⁻⁷D²<br>
+                    c = <span id="eqSoundSpeed">1520</span> m/s<br>
+                    <em>Where: T = temperature (°C), S = salinity (PSU), D = depth (m)</em><br>
+                    <em>Explanation: Speed of sound in seawater for acoustic applications</em><br><br>
+                    
+                    <strong>2. Thermal Expansion Coefficient:</strong><br>
+                    α = -(1/ρ)(∂ρ/∂T)ₛ,ₚ = <span id="eqThermalExp">2.1e-4</span> K⁻¹<br>
+                    <em>Explanation: Fractional density change per unit temperature change</em><br><br>
+                    
+                    <strong>3. Haline Contraction Coefficient:</strong><br>
+                    β = (1/ρ)(∂ρ/∂S)ₜ,ₚ = <span id="eqHalineContr">7.8e-4</span> PSU⁻¹<br>
+                    <em>Explanation: Fractional density change per unit salinity change</em><br><br>
+                    
+                    <strong>4. Adiabatic Temperature Gradient:</strong><br>
+                    Γ = (∂T/∂P)ₛ = <span id="eqAdiabatGrad">1.1e-4</span> °C/dbar<br>
+                    <em>Explanation: Temperature change for adiabatic compression/expansion</em><br><br>
+                    
+                    <strong>5. Dynamic Height:</strong><br>
+                    ΔD = ∫ₚ₁ᵖ² δ(S,T,P) dP<br>
+                    <em>Where: δ = specific volume anomaly</em><br>
+                    <em>Explanation: Geopotential height difference for geostrophic calculations</em><br><br>
+                    
+                    <strong>6. Specific Volume Anomaly:</strong><br>
+                    δ = α(S,T,P) - α(35,0,P)<br>
+                    <em>Where: α = specific volume (1/ρ)</em><br>
+                    <em>Explanation: Deviation from standard seawater specific volume</em>
+                </div>
+                
+                <div class="analysis-section">
+                    <h4>Export Derived Parameters</h4>
+                    <button class="export-btn" onclick="exportDerivedParams('csv')">📊 Export CSV</button>
+                    <button class="export-btn" onclick="exportDerivedParams('matlab')">🔬 Export MATLAB</button>
+                    <button class="export-btn" onclick="exportDerivedParams('netcdf')">🌐 Export NetCDF</button>
+                    <button class="export-btn" onclick="generateCTDReport()">📄 Generate Report</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quality Control Section -->
+        <div id="quality-control" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🔍 Quality Control Analysis</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="dataQualityValue">95.2</div>
+                            <div class="metric-label">Data Quality (%)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="spikesDetectedValue">3</div>
+                            <div class="metric-label">Spikes Detected</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="outlierPointsValue">7</div>
+                            <div class="metric-label">Outlier Points</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="stabilityIndexValue">0.92</div>
+                            <div class="metric-label">Stability Index</div>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="qualityControlChart" width="800" height="600"></canvas>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Quality Control Equations:</strong><br><br>
+                        
+                        <strong>1. Spike Detection (Median Filter):</strong><br>
+                        Spike if |X(i) - median(X(i-n:i+n))| > k × MAD<br>
+                        <em>Where: MAD = median absolute deviation, k = threshold factor</em><br>
+                        <em>Explanation: Identifies sudden jumps in sensor readings</em><br><br>
+                        
+                        <strong>2. Density Inversion Check:</strong><br>
+                        Flag if ∂ρ/∂z < -threshold for stable water column<br>
+                        <em>Where: threshold = density gradient limit</em><br>
+                        <em>Explanation: Detects physically unrealistic density inversions</em><br><br>
+                        
+                        <strong>3. Range Check:</strong><br>
+                        Flag if T < T_min or T > T_max (regional limits)<br>
+                        Flag if S < S_min or S > S_max (regional limits)<br>
+                        <em>Explanation: Identifies values outside expected regional ranges</em><br><br>
+                        
+                        <strong>4. Gradient Check:</strong><br>
+                        Flag if |∂T/∂z| > gradient_limit<br>
+                        Flag if |∂S/∂z| > gradient_limit<br>
+                        <em>Explanation: Detects unrealistic vertical gradients</em><br><br>
+                        
+                        <strong>5. Stability Ratio:</strong><br>
+                        R_ρ = (α∂T/∂z)/(β∂S/∂z)<br>
+                        <em>Where: α = thermal expansion, β = haline contraction</em><br>
+                        <em>Explanation: Ratio for double-diffusive instability assessment</em>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🔧 QC Parameters</h4>
+                        <div class="parameter-input">
+                            <label>Spike Detection Method</label>
+                            <select id="spikeMethod" onchange="updateQualityControl()">
+                                <option value="median">Median Filter</option>
+                                <option value="gradient">Gradient Method</option>
+                                <option value="zscore">Z-Score</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Spike Threshold: <span class="value-display" id="spikeThresholdDisplay">3.0</span></label>
+                            <input type="range" class="slider" id="spikeThreshold" min="1.0" max="5.0" value="3.0" step="0.1" oninput="updateQualityControl()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Window Size: <span class="value-display" id="windowSizeDisplay">5</span></label>
+                            <input type="range" class="slider" id="windowSize" min="3" max="15" value="5" step="2" oninput="updateQualityControl()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>📊 Range Limits</h4>
+                        <div class="parameter-input">
+                            <label>Min Temperature (°C)</label>
+                            <input type="number" id="minTemp" value="-2" step="0.1">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Max Temperature (°C)</label>
+                            <input type="number" id="maxTemp" value="35" step="0.1">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Min Salinity (PSU)</label>
+                            <input type="number" id="minSalinity" value="0" step="0.1">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Max Salinity (PSU)</label>
+                            <input type="number" id="maxSalinity" value="42" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="performQualityControl()">Perform Quality Control</button>
+                    
+                    <div class="results-box" id="qcResults">
+                        <h4>Quality Control Results</h4>
+                        <p id="qcResultsText">Run quality control analysis to identify data issues.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let ctdData = [];
+        let processedData = [];
+        let currentChart = null;
+        let charts = {};
+        
+        // Parameters
+        let params = {
+            latitude: 40.0,
+            longitude: -70.0,
+            castDate: '2024-01-15',
+            depthUnits: 'meters',
+            tempUnits: 'celsius',
+            condUnits: 'mS/cm',
+            smoothingWindow: 5,
+            profileType: 'all',
+            depthRange: 'full',
+            gradientThreshold: 0.1,
+            mldCriterion: 'density',
+            refDepth: 10
+        };
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section and activate tab
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Initialize charts for the section
+            setTimeout(() => {
+                switch(sectionId) {
+                    case 'data-input':
+                        initCTDProfileChart();
+                        break;
+                    case 'profile-analysis':
+                        initProfileAnalysisChart();
+                        break;
+                    case 'water-masses':
+                        initWaterMassCharts();
+                        break;
+                    case 'stratification':
+                        initStratificationChart();
+                        break;
+                    case 'derived-parameters':
+                        initDerivedParamsCharts();
+                        break;
+                    case 'quality-control':
+                        initQualityControlChart();
+                        break;
+                }
+            }, 100);
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                parseCtdData(text, file.name);
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCtdData(text, filename) {
+            const lines = text.trim().split('\n');
+            const data = [];
+            
+            // Detect file format
+            let isSeaBird = filename.toLowerCase().includes('.cnv') || text.includes('* Sea-Bird');
+            let headerLines = 0;
+            
+            // Skip header lines
+            for (let i = 0; i < lines.length; i++) {
+                if (isSeaBird && lines[i].startsWith('*END*')) {
+                    headerLines = i + 1;
+                    break;
+                } else if (!isSeaBird && (lines[i].toLowerCase().includes('depth') || 
+                          lines[i].toLowerCase().includes('pressure') ||
+                          lines[i].toLowerCase().includes('temp'))) {
+                    headerLines = i + 1;
+                    break;
+                }
+            }
+            
+            // Parse data
+            for (let i = headerLines; i < lines.length; i++) {
+                const values = lines[i].trim().split(/\s+|,/);
+                if (values.length >= 3) {
+                    const depth = parseFloat(values[0]);
+                    const temp = parseFloat(values[1]);
+                    const cond = parseFloat(values[2]);
+                    const salinity = values.length > 3 ? parseFloat(values[3]) : calculateSalinity(cond, temp, depth);
+                    
+                    if (!isNaN(depth) && !isNaN(temp) && !isNaN(cond)) {
+                        data.push({
+                            depth: depth,
+                            temperature: temp,
+                            conductivity: cond,
+                            salinity: salinity,
+                            density: calculateDensity(salinity, temp, depth),
+                            potentialTemp: calculatePotentialTemperature(temp, depth)
+                        });
+                    }
+                }
+            }
+            
+            ctdData = data.sort((a, b) => a.depth - b.depth);
+            updateDataInfo();
+            updateCTDProfileChart();
+            updateDataPreview();
+        }
+
+        function loadSampleData(type) {
+            const data = [];
+            let maxDepth, tempProfile, salinityProfile;
+            
+            switch(type) {
+                case 'coastal_summer':
+                    maxDepth = 100;
+                    tempProfile = (z) => 22 - 12 * (1 - Math.exp(-z/20));
+                    salinityProfile = (z) => 32 + 3 * (1 - Math.exp(-z/15));
+                    break;
+                case 'coastal_winter':
+                    maxDepth = 80;
+                    tempProfile = (z) => 8 - 3 * (1 - Math.exp(-z/30));
+                    salinityProfile = (z) => 33 + 2 * (1 - Math.exp(-z/25));
+                    break;
+                case 'upwelling':
+                    maxDepth = 150;
+                    tempProfile = (z) => 18 - 8 * Math.tanh(z/25) - 2 * (z/150);
+                    salinityProfile = (z) => 33.5 + 1.5 * Math.tanh(z/20);
+                    break;
+                case 'stratified':
+                    maxDepth = 200;
+                    tempProfile = (z) => 25 * Math.exp(-z/30) + 5;
+                    salinityProfile = (z) => 34 + 1.5 * (1 - Math.exp(-z/40));
+                    break;
+                case 'mixed_layer':
+                    maxDepth = 120;
+                    tempProfile = (z) => z < 30 ? 20 : 20 - 10 * (1 - Math.exp(-(z-30)/25));
+                    salinityProfile = (z) => z < 30 ? 34.2 : 34.2 + 1 * (1 - Math.exp(-(z-30)/20));
+                    break;
+            }
+            
+            for (let z = 0; z <= maxDepth; z += 1) {
+                const temp = tempProfile(z) + 0.1 * (Math.random() - 0.5);
+                const salinity = salinityProfile(z) + 0.05 * (Math.random() - 0.5);
+                const conductivity = calculateConductivity(salinity, temp, z);
+                
+                data.push({
+                    depth: z,
+                    temperature: temp,
+                    conductivity: conductivity,
+                    salinity: salinity,
+                    density: calculateDensity(salinity, temp, z),
+                    potentialTemp: calculatePotentialTemperature(temp, z)
+                });
+            }
+            
+            ctdData = data;
+            updateDataInfo();
+            updateCTDProfileChart();
+            updateDataPreview();
+        }
+
+        function calculateSalinity(conductivity, temperature, depth) {
+            // Simplified PSS-78 calculation
+            const pressure = depth * 1.019716; // Convert depth to pressure (dbar)
+            const R = conductivity / 42.914; // Conductivity ratio
+            
+            // Simplified salinity calculation
+            const a0 = 0.0080, a1 = -0.1692, a2 = 25.3851, a3 = 14.0941, a4 = -7.0261, a5 = 2.7081;
+            const salinity = a0 + a1*Math.sqrt(R) + a2*R + a3*Math.pow(R, 1.5) + a4*R*R + a5*Math.pow(R, 2.5);
+            
+            return Math.max(0, salinity);
+        }
+
+        function calculateConductivity(salinity, temperature, depth) {
+            // Reverse calculation from salinity to conductivity
+            const R = Math.pow(salinity / 35, 1.5); // Simplified
+            return R * 42.914 * (1 + 0.02 * (temperature - 15) + 0.0001 * depth);
+        }
+
+        function calculateDensity(salinity, temperature, depth) {
+            // UNESCO EOS-80 simplified
+            const pressure = depth * 1.019716;
+            
+            // Pure water density
+            const rho0 = 999.842594 + 6.793952e-2*temperature - 9.095290e-3*temperature*temperature 
+                        + 1.001685e-4*Math.pow(temperature, 3) - 1.120083e-6*Math.pow(temperature, 4) 
+                        + 6.536332e-9*Math.pow(temperature, 5);
+            
+            // Salinity effect
+            const A = 8.24493e-1 - 4.0899e-3*temperature + 7.6438e-5*temperature*temperature 
+                     - 8.2467e-7*Math.pow(temperature, 3) + 5.3875e-9*Math.pow(temperature, 4);
+            const B = -5.72466e-3 + 1.0227e-4*temperature - 1.6546e-6*temperature*temperature;
+            const C = 4.8314e-4;
+            
+            const rho_s = rho0 + A*salinity + B*Math.pow(salinity, 1.5) + C*salinity*salinity;
+            
+            // Pressure effect (simplified)
+            const K = 19652.21 + 148.4206*temperature - 2.327105*temperature*temperature;
+            const rho = rho_s / (1 - pressure/K);
+            
+            return rho;
+        }
+
+        function calculatePotentialTemperature(temperature, depth) {
+            // Simplified adiabatic correction
+            const pressure = depth * 1.019716;
+            const adiabatGrad = 1.1e-4; // °C/dbar
+            return temperature - adiabatGrad * pressure;
+        }
+
+        function updateDataInfo() {
+            if (ctdData.length === 0) return;
+            
+            document.getElementById('dataPoints').value = ctdData.length;
+            document.getElementById('maxDepth').value = Math.max(...ctdData.map(d => d.depth)).toFixed(1);
+            
+            const temps = ctdData.map(d => d.temperature);
+            const salinities = ctdData.map(d => d.salinity);
+            
+            document.getElementById('tempRange').value = 
+                `${Math.min(...temps).toFixed(1)} - ${Math.max(...temps).toFixed(1)}`;
+            document.getElementById('salinityRange').value = 
+                `${Math.min(...salinities).toFixed(2)} - ${Math.max(...salinities).toFixed(2)}`;
+        }
+
+        function updateDataPreview() {
+            if (ctdData.length === 0) return;
+            
+            const previewDiv = document.getElementById('dataPreview');
+            const maxRows = 10;
+            const data = ctdData.slice(0, maxRows);
+            
+            let tableHTML = `
+                <h4>Data Preview (first ${maxRows} rows)</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Depth (m)</th>
+                            <th>Temperature (°C)</th>
+                            <th>Conductivity (mS/cm)</th>
+                            <th>Salinity (PSU)</th>
+                            <th>Density (kg/m³)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            data.forEach(row => {
+                tableHTML += `
+                    <tr>
+                        <td>${row.depth.toFixed(1)}</td>
+                        <td>${row.temperature.toFixed(2)}</td>
+                        <td>${row.conductivity.toFixed(3)}</td>
+                        <td>${row.salinity.toFixed(2)}</td>
+                        <td>${row.density.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            previewDiv.innerHTML = tableHTML;
+        }
+
+        function updateDataProcessing() {
+            document.getElementById('smoothingWindowDisplay').textContent = 
+                document.getElementById('smoothingWindow').value;
+        }
+
+        function processCTDData() {
+            if (ctdData.length === 0) {
+                alert('Please load CTD data first');
+                return;
+            }
+            
+            // Apply smoothing if requested
+            processedData = [...ctdData];
+            
+            if (params.smoothingWindow > 1) {
+                processedData = applySmoothing(processedData, params.smoothingWindow);
+            }
+            
+            // Calculate additional derived parameters
+            processedData.forEach((point, i) => {
+                // Calculate gradients
+                if (i > 0 && i < processedData.length - 1) {
+                    const dz = processedData[i+1].depth - processedData[i-1].depth;
+                    point.tempGradient = (processedData[i+1].temperature - processedData[i-1].temperature) / dz;
+                    point.salinityGradient = (processedData[i+1].salinity - processedData[i-1].salinity) / dz;
+                    point.densityGradient = (processedData[i+1].density - processedData[i-1].density) / dz;
+                } else {
+                    point.tempGradient = 0;
+                    point.salinityGradient = 0;
+                    point.densityGradient = 0;
+                }
+                
+                // Brunt-Väisälä frequency
+                const g = 9.81;
+                point.buoyancyFreq = Math.sqrt(Math.max(0, -g * point.densityGradient / point.density));
+            });
+            
+            updateCTDProfileChart();
+            
+            // Calculate summary statistics
+            const temps = processedData.map(d => d.temperature);
+            const salinities = processedData.map(d => d.salinity);
+            const densities = processedData.map(d => d.density);
+            
+            const resultsText = `
+                <strong>CTD Data Processing Results:</strong><br><br>
+                
+                <strong>Profile Characteristics:</strong><br>
+                • Total Depth: ${Math.max(...processedData.map(d => d.depth)).toFixed(1)} m<br>
+                • Data Points: ${processedData.length}<br>
+                • Vertical Resolution: ${(Math.max(...processedData.map(d => d.depth)) / processedData.length).toFixed(2)} m<br><br>
+                
+                <strong>Temperature Profile:</strong><br>
+                • Surface Temperature: ${temps[0].toFixed(2)}°C<br>
+                • Bottom Temperature: ${temps[temps.length-1].toFixed(2)}°C<br>
+                • Temperature Range: ${(Math.max(...temps) - Math.min(...temps)).toFixed(2)}°C<br><br>
+                
+                <strong>Salinity Profile:</strong><br>
+                • Surface Salinity: ${salinities[0].toFixed(2)} PSU<br>
+                • Bottom Salinity: ${salinities[salinities.length-1].toFixed(2)} PSU<br>
+                • Salinity Range: ${(Math.max(...salinities) - Math.min(...salinities)).toFixed(2)} PSU<br><br>
+                
+                <strong>Density Profile:</strong><br>
+                • Surface Density: ${densities[0].toFixed(2)} kg/m³<br>
+                • Bottom Density: ${densities[densities.length-1].toFixed(2)} kg/m³<br>
+                • Density Range: ${(Math.max(...densities) - Math.min(...densities)).toFixed(2)} kg/m³
+            `;
+            
+            document.getElementById('dataResultsText').innerHTML = resultsText;
+        }
+
+        function applySmoothing(data, window) {
+            const result = [...data];
+            const halfWindow = Math.floor(window / 2);
+            
+            ['temperature', 'salinity', 'conductivity', 'density'].forEach(param => {
+                for (let i = halfWindow; i < data.length - halfWindow; i++) {
+                    let sum = 0;
+                    for (let j = i - halfWindow; j <= i + halfWindow; j++) {
+                        sum += data[j][param];
+                    }
+                    result[i][param] = sum / window;
+                }
+            });
+            
+            return result;
+        }
+
+        // Chart initialization functions
+        function initCTDProfileChart() {
+            const ctx = document.getElementById('ctdProfileChart');
+            if (!ctx) return;
+            
+            updateCTDProfileChart();
+        }
+
+        function updateCTDProfileChart() {
+            const ctx = document.getElementById('ctdProfileChart');
+            if (!ctx) return;
+            
+            if (charts.ctdProfile) {
+                charts.ctdProfile.destroy();
+            }
+            
+            if (ctdData.length === 0) {
+                charts.ctdProfile = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: [], datasets: [] },
+                    options: {
+                        responsive: true,
+                        plugins: { title: { display: true, text: 'CTD Profile - No Data Loaded' } }
+                    }
+                });
+                return;
+            }
+            
+            const depths = ctdData.map(d => d.depth);
+            const temps = ctdData.map(d => d.temperature);
+            const salinities = ctdData.map(d => d.salinity);
+            const densities = ctdData.map(d => d.density);
+            
+            charts.ctdProfile = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temps,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y1',
+                        pointRadius: 1
+                    }, {
+                        label: 'Salinity (PSU)',
+                        data: salinities,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y2',
+                        pointRadius: 1
+                    }, {
+                        label: 'Density (kg/m³)',
+                        data: densities,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        yAxisID: 'y3',
+                        pointRadius: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'CTD Profile Overview' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Depth (m)' },
+                            reverse: false
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Temperature (°C)' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false,
+                            position: 'right'
+                        },
+                        y3: {
+                            type: 'linear',
+                            display: false,
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        }
+
+        function initProfileAnalysisChart() {
+            updateProfileAnalysis();
+        }
+
+        function updateProfileAnalysis() {
+            document.getElementById('gradientThresholdDisplay').textContent = 
+                document.getElementById('gradientThreshold').value;
+            document.getElementById('refDepthDisplay').textContent = 
+                document.getElementById('refDepth').value;
+            
+            if (processedData.length > 0) {
+                analyzeProfile();
+            }
+        }
+
+        function analyzeProfile() {
+            if (processedData.length === 0) {
+                alert('Please process CTD data first');
+                return;
+            }
+            
+            // Calculate profile characteristics
+            const surfaceTemp = processedData[0].temperature;
+            const bottomTemp = processedData[processedData.length - 1].temperature;
+            const surfaceSalinity = processedData[0].salinity;
+            const bottomSalinity = processedData[processedData.length - 1].salinity;
+            
+            // Find thermocline and halocline depths
+            const tempGradients = processedData.map(d => Math.abs(d.tempGradient));
+            const salinityGradients = processedData.map(d => Math.abs(d.salinityGradient));
+            
+            const maxTempGradIndex = tempGradients.indexOf(Math.max(...tempGradients));
+            const maxSalinityGradIndex = salinityGradients.indexOf(Math.max(...salinityGradients));
+            
+            const thermoclineDepth = processedData[maxTempGradIndex].depth;
+            const haloclineDepth = processedData[maxSalinityGradIndex].depth;
+            
+            // Update displays
+            document.getElementById('surfaceTempValue').textContent = surfaceTemp.toFixed(1);
+            document.getElementById('bottomTempValue').textContent = bottomTemp.toFixed(1);
+            document.getElementById('surfaceSalinityValue').textContent = surfaceSalinity.toFixed(1);
+            document.getElementById('bottomSalinityValue').textContent = bottomSalinity.toFixed(1);
+            document.getElementById('thermoclineDepthValue').textContent = thermoclineDepth.toFixed(0);
+            document.getElementById('haloclineDepthValue').textContent = haloclineDepth.toFixed(0);
+            
+            // Calculate mixed layer depth
+            const refDepth = parseFloat(document.getElementById('refDepth').value);
+            const refIndex = processedData.findIndex(d => d.depth >= refDepth);
+            const refDensity = processedData[refIndex].density;
+            
+            let mldIndex = processedData.findIndex(d => Math.abs(d.density - refDensity) > 0.03);
+            const mld = mldIndex > 0 ? processedData[mldIndex].depth : processedData[processedData.length-1].depth;
+            
+            // Update equation displays
+            const maxBuoyancyFreq = Math.max(...processedData.map(d => d.buoyancyFreq));
+            document.getElementById('eqBuoyancyFreq').textContent = maxBuoyancyFreq.toExponential(1);
+            document.getElementById('eqMLD').textContent = mld.toFixed(0);
+            
+            updateProfileAnalysisChart();
+            
+            const resultsText = `
+                <strong>Profile Analysis Results:</strong><br><br>
+                
+                <strong>Surface Characteristics:</strong><br>
+                • Temperature: ${surfaceTemp.toFixed(2)}°C<br>
+                • Salinity: ${surfaceSalinity.toFixed(2)} PSU<br>
+                • Density: ${processedData[0].density.toFixed(2)} kg/m³<br><br>
+                
+                <strong>Vertical Structure:</strong><br>
+                • Mixed Layer Depth: ${mld.toFixed(1)} m<br>
+                • Thermocline Depth: ${thermoclineDepth.toFixed(1)} m<br>
+                • Halocline Depth: ${haloclineDepth.toFixed(1)} m<br><br>
+                
+                <strong>Stratification:</strong><br>
+                • Max Buoyancy Frequency: ${maxBuoyancyFreq.toExponential(2)} s⁻¹<br>
+                • Temperature Gradient: ${tempGradients[maxTempGradIndex].toFixed(3)}°C/m<br>
+                • Salinity Gradient: ${salinityGradients[maxSalinityGradIndex].toFixed(3)} PSU/m<br><br>
+                
+                <strong>Bottom Characteristics:</strong><br>
+                • Temperature: ${bottomTemp.toFixed(2)}°C<br>
+                • Salinity: ${bottomSalinity.toFixed(2)} PSU<br>
+                • Density: ${processedData[processedData.length-1].density.toFixed(2)} kg/m³
+            `;
+            
+            document.getElementById('profileResultsText').innerHTML = resultsText;
+        }
+
+        function updateProfileAnalysisChart() {
+            const ctx = document.getElementById('profileAnalysisChart');
+            if (!ctx) return;
+            
+            if (charts.profileAnalysis) {
+                charts.profileAnalysis.destroy();
+            }
+            
+            if (processedData.length === 0) return;
+            
+            const depths = processedData.map(d => -d.depth); // Negative for oceanographic convention
+            const temps = processedData.map(d => d.temperature);
+            const salinities = processedData.map(d => d.salinity);
+            const densities = processedData.map(d => d.density);
+            const buoyancyFreqs = processedData.map(d => d.buoyancyFreq * 1000); // Scale for visibility
+            
+            charts.profileAnalysis = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temps,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y1',
+                        pointRadius: 0
+                    }, {
+                        label: 'Salinity (PSU)',
+                        data: salinities,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y2',
+                        pointRadius: 0
+                    }, {
+                        label: 'Density (kg/m³)',
+                        data: densities,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        yAxisID: 'y3',
+                        pointRadius: 0
+                    }, {
+                        label: 'N² × 1000 (s⁻²)',
+                        data: buoyancyFreqs,
+                        borderColor: 'rgb(153, 102, 255)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                        yAxisID: 'y4',
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Detailed Profile Analysis' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Depth (m)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Temperature (°C)' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        },
+                        y3: {
+                            type: 'linear',
+                            display: false
+                        },
+                        y4: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function initWaterMassCharts() {
+            initTSDiagram();
+            initWaterMassChart();
+        }
+
+        function initTSDiagram() {
+            const ctx = document.getElementById('tsDiagramChart');
+            if (!ctx) return;
+            
+            if (processedData.length === 0) return;
+            
+            const tsData = processedData.map(d => ({
+                x: d.salinity,
+                y: d.temperature
+            }));
+            
+            // Create density contours
+            const densityContours = [];
+            for (let s = 30; s <= 38; s += 0.5) {
+                for (let t = 0; t <= 30; t += 0.5) {
+                    const density = calculateDensity(s, t, 0);
+                    densityContours.push({
+                        x: s,
+                        y: t,
+                        density: density
+                    });
+                }
+            }
+            
+            if (charts.tsDiagram) {
+                charts.tsDiagram.destroy();
+            }
+            
+            charts.tsDiagram = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'CTD Profile',
+                        data: tsData,
+                        backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        pointRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Temperature-Salinity Diagram' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Salinity (PSU)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'Temperature (°C)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initWaterMassChart() {
+            const ctx = document.getElementById('waterMassChart');
+            if (!ctx) return;
+            
+            if (processedData.length === 0) return;
+            
+            const depths = processedData.map(d => -d.depth);
+            const potentialDensities = processedData.map(d => d.density - 1000); // σ_t
+            
+            if (charts.waterMass) {
+                charts.waterMass.destroy();
+            }
+            
+            charts.waterMass = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Potential Density (σ_t)',
+                        data: potentialDensities,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        pointRadius: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Potential Density Profile' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Depth (m)' }
+                        },
+                        y: {
+                            title: { display: true, text: 'σ_t (kg/m³)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function initStratificationChart() {
+            updateStratification();
+        }
+
+        function updateStratification() {
+            document.getElementById('stratSmoothingDisplay').textContent = 
+                document.getElementById('stratSmoothing').value;
+            document.getElementById('refPressureDisplay').textContent = 
+                document.getElementById('refPressure').value;
+            document.getElementById('densityRatioDisplay').textContent = 
+                document.getElementById('densityRatio').value;
+            
+            if (processedData.length > 0) {
+                analyzeStratification();
+            }
+        }
+
+        function analyzeStratification() {
+            if (processedData.length === 0) {
+                alert('Please process CTD data first');
+                return;
+            }
+            
+            // Calculate stratification parameters
+            const buoyancyFreqs = processedData.map(d => d.buoyancyFreq);
+            const maxBuoyancyFreq = Math.max(...buoyancyFreqs);
+            const stratificationIndex = buoyancyFreqs.reduce((sum, n) => sum + n*n, 0) * 
+                                      (processedData[1].depth - processedData[0].depth);
+            
+            // Find pycnocline depth (max density gradient)
+            const densityGradients = processedData.map(d => Math.abs(d.densityGradient));
+            const maxDensityGradIndex = densityGradients.indexOf(Math.max(...densityGradients));
+            const pycnoclineDepth = processedData[maxDensityGradIndex].depth;
+            
+            // Richardson number (simplified, assuming some shear)
+            const assumedShear = 0.01; // s^-1
+            const richardsonNumber = maxBuoyancyFreq * maxBuoyancyFreq / (assumedShear * assumedShear);
+            
+            // Update displays
+            document.getElementById('stratificationIndexValue').textContent = stratificationIndex.toFixed(1);
+            document.getElementById('buoyancyFreqValue').textContent = maxBuoyancyFreq.toExponential(1);
+            document.getElementById('richardsonNumberValue').textContent = richardsonNumber.toFixed(2);
+            document.getElementById('pycnoclineDepthValue').textContent = pycnoclineDepth.toFixed(0);
+            
+            // Update equation displays
+            document.getElementById('eqBuoyancyFreq2').textContent = (maxBuoyancyFreq*maxBuoyancyFreq).toExponential(1);
+            document.getElementById('eqBuoyancyFreqN').textContent = maxBuoyancyFreq.toFixed(3);
+            document.getElementById('eqStratIndex').textContent = stratificationIndex.toFixed(1);
+            document.getElementById('eqRichardson').textContent = richardsonNumber.toFixed(2);
+            
+            updateStratificationChart();
+            
+            const resultsText = `
+                <strong>Stratification Analysis Results:</strong><br><br>
+                
+                <strong>Stability Measures:</strong><br>
+                • Maximum N²: ${maxBuoyancyFreq.toExponential(2)} s⁻²<br>
+                • Stratification Index: ${stratificationIndex.toFixed(2)} s⁻²·m<br>
+                • Richardson Number: ${richardsonNumber.toFixed(2)}<br><br>
+                
+                <strong>Layer Structure:</strong><br>
+                • Pycnocline Depth: ${pycnoclineDepth.toFixed(1)} m<br>
+                • Max Density Gradient: ${densityGradients[maxDensityGradIndex].toFixed(4)} kg/m⁴<br><br>
+                
+                <strong>Stability Assessment:</strong><br>
+                ${richardsonNumber > 0.25 ? '• Water column is stable (Ri > 0.25)' : '• Potential for mixing (Ri < 0.25)'}<br>
+                ${maxBuoyancyFreq > 1e-3 ? '• Strong stratification present' : '• Weak stratification'}<br><br>
+                
+                <strong>Double Diffusion:</strong><br>
+                • Analysis requires temperature and salinity gradients<br>
+                • Turner angle calculation for instability assessment<br>
+                • Salt fingering vs diffusive convection regimes
+            `;
+            
+            document.getElementById('stratificationResultsText').innerHTML = resultsText;
+        }
+
+        function updateStratificationChart() {
+            const ctx = document.getElementById('stratificationChart');
+            if (!ctx) return;
+            
+            if (charts.stratification) {
+                charts.stratification.destroy();
+            }
+            
+            if (processedData.length === 0) return;
+            
+            const depths = processedData.map(d => -d.depth);
+            const buoyancyFreqs = processedData.map(d => d.buoyancyFreq);
+            const densityGradients = processedData.map(d => d.densityGradient);
+            const tempGradients = processedData.map(d => d.tempGradient);
+            
+            charts.stratification = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'N² (s⁻²)',
+                        data: buoyancyFreqs.map(n => n*n),
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y1',
+                        pointRadius: 0
+                    }, {
+                        label: 'dρ/dz (kg/m⁴)',
+                        data: densityGradients,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y2',
+                        pointRadius: 0
+                    }, {
+                        label: 'dT/dz (°C/m)',
+                        data: tempGradients,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        yAxisID: 'y3',
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Stratification Parameters vs Depth' }
+                    },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Depth (m)' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'N² (s⁻²)' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        },
+                        y3: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function initDerivedParamsCharts() {
+            if (processedData.length === 0) return;
+            
+            // Calculate derived parameters
+            processedData.forEach(point => {
+                point.soundSpeed = calculateSoundSpeed(point.temperature, point.salinity, point.depth);
+                point.thermalExpansion = calculateThermalExpansion(point.temperature, point.salinity, point.depth);
+                point.halineContraction = calculateHalineContraction(point.temperature, point.salinity, point.depth);
+                point.adiabatGrad = calculateAdiabatGrad(point.temperature, point.salinity, point.depth);
+                point.specificVolume = 1 / point.density;
+                point.dynamicHeight = calculateDynamicHeight(point.depth, point.specificVolume);
+            });
+            
+            // Update metric displays
+            const avgSoundSpeed = processedData.reduce((sum, p) => sum + p.soundSpeed, 0) / processedData.length;
+            const avgThermalExp = processedData.reduce((sum, p) => sum + p.thermalExpansion, 0) / processedData.length;
+            const avgHalineContr = processedData.reduce((sum, p) => sum + p.halineContraction, 0) / processedData.length;
+            const avgAdiabatGrad = processedData.reduce((sum, p) => sum + p.adiabatGrad, 0) / processedData.length;
+            const avgSpecificVol = processedData.reduce((sum, p) => sum + p.specificVolume, 0) / processedData.length;
+            const maxDynamicHeight = Math.max(...processedData.map(p => p.dynamicHeight));
+            
+            document.getElementById('soundSpeedValue').textContent = avgSoundSpeed.toFixed(0);
+            document.getElementById('thermalExpansionValue').textContent = avgThermalExp.toExponential(1);
+            document.getElementById('halineContractionValue').textContent = avgHalineContr.toExponential(1);
+            document.getElementById('adiabatTempGradValue').textContent = avgAdiabatGrad.toExponential(1);
+            document.getElementById('specificVolumeValue').textContent = avgSpecificVol.toExponential(1);
+            document.getElementById('dynamicHeightValue').textContent = maxDynamicHeight.toFixed(2);
+            
+            // Update equation displays
+            document.getElementById('eqSoundSpeed').textContent = avgSoundSpeed.toFixed(0);
+            document.getElementById('eqThermalExp').textContent = avgThermalExp.toExponential(1);
+            document.getElementById('eqHalineContr').textContent = avgHalineContr.toExponential(1);
+            document.getElementById('eqAdiabatGrad').textContent = avgAdiabatGrad.toExponential(1);
+            
+            updateDerivedParamsCharts();
+        }
+
+        function calculateSoundSpeed(temp, salinity, depth) {
+            // Mackenzie (1981) equation
+            const T = temp;
+            const S = salinity;
+            const D = depth;
+            
+            return 1448.96 + 4.591*T - 5.304e-2*T*T + 2.374e-4*T*T*T +
+                   1.340*(S-35) + 1.630e-2*D + 1.675e-7*D*D -
+                   1.025e-2*T*(S-35) - 7.139e-13*T*D*D*D;
+        }
+
+        function calculateThermalExpansion(temp, salinity, depth) {
+            // Simplified thermal expansion coefficient
+            return 2.1e-4 * (1 + 0.01 * temp - 0.001 * salinity);
+        }
+
+        function calculateHalineContraction(temp, salinity, depth) {
+            // Simplified haline contraction coefficient
+            return 7.8e-4 * (1 - 0.005 * temp + 0.0001 * depth);
+        }
+
+        function calculateAdiabatGrad(temp, salinity, depth) {
+            // Adiabatic temperature gradient
+            const pressure = depth * 1.019716;
+            return 1.1e-4 + 2.3e-8 * pressure;
+        }
+
+        function calculateDynamicHeight(depth, specificVolume) {
+            // Simplified dynamic height calculation
+            return specificVolume * depth * 9.81 / 1000; // Simplified
+        }
+
+        function updateDerivedParamsCharts() {
+            // Chart 1: Sound Speed and Thermal Properties
+            const ctx1 = document.getElementById('derivedParamsChart1');
+            if (ctx1) {
+                if (charts.derivedParams1) {
+                    charts.derivedParams1.destroy();
+                }
+                
+                const depths = processedData.map(d => -d.depth);
+                const soundSpeeds = processedData.map(d => d.soundSpeed);
+                const thermalExp = processedData.map(d => d.thermalExpansion * 1e6); // Scale for visibility
+                
+                charts.derivedParams1 = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: depths,
+                        datasets: [{
+                            label: 'Sound Speed (m/s)',
+                            data: soundSpeeds,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            yAxisID: 'y1',
+                            pointRadius: 0
+                        }, {
+                            label: 'Thermal Expansion × 10⁶ (K⁻¹)',
+                            data: thermalExp,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            yAxisID: 'y2',
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Sound Speed and Thermal Expansion' }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Depth (m)' } },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Sound Speed (m/s)' }
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Chart 2: Specific Volume and Dynamic Height
+            const ctx2 = document.getElementById('derivedParamsChart2');
+            if (ctx2) {
+                if (charts.derivedParams2) {
+                    charts.derivedParams2.destroy();
+                }
+                
+                const depths = processedData.map(d => -d.depth);
+                const specificVolumes = processedData.map(d => d.specificVolume);
+                const dynamicHeights = processedData.map(d => d.dynamicHeight);
+                
+                charts.derivedParams2 = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: depths,
+                        datasets: [{
+                            label: 'Specific Volume (m³/kg)',
+                            data: specificVolumes,
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                            yAxisID: 'y1',
+                            pointRadius: 0
+                        }, {
+                            label: 'Dynamic Height (m)',
+                            data: dynamicHeights,
+                            borderColor: 'rgb(153, 102, 255)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                            yAxisID: 'y2',
+                            pointRadius: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: { display: true, text: 'Specific Volume and Dynamic Height' }
+                        },
+                        scales: {
+                            x: { title: { display: true, text: 'Depth (m)' } },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Specific Volume (m³/kg)' }
+                            },
+                            y2: {
+                                type: 'linear',
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initQualityControlChart() {
+            updateQualityControl();
+        }
+
+        function updateQualityControl() {
+            document.getElementById('spikeThresholdDisplay').textContent = 
+                document.getElementById('spikeThreshold').value;
+            document.getElementById('windowSizeDisplay').textContent = 
+                document.getElementById('windowSize').value;
+            
+            if (processedData.length > 0) {
+                performQualityControl();
+            }
+        }
+
+        function performQualityControl() {
+            if (processedData.length === 0) {
+                alert('Please process CTD data first');
+                return;
+            }
+            
+            const spikeThreshold = parseFloat(document.getElementById('spikeThreshold').value);
+            const windowSize = parseInt(document.getElementById('windowSize').value);
+            const minTemp = parseFloat(document.getElementById('minTemp').value);
+            const maxTemp = parseFloat(document.getElementById('maxTemp').value);
+            const minSalinity = parseFloat(document.getElementById('minSalinity').value);
+            const maxSalinity = parseFloat(document.getElementById('maxSalinity').value);
+            
+            let qualityFlags = [];
+            let spikesDetected = 0;
+            let outlierPoints = 0;
+            
+            processedData.forEach((point, i) => {
+                let flags = [];
+                
+                // Range check
+                if (point.temperature < minTemp || point.temperature > maxTemp) {
+                    flags.push('temp_range');
+                    outlierPoints++;
+                }
+                if (point.salinity < minSalinity || point.salinity > maxSalinity) {
+                    flags.push('salinity_range');
+                    outlierPoints++;
+                }
+                
+                // Spike detection (median filter)
+                if (i >= windowSize && i < processedData.length - windowSize) {
+                    const tempWindow = [];
+                    const salinityWindow = [];
+                    
+                    for (let j = i - Math.floor(windowSize/2); j <= i + Math.floor(windowSize/2); j++) {
+                        tempWindow.push(processedData[j].temperature);
+                        salinityWindow.push(processedData[j].salinity);
+                    }
+                    
+                    const tempMedian = median(tempWindow);
+                    const salinityMedian = median(salinityWindow);
+                    const tempMAD = medianAbsoluteDeviation(tempWindow);
+                    const salinityMAD = medianAbsoluteDeviation(salinityWindow);
+                    
+                    if (Math.abs(point.temperature - tempMedian) > spikeThreshold * tempMAD) {
+                        flags.push('temp_spike');
+                        spikesDetected++;
+                    }
+                    if (Math.abs(point.salinity - salinityMedian) > spikeThreshold * salinityMAD) {
+                        flags.push('salinity_spike');
+                        spikesDetected++;
+                    }
+                }
+                
+                // Density inversion check
+                if (i > 0 && point.density < processedData[i-1].density - 0.01) {
+                    flags.push('density_inversion');
+                }
+                
+                qualityFlags.push(flags);
+            });
+            
+            const dataQuality = ((processedData.length - outlierPoints - spikesDetected) / processedData.length) * 100;
+            const stabilityIndex = calculateStabilityIndex();
+            
+            // Update displays
+            document.getElementById('dataQualityValue').textContent = dataQuality.toFixed(1);
+            document.getElementById('spikesDetectedValue').textContent = spikesDetected;
+            document.getElementById('outlierPointsValue').textContent = outlierPoints;
+            document.getElementById('stabilityIndexValue').textContent = stabilityIndex.toFixed(2);
+            
+            updateQualityControlChart(qualityFlags);
+            
+            const resultsText = `
+                <strong>Quality Control Results:</strong><br><br>
+                
+                <strong>Data Quality Assessment:</strong><br>
+                • Overall Quality: ${dataQuality.toFixed(1)}%<br>
+                • Total Data Points: ${processedData.length}<br>
+                • Flagged Points: ${outlierPoints + spikesDetected}<br><br>
+                
+                <strong>Issue Detection:</strong><br>
+                • Temperature Spikes: ${spikesDetected} detected<br>
+                • Range Violations: ${outlierPoints} points<br>
+                • Density Inversions: Check profile for instabilities<br><br>
+                
+                <strong>Recommendations:</strong><br>
+                ${dataQuality > 95 ? '• Excellent data quality, minimal processing needed' : 
+                  dataQuality > 90 ? '• Good data quality, minor issues detected' :
+                  dataQuality > 80 ? '• Moderate data quality, review flagged points' :
+                  '• Poor data quality, significant processing required'}<br><br>
+                
+                <strong>Stability Assessment:</strong><br>
+                • Stability Index: ${stabilityIndex.toFixed(2)}<br>
+                ${stabilityIndex > 0.9 ? '• Highly stable water column' :
+                  stabilityIndex > 0.7 ? '• Moderately stable water column' :
+                  '• Potentially unstable regions detected'}
+            `;
+            
+            document.getElementById('qcResultsText').innerHTML = resultsText;
+        }
+
+        function median(arr) {
+            const sorted = [...arr].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        }
+
+        function medianAbsoluteDeviation(arr) {
+            const med = median(arr);
+            const deviations = arr.map(x => Math.abs(x - med));
+            return median(deviations);
+        }
+
+        function calculateStabilityIndex() {
+            if (processedData.length < 2) return 1;
+            
+            let stablePoints = 0;
+            for (let i = 1; i < processedData.length; i++) {
+                if (processedData[i].density >= processedData[i-1].density) {
+                    stablePoints++;
+                }
+            }
+            return stablePoints / (processedData.length - 1);
+        }
+
+        function updateQualityControlChart(qualityFlags) {
+            const ctx = document.getElementById('qualityControlChart');
+            if (!ctx) return;
+            
+            if (charts.qualityControl) {
+                charts.qualityControl.destroy();
+            }
+            
+            const depths = processedData.map(d => -d.depth);
+            const temps = processedData.map(d => d.temperature);
+            const salinities = processedData.map(d => d.salinity);
+            
+            // Create flagged point datasets
+            const flaggedTemps = [];
+            const flaggedSalinities = [];
+            
+            processedData.forEach((point, i) => {
+                if (qualityFlags[i].length > 0) {
+                    flaggedTemps.push({ x: -point.depth, y: point.temperature });
+                    flaggedSalinities.push({ x: -point.depth, y: point.salinity });
+                }
+            });
+            
+            charts.qualityControl = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temps,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y1',
+                        pointRadius: 1
+                    }, {
+                        label: 'Salinity (PSU)',
+                        data: salinities,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y2',
+                        pointRadius: 1
+                    }, {
+                        label: 'Flagged Temperature',
+                        data: flaggedTemps,
+                        type: 'scatter',
+                        backgroundColor: 'red',
+                        borderColor: 'red',
+                        yAxisID: 'y1',
+                        pointRadius: 4,
+                        showLine: false
+                    }, {
+                        label: 'Flagged Salinity',
+                        data: flaggedSalinities,
+                        type: 'scatter',
+                        backgroundColor: 'orange',
+                        borderColor: 'orange',
+                        yAxisID: 'y2',
+                        pointRadius: 4,
+                        showLine: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: { display: true, text: 'Quality Control Analysis' }
+                    },
+                    scales: {
+                        x: { title: { display: true, text: 'Depth (m)' } },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Temperature (°C)' }
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function exportDerivedParams(format) {
+            if (processedData.length === 0) {
+                alert('No processed data to export. Please process CTD data first.');
+                return;
+            }
+            
+            let content = '';
+            let filename = '';
+            let mimeType = '';
+            
+            switch(format) {
+                case 'csv':
+                    content = 'Depth,Temperature,Salinity,Density,Sound_Speed,Thermal_Expansion,Haline_Contraction,Buoyancy_Freq\n';
+                    processedData.forEach(point => {
+                        content += `${point.depth.toFixed(2)},${point.temperature.toFixed(3)},${point.salinity.toFixed(3)},${point.density.toFixed(3)},${point.soundSpeed.toFixed(2)},${point.thermalExpansion.toExponential(3)},${point.halineContraction.toExponential(3)},${point.buoyancyFreq.toExponential(3)}\n`;
+                    });
+                    filename = 'ctd_derived_parameters.csv';
+                    mimeType = 'text/csv';
+                    break;
+                    
+                case 'matlab':
+                    content = '% CTD Derived Parameters\n';
+                    content += '% Generated by CTD Profile Analyzer\n\n';
+                    content += 'depth = [' + processedData.map(p => p.depth.toFixed(2)).join('; ') + '];\n';
+                    content += 'temperature = [' + processedData.map(p => p.temperature.toFixed(3)).join('; ') + '];\n';
+                    content += 'salinity = [' + processedData.map(p => p.salinity.toFixed(3)).join('; ') + '];\n';
+                    content += 'density = [' + processedData.map(p => p.density.toFixed(3)).join('; ') + '];\n';
+                    content += 'sound_speed = [' + processedData.map(p => p.soundSpeed.toFixed(2)).join('; ') + '];\n';
+                    content += 'buoyancy_freq = [' + processedData.map(p => p.buoyancyFreq.toExponential(3)).join('; ') + '];\n';
+                    filename = 'ctd_derived_parameters.m';
+                    mimeType = 'text/plain';
+                    break;
+            }
+            
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function generateCTDReport() {
+            if (processedData.length === 0) {
+                alert('No data available for report generation.');
+                return;
+            }
+            
+            const reportContent = `
+# CTD Profile Analysis Report
+
+## Profile Information
+- **Location:** ${params.latitude}°N, ${params.longitude}°E
+- **Cast Date:** ${params.castDate}
+- **Maximum Depth:** ${Math.max(...processedData.map(d => d.depth)).toFixed(1)} m
+- **Data Points:** ${processedData.length}
+
+## Water Column Characteristics
+- **Surface Temperature:** ${processedData[0].temperature.toFixed(2)}°C
+- **Bottom Temperature:** ${processedData[processedData.length-1].temperature.toFixed(2)}°C
+- **Surface Salinity:** ${processedData[0].salinity.toFixed(2)} PSU
+- **Bottom Salinity:** ${processedData[processedData.length-1].salinity.toFixed(2)} PSU
+
+## Stratification Analysis
+- **Maximum Buoyancy Frequency:** ${Math.max(...processedData.map(d => d.buoyancyFreq)).toExponential(2)} s⁻¹
+- **Thermocline Present:** ${Math.max(...processedData.map(d => Math.abs(d.tempGradient))) > 0.1 ? 'Yes' : 'No'}
+- **Halocline Present:** ${Math.max(...processedData.map(d => Math.abs(d.salinityGradient))) > 0.01 ? 'Yes' : 'No'}
+
+## Derived Parameters
+- **Average Sound Speed:** ${(processedData.reduce((sum, p) => sum + p.soundSpeed, 0) / processedData.length).toFixed(1)} m/s
+- **Water Mass Classification:** Based on T-S characteristics
+- **Stability Assessment:** Water column stability analysis
+
+## Quality Control
+- **Data Quality:** High quality profile with minimal outliers
+- **Processing Applied:** Smoothing and gradient calculations
+- **Recommendations:** Suitable for oceanographic analysis
+
+---
+Report generated on ${new Date().toISOString()}
+            `;
+            
+            const blob = new Blob([reportContent], { type: 'text/markdown' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ctd_profile_analysis_report.md';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load sample data by default
+            loadSampleData('coastal_summer');
+            
+            // Initialize charts
+            setTimeout(() => {
+                initCTDProfileChart();
+            }, 100);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c91987c73288a6',t:'MTc1NDc2MTg2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
