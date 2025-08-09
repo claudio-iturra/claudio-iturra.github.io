@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chilean Coastal Ocean Circulation - Interactive Scheme</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #87CEEB 100%);
+            color: white;
+            min-height: 100vh;
+            overflow-x: auto;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #87CEEB;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-scheme {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .circulation-canvas {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+            min-height: 600px;
+            overflow: hidden;
+        }
+        
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+        
+        .control-group {
+            margin-bottom: 20px;
+        }
+        
+        .control-group h4 {
+            color: #87CEEB;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+        
+        .slider-container {
+            margin-bottom: 15px;
+        }
+        
+        .slider-container label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #B0E0E6;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .value-display {
+            font-size: 0.8rem;
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .season-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .season-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+        }
+        
+        .season-btn.active {
+            background: rgba(135, 206, 235, 0.4);
+            transform: scale(1.05);
+        }
+        
+        .legend {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px;
+            border-radius: 10px;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 0.8rem;
+            color: white;
+            max-width: 200px;
+        }
+        
+        .legend h4 {
+            color: #87CEEB;
+            margin-bottom: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+        
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .parameter-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .parameter-card h3 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .impact-indicator {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+        }
+        
+        .impact-level {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .impact-high { background: #ff4444; }
+        .impact-medium { background: #ffaa00; }
+        .impact-low { background: #44ff44; }
+        
+        .equation-display {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            border-left: 3px solid #4CAF50;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-scheme {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-panel {
+                order: -1;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        /* Animation classes */
+        .current-arrow {
+            stroke-width: 3;
+            stroke-dasharray: 10, 5;
+            animation: flow 2s linear infinite;
+        }
+        
+        .upwelling-zone {
+            fill: rgba(0, 255, 255, 0.3);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .wind-arrow {
+            stroke-width: 4;
+            animation: windFlow 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes flow {
+            0% { stroke-dashoffset: 0; }
+            100% { stroke-dashoffset: 15; }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+        
+        @keyframes windFlow {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Chilean Coastal Ocean Circulation</h1>
+            <p>Interactive scheme showing circulation patterns and oceanographic parameters for central-south Chile (100m depth) by Claudio Iturra</p>
+            <p><strong>Location:</strong> 35°S - 40°S | <strong>Humboldt Current System</strong></p>
+        </div>
+        
+        <div class="main-scheme">
+            <div class="circulation-canvas">
+                <svg id="circulationSVG" width="100%" height="600" viewBox="0 0 800 600">
+                    <!-- Background gradient (ocean depth) -->
+                    <defs>
+                        <linearGradient id="oceanGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                            <stop offset="0%" style="stop-color:#87CEEB;stop-opacity:1" />
+                            <stop offset="30%" style="stop-color:#4682B4;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#191970;stop-opacity:1" />
+                        </linearGradient>
+                        
+                        <linearGradient id="coastGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" style="stop-color:#8B4513;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#DEB887;stop-opacity:1" />
+                        </linearGradient>
+                        
+                        <!-- Arrow markers -->
+                        <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                            <polygon points="0 0, 10 3.5, 0 7" fill="#ff6b6b" />
+                        </marker>
+                        
+                        <marker id="windArrow" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+                            <polygon points="0 0, 12 4, 0 8" fill="#4CAF50" />
+                        </marker>
+                        
+                        <marker id="currentArrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+                            <polygon points="0 0, 8 3, 0 6" fill="#2196F3" />
+                        </marker>
+                    </defs>
+                    
+                    <!-- Ocean background -->
+                    <rect x="150" y="0" width="650" height="600" fill="url(#oceanGradient)" />
+                    
+                    <!-- Coastline -->
+                    <path d="M 150 0 L 150 600" stroke="#8B4513" stroke-width="8" />
+                    <rect x="0" y="0" width="150" height="600" fill="url(#coastGradient)" />
+                    
+                    <!-- Depth contours -->
+                    <g id="depthContours">
+                        <line x1="200" y1="0" x2="200" y2="600" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="5,5" />
+                        <text x="205" y="20" fill="white" font-size="12">20m</text>
+                        
+                        <line x1="300" y1="0" x2="300" y2="600" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-dasharray="5,5" />
+                        <text x="305" y="20" fill="white" font-size="12">50m</text>
+                        
+                        <line x1="450" y1="0" x2="450" y2="600" stroke="rgba(255,255,255,0.4)" stroke-width="2" stroke-dasharray="3,3" />
+                        <text x="455" y="20" fill="white" font-size="14" font-weight="bold">100m</text>
+                        
+                        <line x1="650" y1="0" x2="650" y2="600" stroke="rgba(255,255,255,0.2)" stroke-width="1" stroke-dasharray="8,8" />
+                        <text x="655" y="20" fill="white" font-size="12">200m</text>
+                    </g>
+                    
+                    <!-- Wind vectors -->
+                    <g id="windVectors">
+                        <!-- Southerly winds (typical for upwelling) -->
+                        <line x1="100" y1="100" x2="100" y2="200" stroke="#4CAF50" stroke-width="4" marker-end="url(#windArrow)" class="wind-arrow" />
+                        <line x1="100" y1="250" x2="100" y2="350" stroke="#4CAF50" stroke-width="4" marker-end="url(#windArrow)" class="wind-arrow" />
+                        <line x1="100" y1="400" x2="100" y2="500" stroke="#4CAF50" stroke-width="4" marker-end="url(#windArrow)" class="wind-arrow" />
+                        <text x="20" y="95" fill="#4CAF50" font-size="12" font-weight="bold">Southerly Winds</text>
+                    </g>
+                    
+                    <!-- Upwelling zones -->
+                    <g id="upwellingZones">
+                        <ellipse cx="225" cy="150" rx="40" ry="80" class="upwelling-zone" />
+                        <ellipse cx="225" cy="350" rx="40" ry="80" class="upwelling-zone" />
+                        <ellipse cx="225" cy="450" rx="40" ry="60" class="upwelling-zone" />
+                        <text x="180" y="140" fill="#00FFFF" font-size="10" font-weight="bold">Upwelling</text>
+                    </g>
+                    
+                    <!-- Surface currents (Humboldt Current) -->
+                    <g id="surfaceCurrents">
+                        <!-- Northward flowing Humboldt Current -->
+                        <path d="M 500 580 Q 520 400 500 200 Q 480 100 500 20" stroke="#2196F3" stroke-width="6" 
+                              fill="none" marker-end="url(#currentArrow)" class="current-arrow" />
+                        <text x="520" y="300" fill="#2196F3" font-size="12" font-weight="bold" transform="rotate(-90 520 300)">Humboldt Current</text>
+                        
+                        <!-- Coastal jet (upwelling-driven) -->
+                        <path d="M 180 580 L 180 20" stroke="#ff6b6b" stroke-width="4" 
+                              fill="none" marker-end="url(#arrowhead)" class="current-arrow" />
+                        <text x="185" y="300" fill="#ff6b6b" font-size="10" font-weight="bold" transform="rotate(-90 185 300)">Coastal Jet</text>
+                    </g>
+                    
+                    <!-- Ekman transport arrows -->
+                    <g id="ekmanTransport">
+                        <line x1="180" y1="150" x2="280" y2="150" stroke="#FFD700" stroke-width="3" marker-end="url(#arrowhead)" />
+                        <line x1="180" y1="250" x2="280" y2="250" stroke="#FFD700" stroke-width="3" marker-end="url(#arrowhead)" />
+                        <line x1="180" y1="350" x2="280" y2="350" stroke="#FFD700" stroke-width="3" marker-end="url(#arrowhead)" />
+                        <text x="200" y="140" fill="#FFD700" font-size="10">Ekman Transport</text>
+                    </g>
+                    
+                    <!-- Subsurface return flow -->
+                    <g id="returnFlow">
+                        <path d="M 350 200 Q 300 250 350 300 Q 400 350 350 400" stroke="#9C27B0" stroke-width="3" 
+                              fill="none" stroke-dasharray="8,4" />
+                        <text x="320" y="320" fill="#9C27B0" font-size="10">Return Flow</text>
+                    </g>
+                    
+                    <!-- Temperature/density fronts -->
+                    <g id="fronts">
+                        <path d="M 300 100 Q 350 150 300 200 Q 250 250 300 300 Q 350 350 300 400 Q 250 450 300 500" 
+                              stroke="#FF4500" stroke-width="2" fill="none" stroke-dasharray="6,6" />
+                        <text x="260" y="95" fill="#FF4500" font-size="10">Thermal Front</text>
+                    </g>
+                    
+                    <!-- Internal waves -->
+                    <g id="internalWaves">
+                        <path d="M 400 300 Q 420 280 440 300 Q 460 320 480 300 Q 500 280 520 300" 
+                              stroke="#00CED1" stroke-width="2" fill="none" />
+                        <path d="M 400 350 Q 420 330 440 350 Q 460 370 480 350 Q 500 330 520 350" 
+                              stroke="#00CED1" stroke-width="2" fill="none" />
+                        <text x="430" y="275" fill="#00CED1" font-size="10">Internal Waves</text>
+                    </g>
+                    
+                    <!-- Geographic labels -->
+                    <text x="50" y="50" fill="white" font-size="14" font-weight="bold">LAND</text>
+                    <text x="50" y="70" fill="white" font-size="12">Central-South Chile</text>
+                    <text x="600" y="50" fill="white" font-size="14" font-weight="bold">PACIFIC OCEAN</text>
+                    
+                    <!-- Coordinate indicators -->
+                    <text x="10" y="100" fill="white" font-size="10">35°S</text>
+                    <text x="10" y="300" fill="white" font-size="10">37°S</text>
+                    <text x="10" y="500" fill="white" font-size="10">40°S</text>
+                </svg>
+                
+                <div class="legend">
+                    <h4>Legend</h4>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #4CAF50;"></div>
+                        <span>Wind Stress</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #2196F3;"></div>
+                        <span>Humboldt Current</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #ff6b6b;"></div>
+                        <span>Coastal Jet</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FFD700;"></div>
+                        <span>Ekman Transport</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #00FFFF;"></div>
+                        <span>Upwelling Zones</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #9C27B0;"></div>
+                        <span>Return Flow</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #FF4500;"></div>
+                        <span>Thermal Fronts</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h4>🌍 Season</h4>
+                    <div class="season-selector">
+                        <button class="season-btn active" onclick="setSeason('summer')">Summer</button>
+                        <button class="season-btn" onclick="setSeason('winter')">Winter</button>
+                        <button class="season-btn" onclick="setSeason('spring')">Spring</button>
+                        <button class="season-btn" onclick="setSeason('autumn')">Autumn</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>🌬️ Wind Parameters</h4>
+                    <div class="slider-container">
+                        <label>Wind Speed (m/s): <span class="value-display" id="windSpeedValue">8.0</span></label>
+                        <input type="range" class="slider" id="windSpeed" min="0" max="15" value="8" step="0.5" oninput="updateParameter('windSpeed')">
+                    </div>
+                    <div class="slider-container">
+                        <label>Wind Direction (°): <span class="value-display" id="windDirValue">180</span></label>
+                        <input type="range" class="slider" id="windDir" min="0" max="360" value="180" step="10" oninput="updateParameter('windDir')">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>🌊 Ocean Parameters</h4>
+                    <div class="slider-container">
+                        <label>Stratification (N²×10⁴): <span class="value-display" id="stratValue">5.0</span></label>
+                        <input type="range" class="slider" id="stratification" min="0" max="10" value="5" step="0.5" oninput="updateParameter('stratification')">
+                    </div>
+                    <div class="slider-container">
+                        <label>Tidal Range (m): <span class="value-display" id="tidalValue">1.5</span></label>
+                        <input type="range" class="slider" id="tidalRange" min="0.5" max="4" value="1.5" step="0.1" oninput="updateParameter('tidalRange')">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h4>🌡️ Temperature</h4>
+                    <div class="slider-container">
+                        <label>Surface Temp (°C): <span class="value-display" id="surfTempValue">16</span></label>
+                        <input type="range" class="slider" id="surfTemp" min="10" max="22" value="16" step="0.5" oninput="updateParameter('surfTemp')">
+                    </div>
+                    <div class="slider-container">
+                        <label>Thermocline Depth (m): <span class="value-display" id="thermoDepthValue">30</span></label>
+                        <input type="range" class="slider" id="thermoDepth" min="10" max="80" value="30" step="5" oninput="updateParameter('thermoDepth')">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="parameters-grid">
+            <div class="parameter-card">
+                <h3>🌬️ Wind Stress Effects</h3>
+                <div class="impact-indicator">
+                    <span>Upwelling Intensity</span>
+                    <span class="impact-level impact-high" id="upwellingImpact">HIGH</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Coastal Jet Strength</span>
+                    <span class="impact-level impact-high" id="coastalJetImpact">HIGH</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Ekman Transport</span>
+                    <span class="impact-level impact-high" id="ekmanImpact">HIGH</span>
+                </div>
+                <div class="equation-display">
+                    τ = ρₐ × Cᴅ × |U₁₀|² = <span id="windStressValue">0.096</span> N/m²<br>
+                    Ekman Transport = τ/(ρf) = <span id="ekmanTransportValue">1.2</span> m²/s
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>🌊 Stratification Impact</h3>
+                <div class="impact-indicator">
+                    <span>Vertical Mixing</span>
+                    <span class="impact-level impact-medium" id="mixingImpact">MEDIUM</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Internal Wave Activity</span>
+                    <span class="impact-level impact-high" id="internalWaveImpact">HIGH</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Nutrient Transport</span>
+                    <span class="impact-level impact-medium" id="nutrientImpact">MEDIUM</span>
+                </div>
+                <div class="equation-display">
+                    N² = -(g/ρ₀)(∂ρ/∂z) = <span id="stratificationValue">5.0×10⁻⁴</span> s⁻²<br>
+                    Ri = N²/(∂u/∂z)² = <span id="richardsonValue">2.5</span>
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>🌀 Coriolis & Rotation</h3>
+                <div class="impact-indicator">
+                    <span>Geostrophic Balance</span>
+                    <span class="impact-level impact-high" id="geostrophicImpact">HIGH</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Rossby Radius</span>
+                    <span class="impact-level impact-medium" id="rossbyImpact">MEDIUM</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Inertial Oscillations</span>
+                    <span class="impact-level impact-low" id="inertialImpact">LOW</span>
+                </div>
+                <div class="equation-display">
+                    f = 2Ω sin(φ) = <span id="coriolisValue">-8.7×10⁻⁵</span> s⁻¹<br>
+                    Rᵢ = NH/f = <span id="rossbyRadiusValue">35</span> km
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>🌡️ Temperature Gradients</h3>
+                <div class="impact-indicator">
+                    <span>Thermal Wind</span>
+                    <span class="impact-level impact-medium" id="thermalWindImpact">MEDIUM</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Density Fronts</span>
+                    <span class="impact-level impact-high" id="densityFrontImpact">HIGH</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Baroclinic Instability</span>
+                    <span class="impact-level impact-low" id="baroclinicImpact">LOW</span>
+                </div>
+                <div class="equation-display">
+                    ∂v/∂z = -(g/ρ₀f)(∂ρ/∂x) = <span id="thermalWindValue">2.3×10⁻³</span> s⁻¹<br>
+                    ΔT = <span id="tempGradientValue">6</span>°C over 100m
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>🌊 Tidal Effects</h3>
+                <div class="impact-indicator">
+                    <span>Tidal Mixing</span>
+                    <span class="impact-level impact-low" id="tidalMixingImpact">LOW</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Internal Tides</span>
+                    <span class="impact-level impact-medium" id="internalTideImpact">MEDIUM</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Residual Circulation</span>
+                    <span class="impact-level impact-low" id="residualImpact">LOW</span>
+                </div>
+                <div class="equation-display">
+                    U_tidal = <span id="tidalVelocityValue">0.15</span> m/s<br>
+                    Excursion = U/ω = <span id="tidalExcursionValue">1.2</span> km
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>🌊 Humboldt Current System</h3>
+                <div class="impact-indicator">
+                    <span>Alongshore Transport</span>
+                    <span class="impact-level impact-high" id="alongshoreImpact">HIGH</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Cross-shelf Exchange</span>
+                    <span class="impact-level impact-medium" id="crossShelfImpact">MEDIUM</span>
+                </div>
+                <div class="impact-indicator">
+                    <span>Nutrient Supply</span>
+                    <span class="impact-level impact-high" id="nutrientSupplyImpact">HIGH</span>
+                </div>
+                <div class="equation-display">
+                    V_humboldt = <span id="humboldtVelocityValue">0.25</span> m/s northward<br>
+                    Transport = <span id="humboldtTransportValue">25</span> Sv
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentSeason = 'summer';
+        
+        // Parameter values
+        let parameters = {
+            windSpeed: 8.0,
+            windDir: 180,
+            stratification: 5.0,
+            tidalRange: 1.5,
+            surfTemp: 16,
+            thermoDepth: 30
+        };
+        
+        // Chilean coast specific constants
+        const LATITUDE = -37; // Central-south Chile
+        const CORIOLIS_F = 2 * 7.27e-5 * Math.sin(LATITUDE * Math.PI / 180);
+        const RHO_AIR = 1.225;
+        const RHO_WATER = 1025;
+        const DRAG_COEFF = 0.0015;
+        
+        function updateParameter(paramName) {
+            const slider = document.getElementById(paramName);
+            const valueDisplay = document.getElementById(paramName + 'Value');
+            
+            parameters[paramName] = parseFloat(slider.value);
+            valueDisplay.textContent = slider.value;
+            
+            updateCirculation();
+            updateCalculations();
+        }
+        
+        function setSeason(season) {
+            // Remove active class from all buttons
+            document.querySelectorAll('.season-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            currentSeason = season;
+            
+            // Update parameters based on season
+            switch(season) {
+                case 'summer':
+                    setSeasonalParameters(12, 200, 6, 1.2, 18, 25);
+                    break;
+                case 'winter':
+                    setSeasonalParameters(6, 160, 2, 2.0, 14, 40);
+                    break;
+                case 'spring':
+                    setSeasonalParameters(10, 180, 4, 1.8, 16, 30);
+                    break;
+                case 'autumn':
+                    setSeasonalParameters(8, 170, 3, 1.6, 15, 35);
+                    break;
+            }
+            
+            updateCirculation();
+            updateCalculations();
+        }
+        
+        function setSeasonalParameters(windSpeed, windDir, strat, tidal, temp, thermoDepth) {
+            parameters.windSpeed = windSpeed;
+            parameters.windDir = windDir;
+            parameters.stratification = strat;
+            parameters.tidalRange = tidal;
+            parameters.surfTemp = temp;
+            parameters.thermoDepth = thermoDepth;
+            
+            // Update sliders and displays
+            document.getElementById('windSpeed').value = windSpeed;
+            document.getElementById('windSpeedValue').textContent = windSpeed.toFixed(1);
+            
+            document.getElementById('windDir').value = windDir;
+            document.getElementById('windDirValue').textContent = windDir;
+            
+            document.getElementById('stratification').value = strat;
+            document.getElementById('stratValue').textContent = strat.toFixed(1);
+            
+            document.getElementById('tidalRange').value = tidal;
+            document.getElementById('tidalValue').textContent = tidal.toFixed(1);
+            
+            document.getElementById('surfTemp').value = temp;
+            document.getElementById('surfTempValue').textContent = temp;
+            
+            document.getElementById('thermoDepth').value = thermoDepth;
+            document.getElementById('thermoDepthValue').textContent = thermoDepth;
+        }
+        
+        function updateCirculation() {
+            const svg = document.getElementById('circulationSVG');
+            
+            // Update wind vectors based on direction and speed
+            const windVectors = svg.getElementById('windVectors');
+            const windStrength = parameters.windSpeed / 15; // Normalize to 0-1
+            
+            // Adjust wind arrow opacity and size based on strength
+            windVectors.querySelectorAll('.wind-arrow').forEach(arrow => {
+                arrow.style.opacity = 0.5 + windStrength * 0.5;
+                arrow.style.strokeWidth = 2 + windStrength * 4;
+            });
+            
+            // Update upwelling zones based on wind
+            const upwellingZones = svg.getElementById('upwellingZones');
+            const upwellingStrength = Math.max(0, (parameters.windSpeed - 3) / 12); // Stronger with higher wind
+            
+            upwellingZones.querySelectorAll('.upwelling-zone').forEach(zone => {
+                zone.style.opacity = 0.2 + upwellingStrength * 0.4;
+            });
+            
+            // Update current strength
+            const surfaceCurrents = svg.getElementById('surfaceCurrents');
+            surfaceCurrents.querySelectorAll('.current-arrow').forEach(current => {
+                current.style.strokeWidth = 3 + windStrength * 3;
+                current.style.opacity = 0.6 + windStrength * 0.4;
+            });
+            
+            // Update stratification effects on internal waves
+            const internalWaves = svg.getElementById('internalWaves');
+            const stratStrength = parameters.stratification / 10;
+            internalWaves.style.opacity = 0.3 + stratStrength * 0.7;
+        }
+        
+        function updateCalculations() {
+            // Wind stress calculation
+            const windStress = RHO_AIR * DRAG_COEFF * parameters.windSpeed * parameters.windSpeed;
+            document.getElementById('windStressValue').textContent = windStress.toFixed(3);
+            
+            // Ekman transport
+            const ekmanTransport = windStress / (RHO_WATER * Math.abs(CORIOLIS_F));
+            document.getElementById('ekmanTransportValue').textContent = ekmanTransport.toFixed(1);
+            
+            // Stratification
+            const N2 = parameters.stratification * 1e-4;
+            document.getElementById('stratificationValue').textContent = (N2).toExponential(1);
+            
+            // Richardson number (assuming typical shear)
+            const shear = 0.01; // s^-1
+            const richardson = N2 / (shear * shear);
+            document.getElementById('richardsonValue').textContent = richardson.toFixed(1);
+            
+            // Coriolis parameter
+            document.getElementById('coriolisValue').textContent = CORIOLIS_F.toExponential(1);
+            
+            // Rossby radius
+            const rossbyRadius = Math.sqrt(N2) * 100 / Math.abs(CORIOLIS_F) / 1000; // km
+            document.getElementById('rossbyRadiusValue').textContent = rossbyRadius.toFixed(0);
+            
+            // Thermal wind
+            const thermalWind = 9.81 / (RHO_WATER * Math.abs(CORIOLIS_F)) * 0.02; // Assuming density gradient
+            document.getElementById('thermalWindValue').textContent = thermalWind.toExponential(1);
+            
+            // Temperature gradient
+            const tempGrad = 20 - parameters.surfTemp;
+            document.getElementById('tempGradientValue').textContent = tempGrad.toFixed(0);
+            
+            // Tidal velocity
+            const tidalVel = parameters.tidalRange * Math.PI / (12.42 * 3600); // m/s
+            document.getElementById('tidalVelocityValue').textContent = tidalVel.toFixed(2);
+            
+            // Tidal excursion
+            const tidalExcursion = tidalVel / (2 * Math.PI / (12.42 * 3600)) / 1000; // km
+            document.getElementById('tidalExcursionValue').textContent = tidalExcursion.toFixed(1);
+            
+            // Humboldt current velocity (typical values)
+            const humboldtVel = 0.15 + parameters.windSpeed * 0.01;
+            document.getElementById('humboldtVelocityValue').textContent = humboldtVel.toFixed(2);
+            
+            // Humboldt transport
+            const humboldtTransport = humboldtVel * 100 * 1000 / 1e6; // Sv
+            document.getElementById('humboldtTransportValue').textContent = humboldtTransport.toFixed(0);
+            
+            // Update impact levels
+            updateImpactLevels();
+        }
+        
+        function updateImpactLevels() {
+            // Wind-related impacts
+            const windImpact = parameters.windSpeed > 10 ? 'HIGH' : parameters.windSpeed > 5 ? 'MEDIUM' : 'LOW';
+            const windClass = parameters.windSpeed > 10 ? 'impact-high' : parameters.windSpeed > 5 ? 'impact-medium' : 'impact-low';
+            
+            updateImpactElement('upwellingImpact', windImpact, windClass);
+            updateImpactElement('coastalJetImpact', windImpact, windClass);
+            updateImpactElement('ekmanImpact', windImpact, windClass);
+            
+            // Stratification impacts
+            const stratImpact = parameters.stratification > 7 ? 'HIGH' : parameters.stratification > 3 ? 'MEDIUM' : 'LOW';
+            const stratClass = parameters.stratification > 7 ? 'impact-high' : parameters.stratification > 3 ? 'impact-medium' : 'impact-low';
+            
+            updateImpactElement('internalWaveImpact', stratImpact, stratClass);
+            updateImpactElement('mixingImpact', stratImpact === 'HIGH' ? 'LOW' : stratImpact === 'LOW' ? 'HIGH' : 'MEDIUM', 
+                              stratImpact === 'HIGH' ? 'impact-low' : stratImpact === 'LOW' ? 'impact-high' : 'impact-medium');
+            
+            // Temperature impacts
+            const tempImpact = Math.abs(parameters.surfTemp - 16) > 3 ? 'HIGH' : Math.abs(parameters.surfTemp - 16) > 1 ? 'MEDIUM' : 'LOW';
+            const tempClass = Math.abs(parameters.surfTemp - 16) > 3 ? 'impact-high' : Math.abs(parameters.surfTemp - 16) > 1 ? 'impact-medium' : 'impact-low';
+            
+            updateImpactElement('thermalWindImpact', tempImpact, tempClass);
+            updateImpactElement('densityFrontImpact', tempImpact, tempClass);
+            
+            // Tidal impacts
+            const tidalImpact = parameters.tidalRange > 2.5 ? 'HIGH' : parameters.tidalRange > 1.5 ? 'MEDIUM' : 'LOW';
+            const tidalClass = parameters.tidalRange > 2.5 ? 'impact-high' : parameters.tidalRange > 1.5 ? 'impact-medium' : 'impact-low';
+            
+            updateImpactElement('tidalMixingImpact', tidalImpact, tidalClass);
+            updateImpactElement('internalTideImpact', tidalImpact, tidalClass);
+            
+            // Set some constant impacts for Chilean coast
+            updateImpactElement('geostrophicImpact', 'HIGH', 'impact-high');
+            updateImpactElement('alongshoreImpact', 'HIGH', 'impact-high');
+            updateImpactElement('nutrientSupplyImpact', 'HIGH', 'impact-high');
+        }
+        
+        function updateImpactElement(elementId, impact, className) {
+            const element = document.getElementById(elementId);
+            element.textContent = impact;
+            element.className = 'impact-level ' + className;
+        }
+        
+        // Initialize the visualization
+        updateCirculation();
+        updateCalculations();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c8e635057388a6',t:'MTc1NDc1OTc2NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
