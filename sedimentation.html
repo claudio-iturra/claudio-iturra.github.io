@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepción Shelf Sedimentation Analysis - 100m Depth Zone by Claudio Iturra</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 30%, #334155 60%, #475569 100%);
+        }
+        .sediment-pattern {
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(168, 85, 247, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 40% 40%, rgba(34, 197, 94, 0.1) 1px, transparent 1px);
+            background-size: 60px 60px, 80px 80px, 40px 40px;
+        }
+        .process-card {
+            transition: all 0.3s ease;
+            backdrop-filter: blur(15px);
+        }
+        .process-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .data-input {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+        }
+        .depth-indicator {
+            background: linear-gradient(to bottom, #3b82f6, #1e40af, #1e3a8a);
+        }
+        .sediment-layer {
+            transition: all 0.5s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg sediment-pattern">
+    <!-- Header -->
+    <header class="bg-slate-900/80 backdrop-blur-md border-b border-slate-700/50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white text-2xl">🏔️</span>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-white">Concepción Shelf Sedimentation</h1>
+                        <p class="text-slate-300 text-sm">Continental Shelf Sediment Dynamics Analysis (0-100m depth)</p>
+                    </div>
+                </div>
+                <div class="text-right text-white">
+                    <p class="text-sm font-medium">Study Area: 36°S - 37°S, 73°W - 74°W</p>
+                    <p class="text-xs text-slate-300">Shelf Width: ~15km | Max Depth: 100m</p>
+                    <p class="text-xs text-slate-300">Sediment Sources: Biobío River, Coastal Erosion, Marine Production</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Navigation Tabs -->
+        <div class="mb-8">
+            <div class="flex flex-wrap gap-2 bg-slate-800/60 backdrop-blur-md rounded-xl p-3 border border-slate-700/50">
+                <button onclick="showSection('overview')" id="tab-overview" class="tab-btn px-5 py-3 rounded-lg text-white font-medium transition-all bg-slate-700/80 shadow-lg">
+                    Overview
+                </button>
+                <button onclick="showSection('sources')" id="tab-sources" class="tab-btn px-5 py-3 rounded-lg text-white font-medium transition-all hover:bg-slate-700/50">
+                    Sediment Sources
+                </button>
+                <button onclick="showSection('transport')" id="tab-transport" class="tab-btn px-5 py-3 rounded-lg text-white font-medium transition-all hover:bg-slate-700/50">
+                    Transport Processes
+                </button>
+                <button onclick="showSection('deposition')" id="tab-deposition" class="tab-btn px-5 py-3 rounded-lg text-white font-medium transition-all hover:bg-slate-700/50">
+                    Deposition Patterns
+                </button>
+                <button onclick="showSection('calculator')" id="tab-calculator" class="tab-btn px-5 py-3 rounded-lg text-white font-medium transition-all hover:bg-slate-700/50">
+                    Rate Calculator
+                </button>
+                <button onclick="showSection('modeling')" id="tab-modeling" class="tab-btn px-5 py-3 rounded-lg text-white font-medium transition-all hover:bg-slate-700/50">
+                    3D Modeling
+                </button>
+            </div>
+        </div>
+
+        <!-- Overview Section -->
+        <div id="section-overview" class="section">
+            <!-- Key Metrics Dashboard -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="process-card bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white text-xl">📊</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Average Rate</h3>
+                    </div>
+                    <p class="text-3xl font-bold text-blue-400 mb-2">2.8 mm/yr</p>
+                    <p class="text-slate-300 text-sm">Holocene average across shelf</p>
+                </div>
+
+                <div class="process-card bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white text-xl">🏞️</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Terrigenous Input</h3>
+                    </div>
+                    <p class="text-3xl font-bold text-green-400 mb-2">75%</p>
+                    <p class="text-slate-300 text-sm">River and coastal erosion</p>
+                </div>
+
+                <div class="process-card bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white text-xl">🦠</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Biogenic Input</h3>
+                    </div>
+                    <p class="text-3xl font-bold text-purple-400 mb-2">25%</p>
+                    <p class="text-slate-300 text-sm">Marine productivity</p>
+                </div>
+
+                <div class="process-card bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-lg flex items-center justify-center mr-3">
+                            <span class="text-white text-xl">⚡</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">Seasonal Variation</h3>
+                    </div>
+                    <p class="text-3xl font-bold text-orange-400 mb-2">±40%</p>
+                    <p class="text-slate-300 text-sm">Winter vs summer rates</p>
+                </div>
+            </div>
+
+            <!-- Depth Profile Visualization -->
+            <div class="grid lg:grid-cols-3 gap-6 mb-8">
+                <div class="lg:col-span-2 bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-2xl font-bold text-white mb-4">Sedimentation Rate vs Depth Profile</h3>
+                    <canvas id="depthProfileChart" width="600" height="400"></canvas>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Depth Zone Analysis</h3>
+                    <div class="space-y-4">
+                        <div class="depth-indicator rounded-lg p-4 text-white">
+                            <h4 class="font-semibold mb-2">Inner Shelf (0-30m)</h4>
+                            <p class="text-sm mb-2">High energy, coarse sediments</p>
+                            <p class="text-lg font-bold">4.2 mm/yr</p>
+                        </div>
+                        <div class="bg-gradient-to-b from-blue-600 to-blue-800 rounded-lg p-4 text-white">
+                            <h4 class="font-semibold mb-2">Mid Shelf (30-70m)</h4>
+                            <p class="text-sm mb-2">Moderate energy, mixed sediments</p>
+                            <p class="text-lg font-bold">2.8 mm/yr</p>
+                        </div>
+                        <div class="bg-gradient-to-b from-blue-800 to-slate-800 rounded-lg p-4 text-white">
+                            <h4 class="font-semibold mb-2">Outer Shelf (70-100m)</h4>
+                            <p class="text-sm mb-2">Low energy, fine sediments</p>
+                            <p class="text-lg font-bold">1.5 mm/yr</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Key Processes Overview -->
+            <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-2xl font-bold text-white mb-6">Controlling Oceanographic Processes</h3>
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-3">🌊 Current-Driven Transport</h4>
+                        <ul class="text-slate-300 space-y-1 text-sm">
+                            <li>• Peru-Chile Current: Northward transport</li>
+                            <li>• Coastal undercurrent: Southward transport</li>
+                            <li>• Cross-shelf exchange</li>
+                            <li>• Tidal resuspension cycles</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-3">💨 Wind-Wave Effects</h4>
+                        <ul class="text-slate-300 space-y-1 text-sm">
+                            <li>• Wave-induced bottom stress</li>
+                            <li>• Seasonal storm resuspension</li>
+                            <li>• Upwelling-driven circulation</li>
+                            <li>• Ekman transport patterns</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-3">🏔️ Terrestrial Inputs</h4>
+                        <ul class="text-slate-300 space-y-1 text-sm">
+                            <li>• Biobío River discharge</li>
+                            <li>• Coastal cliff erosion</li>
+                            <li>• Seasonal flood events</li>
+                            <li>• Anthropogenic contributions</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-3">🦠 Biological Processes</h4>
+                        <ul class="text-slate-300 space-y-1 text-sm">
+                            <li>• Upwelling-driven productivity</li>
+                            <li>• Diatom blooms and settling</li>
+                            <li>• Bioturbation effects</li>
+                            <li>• Organic matter preservation</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-3">🌡️ Seasonal Cycles</h4>
+                        <ul class="text-slate-300 space-y-1 text-sm">
+                            <li>• Winter storm intensification</li>
+                            <li>• Summer upwelling maxima</li>
+                            <li>• River discharge variability</li>
+                            <li>• Temperature stratification</li>
+                        </ul>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <h4 class="text-lg font-semibold text-white mb-3">🌀 Climate Variability</h4>
+                        <ul class="text-slate-300 space-y-1 text-sm">
+                            <li>• ENSO impact on sedimentation</li>
+                            <li>• PDO long-term modulation</li>
+                            <li>• Extreme event contributions</li>
+                            <li>• Anthropocene acceleration</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sediment Sources Section -->
+        <div id="section-sources" class="section hidden">
+            <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Sediment Source Contributions</h3>
+                    <canvas id="sourceChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Source Parameters</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Biobío River Discharge (m³/s)</label>
+                            <input type="range" id="riverDischarge" min="200" max="2000" value="900" onchange="updateSources()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>200</span>
+                                <span>1100</span>
+                                <span>2000</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Coastal Erosion Rate (mm/yr)</label>
+                            <input type="range" id="erosionRate" min="0.5" max="5" step="0.1" value="2.1" onchange="updateSources()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>0.5</span>
+                                <span>2.75</span>
+                                <span>5.0</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Marine Productivity (gC/m²/day)</label>
+                            <input type="range" id="productivity" min="0.5" max="3" step="0.1" value="1.8" onchange="updateSources()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>0.5</span>
+                                <span>1.75</span>
+                                <span>3.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Terrigenous Sources</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Biobío River</h4>
+                            <p class="text-2xl font-bold text-blue-400" id="riverContribution">45%</p>
+                            <p class="text-sm text-slate-300">Suspended sediment load: <span id="riverLoad">2.1 Mt/yr</span></p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Coastal Erosion</h4>
+                            <p class="text-2xl font-bold text-green-400" id="erosionContribution">30%</p>
+                            <p class="text-sm text-slate-300">Cliff retreat: <span id="cliffRetreat">2.1 mm/yr</span></p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Atmospheric Input</h4>
+                            <p class="text-2xl font-bold text-purple-400">5%</p>
+                            <p class="text-sm text-slate-300">Dust and volcanic ash</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Biogenic Sources</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Diatom Production</h4>
+                            <p class="text-2xl font-bold text-cyan-400" id="diatomContribution">15%</p>
+                            <p class="text-sm text-slate-300">Upwelling-driven blooms</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Carbonate Production</h4>
+                            <p class="text-2xl font-bold text-yellow-400">3%</p>
+                            <p class="text-sm text-slate-300">Foraminifera and mollusks</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Organic Matter</h4>
+                            <p class="text-2xl font-bold text-orange-400" id="organicContribution">2%</p>
+                            <p class="text-sm text-slate-300">Marine and terrestrial</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Grain Size Distribution</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Clay (<4μm):</span>
+                            <span class="font-bold text-blue-400" id="clayPercent">25%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Silt (4-63μm):</span>
+                            <span class="font-bold text-green-400" id="siltPercent">45%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Fine Sand (63-250μm):</span>
+                            <span class="font-bold text-yellow-400" id="fineSandPercent">22%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Medium Sand (250-500μm):</span>
+                            <span class="font-bold text-orange-400" id="medSandPercent">6%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Coarse Sand (>500μm):</span>
+                            <span class="font-bold text-red-400" id="coarseSandPercent">2%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold text-white mb-4">Seasonal Source Variability</h3>
+                <canvas id="seasonalSourceChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Transport Processes Section -->
+        <div id="section-transport" class="section hidden">
+            <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Transport Mechanisms</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Current Velocity (cm/s)</label>
+                            <input type="range" id="currentVelocity" min="5" max="50" value="18" onchange="updateTransport()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>5</span>
+                                <span>27.5</span>
+                                <span>50</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Wave Height (m)</label>
+                            <input type="range" id="waveHeight" min="0.5" max="6" step="0.1" value="2.5" onchange="updateTransport()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>0.5</span>
+                                <span>3.25</span>
+                                <span>6.0</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Bottom Roughness (cm)</label>
+                            <input type="range" id="bottomRoughness" min="0.1" max="5" step="0.1" value="1.2" onchange="updateTransport()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>0.1</span>
+                                <span>2.55</span>
+                                <span>5.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Transport Capacity</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Suspended Load</h4>
+                            <p class="text-2xl font-bold text-blue-400" id="suspendedLoad">1.2 kg/m³</p>
+                            <p class="text-sm text-slate-300">Fine particles in water column</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Bedload Transport</h4>
+                            <p class="text-2xl font-bold text-green-400" id="bedloadTransport">0.08 kg/m/s</p>
+                            <p class="text-sm text-slate-300">Bottom sediment movement</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Critical Shear Stress</h4>
+                            <p class="text-2xl font-bold text-purple-400" id="criticalShear">0.15 N/m²</p>
+                            <p class="text-sm text-slate-300">Threshold for erosion</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Current-Driven Transport</h3>
+                    <canvas id="currentTransportChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Wave-Induced Transport</h3>
+                    <canvas id="waveTransportChart" width="400" height="300"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold text-white mb-4">Transport Process Analysis</h3>
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Advection</h4>
+                        <p class="text-2xl font-bold text-blue-400" id="advectionRate">65%</p>
+                        <p class="text-xs text-slate-300">Current-driven transport</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Diffusion</h4>
+                        <p class="text-2xl font-bold text-green-400" id="diffusionRate">20%</p>
+                        <p class="text-xs text-slate-300">Turbulent mixing</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Settling</h4>
+                        <p class="text-2xl font-bold text-purple-400" id="settlingRate">12%</p>
+                        <p class="text-xs text-slate-300">Gravitational deposition</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Resuspension</h4>
+                        <p class="text-2xl font-bold text-orange-400" id="resuspensionRate">3%</p>
+                        <p class="text-xs text-slate-300">Wave-induced erosion</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Deposition Patterns Section -->
+        <div id="section-deposition" class="section hidden">
+            <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Spatial Deposition Patterns</h3>
+                    <canvas id="spatialDepositionChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Deposition Controls</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Water Depth (m)</label>
+                            <input type="range" id="waterDepth" min="10" max="100" value="50" onchange="updateDeposition()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>10</span>
+                                <span>55</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Distance from Shore (km)</label>
+                            <input type="range" id="shoreDistance" min="1" max="15" value="8" onchange="updateDeposition()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>1</span>
+                                <span>8</span>
+                                <span>15</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Bottom Slope (degrees)</label>
+                            <input type="range" id="bottomSlope" min="0.1" max="5" step="0.1" value="1.2" onchange="updateDeposition()" class="w-full">
+                            <div class="flex justify-between text-xs text-slate-300 mt-1">
+                                <span>0.1</span>
+                                <span>2.55</span>
+                                <span>5.0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Deposition Rates by Zone</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Nearshore (0-20m):</span>
+                            <span class="font-bold text-blue-400" id="nearshoreRate">5.2 mm/yr</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Inner Shelf (20-50m):</span>
+                            <span class="font-bold text-green-400" id="innerShelfRate">3.1 mm/yr</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Mid Shelf (50-80m):</span>
+                            <span class="font-bold text-yellow-400" id="midShelfRate">1.8 mm/yr</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Outer Shelf (80-100m):</span>
+                            <span class="font-bold text-purple-400" id="outerShelfRate">0.9 mm/yr</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Sediment Accumulation</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Total Accumulation</h4>
+                            <p class="text-2xl font-bold text-blue-400" id="totalAccumulation">2.8 mm/yr</p>
+                            <p class="text-sm text-slate-300">Shelf-wide average</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Net Deposition</h4>
+                            <p class="text-2xl font-bold text-green-400" id="netDeposition">2.1 mm/yr</p>
+                            <p class="text-sm text-slate-300">After erosion losses</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Preservation Efficiency</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Burial Efficiency</h4>
+                            <p class="text-2xl font-bold text-purple-400" id="burialEfficiency">75%</p>
+                            <p class="text-sm text-slate-300">Sediment preservation</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Reworking Index</h4>
+                            <p class="text-2xl font-bold text-orange-400" id="reworkingIndex">0.25</p>
+                            <p class="text-sm text-slate-300">Sediment mobility</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold text-white mb-4">Temporal Deposition Variability</h3>
+                <canvas id="temporalDepositionChart" width="800" height="400"></canvas>
+            </div>
+        </div>
+
+        <!-- Rate Calculator Section -->
+        <div id="section-calculator" class="section hidden">
+            <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Sedimentation Rate Calculator</h3>
+                    <div class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-2">Sediment Supply (kg/m²/yr)</label>
+                                <input type="number" id="sedimentSupply" value="2.5" step="0.1" onchange="calculateSedimentationRate()" class="w-full p-3 rounded-lg data-input border-0">
+                            </div>
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-2">Bulk Density (g/cm³)</label>
+                                <input type="number" id="bulkDensity" value="1.6" step="0.1" onchange="calculateSedimentationRate()" class="w-full p-3 rounded-lg data-input border-0">
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-2">Porosity (%)</label>
+                                <input type="number" id="porosity" value="65" step="1" onchange="calculateSedimentationRate()" class="w-full p-3 rounded-lg data-input border-0">
+                            </div>
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-2">Compaction Factor</label>
+                                <input type="number" id="compactionFactor" value="0.85" step="0.01" onchange="calculateSedimentationRate()" class="w-full p-3 rounded-lg data-input border-0">
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-2">Erosion Rate (%/yr)</label>
+                                <input type="number" id="erosionRate" value="15" step="1" onchange="calculateSedimentationRate()" class="w-full p-3 rounded-lg data-input border-0">
+                            </div>
+                            <div>
+                                <label class="block text-white text-sm font-medium mb-2">Bioturbation Depth (cm)</label>
+                                <input type="number" id="bioturbationDepth" value="8" step="1" onchange="calculateSedimentationRate()" class="w-full p-3 rounded-lg data-input border-0">
+                            </div>
+                        </div>
+                        <button onclick="calculateSedimentationRate()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                            Calculate Sedimentation Rate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Calculation Results</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Gross Sedimentation Rate</h4>
+                            <p class="text-3xl font-bold text-blue-400" id="grossSedRate">3.2 mm/yr</p>
+                            <p class="text-sm text-slate-300">Before erosion and compaction</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Net Sedimentation Rate</h4>
+                            <p class="text-3xl font-bold text-green-400" id="netSedRate">2.7 mm/yr</p>
+                            <p class="text-sm text-slate-300">After erosion losses</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Compacted Rate</h4>
+                            <p class="text-3xl font-bold text-purple-400" id="compactedRate">2.3 mm/yr</p>
+                            <p class="text-sm text-slate-300">Final burial rate</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Mass Accumulation Rate</h4>
+                            <p class="text-3xl font-bold text-orange-400" id="massAccumRate">3.7 g/cm²/kyr</p>
+                            <p class="text-sm text-slate-300">Dry weight basis</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Sensitivity Analysis</h3>
+                    <canvas id="sensitivityChart" width="400" height="300"></canvas>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Parameter Influence</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Sediment Supply:</span>
+                            <span class="font-bold text-blue-400">45%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Erosion Rate:</span>
+                            <span class="font-bold text-red-400">25%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Bulk Density:</span>
+                            <span class="font-bold text-green-400">15%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Porosity:</span>
+                            <span class="font-bold text-yellow-400">10%</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Compaction:</span>
+                            <span class="font-bold text-purple-400">5%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold text-white mb-4">Uncertainty Analysis</h3>
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Model Uncertainty</h4>
+                        <p class="text-2xl font-bold text-blue-400">±15%</p>
+                        <p class="text-xs text-slate-300">Parameter variability</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Measurement Error</h4>
+                        <p class="text-2xl font-bold text-green-400">±8%</p>
+                        <p class="text-xs text-slate-300">Analytical precision</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Spatial Variability</h4>
+                        <p class="text-2xl font-bold text-purple-400">±25%</p>
+                        <p class="text-xs text-slate-300">Across shelf variation</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4 text-center">
+                        <h4 class="font-semibold text-white mb-2">Temporal Variability</h4>
+                        <p class="text-2xl font-bold text-orange-400">±40%</p>
+                        <p class="text-xs text-slate-300">Seasonal/interannual</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3D Modeling Section -->
+        <div id="section-modeling" class="section hidden">
+            <div class="grid lg:grid-cols-2 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">3D Sediment Distribution Model</h3>
+                    <div class="bg-slate-900 rounded-lg p-4 h-64 flex items-center justify-center">
+                        <div class="text-center text-white">
+                            <div class="text-6xl mb-4">🏔️</div>
+                            <p class="text-lg font-semibold">3D Shelf Model</p>
+                            <p class="text-sm text-slate-300">Interactive sediment thickness visualization</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Model Parameters</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Time Period (years)</label>
+                            <select id="timePeriod" onchange="updateModel()" class="w-full p-3 rounded-lg data-input border-0">
+                                <option value="100">Last 100 years</option>
+                                <option value="1000">Last 1,000 years</option>
+                                <option value="10000">Last 10,000 years (Holocene)</option>
+                                <option value="100000">Last 100,000 years</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Resolution (m)</label>
+                            <select id="modelResolution" onchange="updateModel()" class="w-full p-3 rounded-lg data-input border-0">
+                                <option value="50">50m (High resolution)</option>
+                                <option value="100">100m (Medium resolution)</option>
+                                <option value="250">250m (Low resolution)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-white text-sm font-medium mb-2">Climate Scenario</label>
+                            <select id="climateScenario" onchange="updateModel()" class="w-full p-3 rounded-lg data-input border-0">
+                                <option value="current">Current conditions</option>
+                                <option value="lgm">Last Glacial Maximum</option>
+                                <option value="mid-holocene">Mid-Holocene optimum</option>
+                                <option value="future">Future projection (2100)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Sediment Thickness</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Maximum Thickness</h4>
+                            <p class="text-2xl font-bold text-blue-400" id="maxThickness">28 m</p>
+                            <p class="text-sm text-slate-300">Inner shelf depocenters</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Average Thickness</h4>
+                            <p class="text-2xl font-bold text-green-400" id="avgThickness">12 m</p>
+                            <p class="text-sm text-slate-300">Shelf-wide mean</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Total Volume</h4>
+                            <p class="text-2xl font-bold text-purple-400" id="totalVolume">2.1 km³</p>
+                            <p class="text-sm text-slate-300">Holocene accumulation</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Isopach Analysis</h3>
+                    <canvas id="isopachChart" width="300" height="200"></canvas>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Model Statistics</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Grid Points:</span>
+                            <span class="font-bold text-blue-400" id="gridPoints">15,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Time Steps:</span>
+                            <span class="font-bold text-green-400" id="timeSteps">10,000</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">Model R²:</span>
+                            <span class="font-bold text-purple-400" id="modelR2">0.87</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-white">RMSE (mm/yr):</span>
+                            <span class="font-bold text-orange-400" id="modelRMSE">0.3</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                <h3 class="text-xl font-bold text-white mb-4">Cross-Shelf Sediment Profile</h3>
+                <canvas id="crossShelfChart" width="800" height="400"></canvas>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-6 mt-6">
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Model Validation</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Core Data Comparison</h4>
+                            <p class="text-lg font-bold text-green-400">Good Agreement</p>
+                            <p class="text-sm text-slate-300">15 sediment cores analyzed</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Radiometric Dating</h4>
+                            <p class="text-lg font-bold text-blue-400">¹⁴C & ²¹⁰Pb Validated</p>
+                            <p class="text-sm text-slate-300">Age model constraints</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Seismic Stratigraphy</h4>
+                            <p class="text-lg font-bold text-purple-400">Reflector Correlation</p>
+                            <p class="text-sm text-slate-300">Sub-bottom profiling</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/70 backdrop-blur-md rounded-xl p-6 border border-slate-700/50">
+                    <h3 class="text-xl font-bold text-white mb-4">Future Projections</h3>
+                    <div class="space-y-4">
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Sea Level Rise Impact</h4>
+                            <p class="text-lg font-bold text-red-400">+15% Rate by 2100</p>
+                            <p class="text-sm text-slate-300">Accommodation space increase</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Climate Change Effects</h4>
+                            <p class="text-lg font-bold text-orange-400">±25% Variability</p>
+                            <p class="text-sm text-slate-300">Precipitation changes</p>
+                        </div>
+                        <div class="bg-slate-700/50 rounded-lg p-4">
+                            <h4 class="font-semibold text-white mb-2">Human Impact</h4>
+                            <p class="text-lg font-bold text-yellow-400">+30% Anthropocene</p>
+                            <p class="text-sm text-slate-300">Land use intensification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for charts
+        let depthProfileChart, sourceChart, seasonalSourceChart, currentTransportChart, waveTransportChart;
+        let spatialDepositionChart, temporalDepositionChart, sensitivityChart, isopachChart, crossShelfChart;
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            showSection('overview');
+            setTimeout(() => {
+                initializeCharts();
+                updateSources();
+                updateTransport();
+                updateDeposition();
+                calculateSedimentationRate();
+                updateModel();
+            }, 100);
+        });
+
+        // Section navigation
+        function showSection(sectionName) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(`section-${sectionName}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-700/80', 'shadow-lg');
+                btn.classList.add('hover:bg-slate-700/50');
+            });
+            const activeTab = document.getElementById(`tab-${sectionName}`);
+            activeTab.classList.add('bg-slate-700/80', 'shadow-lg');
+            activeTab.classList.remove('hover:bg-slate-700/50');
+        }
+
+        // Initialize all charts
+        function initializeCharts() {
+            if (typeof Chart === 'undefined') return;
+
+            // Depth Profile Chart
+            const depthCtx = document.getElementById('depthProfileChart')?.getContext('2d');
+            if (depthCtx) {
+                depthProfileChart = new Chart(depthCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'],
+                        datasets: [{
+                            label: 'Sedimentation Rate (mm/yr)',
+                            data: [5.2, 4.8, 4.1, 3.5, 3.1, 2.8, 2.3, 1.8, 1.4, 1.1, 0.9],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { 
+                                title: { display: true, text: 'Water Depth (m)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                title: { display: true, text: 'Sedimentation Rate (mm/yr)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Source Chart
+            const sourceCtx = document.getElementById('sourceChart')?.getContext('2d');
+            if (sourceCtx) {
+                sourceChart = new Chart(sourceCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Biobío River', 'Coastal Erosion', 'Diatom Production', 'Atmospheric', 'Carbonate', 'Organic Matter'],
+                        datasets: [{
+                            data: [45, 30, 15, 5, 3, 2],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(6, 182, 212, 0.8)',
+                                'rgba(147, 51, 234, 0.8)',
+                                'rgba(251, 191, 36, 0.8)',
+                                'rgba(239, 68, 68, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } }
+                    }
+                });
+            }
+
+            // Seasonal Source Chart
+            const seasonalCtx = document.getElementById('seasonalSourceChart')?.getContext('2d');
+            if (seasonalCtx) {
+                seasonalSourceChart = new Chart(seasonalCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+                        datasets: [{
+                            label: 'River Input (kg/m²/month)',
+                            data: [0.8, 1.2, 0.9, 0.6, 0.4, 0.8, 1.1, 0.9, 0.5, 0.3, 0.4, 0.7],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Marine Production (kg/m²/month)',
+                            data: [0.3, 0.4, 0.5, 0.6, 0.4, 0.2, 0.1, 0.2, 0.4, 0.5, 0.4, 0.3],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                            y: { 
+                                title: { display: true, text: 'Input Rate (kg/m²/month)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Current Transport Chart
+            const currentCtx = document.getElementById('currentTransportChart')?.getContext('2d');
+            if (currentCtx) {
+                currentTransportChart = new Chart(currentCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-20m', '20-40m', '40-60m', '60-80m', '80-100m'],
+                        datasets: [{
+                            label: 'Northward Transport (kg/m/s)',
+                            data: [0.12, 0.08, 0.05, 0.03, 0.02],
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)'
+                        }, {
+                            label: 'Cross-shelf Transport (kg/m/s)',
+                            data: [0.08, 0.06, 0.04, 0.03, 0.02],
+                            backgroundColor: 'rgba(34, 197, 94, 0.7)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                            y: { 
+                                title: { display: true, text: 'Transport Rate (kg/m/s)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Wave Transport Chart
+            const waveCtx = document.getElementById('waveTransportChart')?.getContext('2d');
+            if (waveCtx) {
+                waveTransportChart = new Chart(waveCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['0', '10', '20', '30', '40', '50', '60', '70', '80', '90', '100'],
+                        datasets: [{
+                            label: 'Wave-induced Transport (kg/m/s)',
+                            data: [0.15, 0.12, 0.08, 0.05, 0.03, 0.02, 0.015, 0.01, 0.008, 0.005, 0.003],
+                            borderColor: 'rgb(147, 51, 234)',
+                            backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { 
+                                title: { display: true, text: 'Water Depth (m)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                title: { display: true, text: 'Transport Rate (kg/m/s)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Spatial Deposition Chart
+            const spatialCtx = document.getElementById('spatialDepositionChart')?.getContext('2d');
+            if (spatialCtx) {
+                spatialDepositionChart = new Chart(spatialCtx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Deposition Rate (mm/yr)',
+                            data: [
+                                {x: 1, y: 5.2}, {x: 3, y: 4.8}, {x: 5, y: 4.1}, {x: 7, y: 3.5},
+                                {x: 9, y: 3.1}, {x: 11, y: 2.8}, {x: 13, y: 2.3}, {x: 15, y: 1.8}
+                            ],
+                            backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                            borderColor: 'rgb(59, 130, 246)',
+                            pointRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { 
+                                title: { display: true, text: 'Distance from Shore (km)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                title: { display: true, text: 'Deposition Rate (mm/yr)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Temporal Deposition Chart
+            const temporalCtx = document.getElementById('temporalDepositionChart')?.getContext('2d');
+            if (temporalCtx) {
+                temporalDepositionChart = new Chart(temporalCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['1900', '1920', '1940', '1960', '1980', '2000', '2020'],
+                        datasets: [{
+                            label: 'Inner Shelf (mm/yr)',
+                            data: [2.1, 2.3, 2.8, 3.2, 3.8, 4.1, 4.5],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            tension: 0.4
+                        }, {
+                            label: 'Outer Shelf (mm/yr)',
+                            data: [0.8, 0.9, 1.1, 1.2, 1.4, 1.5, 1.6],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { 
+                                title: { display: true, text: 'Year', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                title: { display: true, text: 'Sedimentation Rate (mm/yr)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Sensitivity Chart
+            const sensitivityCtx = document.getElementById('sensitivityChart')?.getContext('2d');
+            if (sensitivityCtx) {
+                sensitivityChart = new Chart(sensitivityCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Sediment Supply', 'Erosion Rate', 'Bulk Density', 'Porosity', 'Compaction'],
+                        datasets: [{
+                            label: 'Sensitivity (%)',
+                            data: [45, 25, 15, 10, 5],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 50,
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' },
+                                pointLabels: { color: 'white' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Isopach Chart
+            const isopachCtx = document.getElementById('isopachChart')?.getContext('2d');
+            if (isopachCtx) {
+                isopachChart = new Chart(isopachCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['0-5m', '5-10m', '10-15m', '15-20m', '20-25m', '>25m'],
+                        datasets: [{
+                            label: 'Area (km²)',
+                            data: [45, 38, 25, 15, 8, 3],
+                            backgroundColor: [
+                                'rgba(59, 130, 246, 0.8)',
+                                'rgba(34, 197, 94, 0.8)',
+                                'rgba(251, 191, 36, 0.8)',
+                                'rgba(239, 68, 68, 0.8)',
+                                'rgba(147, 51, 234, 0.8)',
+                                'rgba(156, 163, 175, 0.8)'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { ticks: { color: 'white' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                            y: { 
+                                title: { display: true, text: 'Area (km²)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Cross-Shelf Chart
+            const crossShelfCtx = document.getElementById('crossShelfChart')?.getContext('2d');
+            if (crossShelfCtx) {
+                crossShelfChart = new Chart(crossShelfCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['0', '2', '4', '6', '8', '10', '12', '14', '16'],
+                        datasets: [{
+                            label: 'Sediment Thickness (m)',
+                            data: [28, 25, 22, 18, 15, 12, 8, 5, 2],
+                            borderColor: 'rgb(59, 130, 246)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.3)',
+                            tension: 0.4,
+                            fill: 'origin'
+                        }, {
+                            label: 'Water Depth (m)',
+                            data: [5, 15, 25, 35, 45, 55, 70, 85, 100],
+                            borderColor: 'rgb(34, 197, 94)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            tension: 0.4,
+                            yAxisID: 'y1'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { labels: { color: 'white' } } },
+                        scales: {
+                            x: { 
+                                title: { display: true, text: 'Distance from Shore (km)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y: { 
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Sediment Thickness (m)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { color: 'rgba(255,255,255,0.1)' }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: 'Water Depth (m)', color: 'white' },
+                                ticks: { color: 'white' },
+                                grid: { drawOnChartArea: false }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Update sediment sources
+        function updateSources() {
+            const riverDischarge = document.getElementById('riverDischarge')?.value || 900;
+            const erosionRate = document.getElementById('erosionRate')?.value || 2.1;
+            const productivity = document.getElementById('productivity')?.value || 1.8;
+
+            // Calculate contributions based on inputs
+            const riverContrib = Math.round(30 + (riverDischarge - 900) / 50);
+            const erosionContrib = Math.round(20 + erosionRate * 5);
+            const diatomContrib = Math.round(10 + productivity * 3);
+            const organicContrib = Math.round(1 + productivity * 0.5);
+
+            // Update display
+            const riverContribEl = document.getElementById('riverContribution');
+            const erosionContribEl = document.getElementById('erosionContribution');
+            const diatomContribEl = document.getElementById('diatomContribution');
+            const organicContribEl = document.getElementById('organicContribution');
+            const riverLoadEl = document.getElementById('riverLoad');
+            const cliffRetreatEl = document.getElementById('cliffRetreat');
+
+            if (riverContribEl) riverContribEl.textContent = riverContrib + '%';
+            if (erosionContribEl) erosionContribEl.textContent = erosionContrib + '%';
+            if (diatomContribEl) diatomContribEl.textContent = diatomContrib + '%';
+            if (organicContribEl) organicContribEl.textContent = organicContrib + '%';
+            if (riverLoadEl) riverLoadEl.textContent = (riverDischarge * 0.002).toFixed(1) + ' Mt/yr';
+            if (cliffRetreatEl) cliffRetreatEl.textContent = erosionRate + ' mm/yr';
+
+            // Update grain size distribution
+            const clayEl = document.getElementById('clayPercent');
+            const siltEl = document.getElementById('siltPercent');
+            const fineSandEl = document.getElementById('fineSandPercent');
+            const medSandEl = document.getElementById('medSandPercent');
+            const coarseSandEl = document.getElementById('coarseSandPercent');
+
+            if (clayEl) clayEl.textContent = Math.round(20 + riverDischarge / 100) + '%';
+            if (siltEl) siltEl.textContent = Math.round(40 + riverDischarge / 200) + '%';
+            if (fineSandEl) fineSandEl.textContent = Math.round(25 - riverDischarge / 200) + '%';
+            if (medSandEl) medSandEl.textContent = Math.round(8 - riverDischarge / 500) + '%';
+            if (coarseSandEl) coarseSandEl.textContent = Math.round(3 - riverDischarge / 1000) + '%';
+
+            // Update source chart
+            if (sourceChart && sourceChart.data && sourceChart.data.datasets[0]) {
+                sourceChart.data.datasets[0].data = [riverContrib, erosionContrib, diatomContrib, 5, 3, organicContrib];
+                sourceChart.update();
+            }
+        }
+
+        // Update transport processes
+        function updateTransport() {
+            const currentVel = document.getElementById('currentVelocity')?.value || 18;
+            const waveHeight = document.getElementById('waveHeight')?.value || 2.5;
+            const roughness = document.getElementById('bottomRoughness')?.value || 1.2;
+
+            // Calculate transport parameters
+            const suspendedLoad = (currentVel * 0.05 + waveHeight * 0.2).toFixed(2);
+            const bedloadTransport = (currentVel * 0.003 + waveHeight * 0.01).toFixed(3);
+            const criticalShear = (0.1 + roughness * 0.05).toFixed(2);
+
+            // Update display
+            const suspendedEl = document.getElementById('suspendedLoad');
+            const bedloadEl = document.getElementById('bedloadTransport');
+            const criticalEl = document.getElementById('criticalShear');
+
+            if (suspendedEl) suspendedEl.textContent = suspendedLoad + ' kg/m³';
+            if (bedloadEl) bedloadEl.textContent = bedloadTransport + ' kg/m/s';
+            if (criticalEl) criticalEl.textContent = criticalShear + ' N/m²';
+
+            // Update process percentages
+            const advectionEl = document.getElementById('advectionRate');
+            const diffusionEl = document.getElementById('diffusionRate');
+            const settlingEl = document.getElementById('settlingRate');
+            const resuspensionEl = document.getElementById('resuspensionRate');
+
+            if (advectionEl) advectionEl.textContent = Math.round(50 + currentVel * 0.8) + '%';
+            if (diffusionEl) diffusionEl.textContent = Math.round(25 - currentVel * 0.2) + '%';
+            if (settlingEl) settlingEl.textContent = Math.round(20 - waveHeight * 2) + '%';
+            if (resuspensionEl) resuspensionEl.textContent = Math.round(waveHeight * 1.2) + '%';
+        }
+
+        // Update deposition patterns
+        function updateDeposition() {
+            const depth = document.getElementById('waterDepth')?.value || 50;
+            const distance = document.getElementById('shoreDistance')?.value || 8;
+            const slope = document.getElementById('bottomSlope')?.value || 1.2;
+
+            // Calculate deposition rates by zone
+            const nearshoreRate = (6 - depth * 0.02).toFixed(1);
+            const innerShelfRate = (4 - depth * 0.015).toFixed(1);
+            const midShelfRate = (2.5 - depth * 0.01).toFixed(1);
+            const outerShelfRate = (1.5 - depth * 0.005).toFixed(1);
+
+            // Update display
+            const nearshoreEl = document.getElementById('nearshoreRate');
+            const innerShelfEl = document.getElementById('innerShelfRate');
+            const midShelfEl = document.getElementById('midShelfRate');
+            const outerShelfEl = document.getElementById('outerShelfRate');
+
+            if (nearshoreEl) nearshoreEl.textContent = nearshoreRate + ' mm/yr';
+            if (innerShelfEl) innerShelfEl.textContent = innerShelfRate + ' mm/yr';
+            if (midShelfEl) midShelfEl.textContent = midShelfRate + ' mm/yr';
+            if (outerShelfEl) outerShelfEl.textContent = outerShelfRate + ' mm/yr';
+
+            // Calculate other parameters
+            const totalAccum = ((parseFloat(nearshoreRate) + parseFloat(innerShelfRate) + parseFloat(midShelfRate) + parseFloat(outerShelfRate)) / 4).toFixed(1);
+            const netDeposition = (totalAccum * 0.75).toFixed(1);
+            const burialEff = Math.round(70 + slope * 5);
+            const reworkingIndex = (0.3 - slope * 0.05).toFixed(2);
+
+            const totalAccumEl = document.getElementById('totalAccumulation');
+            const netDepositionEl = document.getElementById('netDeposition');
+            const burialEffEl = document.getElementById('burialEfficiency');
+            const reworkingEl = document.getElementById('reworkingIndex');
+
+            if (totalAccumEl) totalAccumEl.textContent = totalAccum + ' mm/yr';
+            if (netDepositionEl) netDepositionEl.textContent = netDeposition + ' mm/yr';
+            if (burialEffEl) burialEffEl.textContent = burialEff + '%';
+            if (reworkingEl) reworkingEl.textContent = reworkingIndex;
+        }
+
+        // Calculate sedimentation rate
+        function calculateSedimentationRate() {
+            const supply = parseFloat(document.getElementById('sedimentSupply')?.value || 2.5);
+            const density = parseFloat(document.getElementById('bulkDensity')?.value || 1.6);
+            const porosity = parseFloat(document.getElementById('porosity')?.value || 65) / 100;
+            const compaction = parseFloat(document.getElementById('compactionFactor')?.value || 0.85);
+            const erosion = parseFloat(document.getElementById('erosionRate')?.value || 15) / 100;
+
+            // Calculate rates
+            const grossRate = (supply / (density * (1 - porosity)) * 1000).toFixed(1); // mm/yr
+            const netRate = (grossRate * (1 - erosion)).toFixed(1);
+            const compactedRate = (netRate * compaction).toFixed(1);
+            const massAccumRate = (supply * 1000).toFixed(1); // g/cm²/kyr
+
+            // Update display
+            const grossEl = document.getElementById('grossSedRate');
+            const netEl = document.getElementById('netSedRate');
+            const compactedEl = document.getElementById('compactedRate');
+            const massEl = document.getElementById('massAccumRate');
+
+            if (grossEl) grossEl.textContent = grossRate + ' mm/yr';
+            if (netEl) netEl.textContent = netRate + ' mm/yr';
+            if (compactedEl) compactedEl.textContent = compactedRate + ' mm/yr';
+            if (massEl) massEl.textContent = massAccumRate + ' g/cm²/kyr';
+        }
+
+        // Update 3D model
+        function updateModel() {
+            const timePeriod = document.getElementById('timePeriod')?.value || '10000';
+            const resolution = document.getElementById('modelResolution')?.value || '100';
+            const scenario = document.getElementById('climateScenario')?.value || 'current';
+
+            // Calculate model parameters based on inputs
+            let maxThickness, avgThickness, totalVolume;
+            
+            switch(timePeriod) {
+                case '100':
+                    maxThickness = 0.28; avgThickness = 0.12; totalVolume = 0.021;
+                    break;
+                case '1000':
+                    maxThickness = 2.8; avgThickness = 1.2; totalVolume = 0.21;
+                    break;
+                case '10000':
+                    maxThickness = 28; avgThickness = 12; totalVolume = 2.1;
+                    break;
+                case '100000':
+                    maxThickness = 280; avgThickness = 120; totalVolume = 21;
+                    break;
+            }
+
+            // Apply climate scenario modifiers
+            switch(scenario) {
+                case 'lgm':
+                    maxThickness *= 0.3; avgThickness *= 0.3; totalVolume *= 0.3;
+                    break;
+                case 'mid-holocene':
+                    maxThickness *= 1.2; avgThickness *= 1.2; totalVolume *= 1.2;
+                    break;
+                case 'future':
+                    maxThickness *= 1.4; avgThickness *= 1.4; totalVolume *= 1.4;
+                    break;
+            }
+
+            // Update display
+            const maxThicknessEl = document.getElementById('maxThickness');
+            const avgThicknessEl = document.getElementById('avgThickness');
+            const totalVolumeEl = document.getElementById('totalVolume');
+            const gridPointsEl = document.getElementById('gridPoints');
+            const timeStepsEl = document.getElementById('timeSteps');
+
+            if (maxThicknessEl) maxThicknessEl.textContent = maxThickness.toFixed(0) + ' m';
+            if (avgThicknessEl) avgThicknessEl.textContent = avgThickness.toFixed(0) + ' m';
+            if (totalVolumeEl) totalVolumeEl.textContent = totalVolume.toFixed(1) + ' km³';
+            if (gridPointsEl) gridPointsEl.textContent = Math.round(15000 * (100/resolution)**2).toLocaleString();
+            if (timeStepsEl) timeStepsEl.textContent = Math.round(timePeriod/10).toLocaleString();
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c98e1f73f488ac',t:'MTc1NDc2NjY0My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
