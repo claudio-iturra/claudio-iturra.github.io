@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cell Counter Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .camera-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            position: relative;
+        }
+
+        .video-container {
+            position: relative;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        #video {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            display: block;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        .camera-controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(86, 171, 47, 0.4);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .controls-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+        }
+
+        .color-filters {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .color-filter {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .color-filter.active {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .color-dot {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #ddd;
+        }
+
+        .sensitivity-control {
+            margin-bottom: 15px;
+        }
+
+        .sensitivity-control label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .sensitivity-control input {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+
+        .results-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .count-display {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .count-item {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+        }
+
+        .count-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .count-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .shape-classification {
+            margin-top: 20px;
+        }
+
+        .shape-results {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .shape-item {
+            text-align: center;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .data-export {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+        }
+
+        .export-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-ready {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls-panel {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .main-content {
+                padding: 20px;
+                gap: 20px;
+            }
+            
+            .camera-controls {
+                flex-direction: column;
+            }
+            
+            .count-display {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔬 Cell Counter Pro</h1>
+            <p>Advanced cell detection and counting with color classification by Claudio Iturra</p>
+        </div>
+
+        <div class="main-content">
+            <div class="camera-section">
+                <div class="status-indicator status-ready" id="statusIndicator">
+                    🟢 Ready to start camera
+                </div>
+
+                <div class="video-container">
+                    <video id="video" autoplay muted playsinline></video>
+                    <canvas id="canvas"></canvas>
+                </div>
+
+                <div class="camera-controls">
+                    <button class="btn btn-primary" id="startCamera">
+                        📹 Start Camera
+                    </button>
+                    <button class="btn btn-success" id="captureBtn" disabled>
+                        📸 Capture & Analyze
+                    </button>
+                    <button class="btn btn-warning" id="stopCamera" disabled>
+                        ⏹️ Stop Camera
+                    </button>
+                </div>
+            </div>
+
+            <div class="controls-panel">
+                <div class="control-group">
+                    <h3>🎨 Color Detection</h3>
+                    <div class="color-filters">
+                        <div class="color-filter active" data-color="red">
+                            <div class="color-dot" style="background: #ff4757;"></div>
+                            <span>Red Cells</span>
+                        </div>
+                        <div class="color-filter active" data-color="blue">
+                            <div class="color-dot" style="background: #3742fa;"></div>
+                            <span>Blue Cells</span>
+                        </div>
+                        <div class="color-filter active" data-color="green">
+                            <div class="color-dot" style="background: #2ed573;"></div>
+                            <span>Green Cells</span>
+                        </div>
+                        <div class="color-filter active" data-color="purple">
+                            <div class="color-dot" style="background: #a55eea;"></div>
+                            <span>Purple Cells</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>⚙️ Detection Settings</h3>
+                    <div class="sensitivity-control">
+                        <label>Color Sensitivity: <span id="sensitivityValue">30</span></label>
+                        <input type="range" id="sensitivity" min="10" max="100" value="30">
+                    </div>
+                    <div class="sensitivity-control">
+                        <label>Min Cell Size: <span id="minSizeValue">5</span>px</label>
+                        <input type="range" id="minSize" min="2" max="20" value="5">
+                    </div>
+                    <div class="sensitivity-control">
+                        <label>Max Cell Size: <span id="maxSizeValue">50</span>px</label>
+                        <input type="range" id="maxSize" min="20" max="200" value="50">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <h3>📊 Results</h3>
+                    <div class="results-panel">
+                        <div class="count-display">
+                            <div class="count-item">
+                                <div class="count-number" id="totalCount">0</div>
+                                <div class="count-label">Total Cells</div>
+                            </div>
+                            <div class="count-item">
+                                <div class="count-number" id="colorCount">0</div>
+                                <div class="count-label">Colored Cells</div>
+                            </div>
+                        </div>
+
+                        <div class="shape-classification">
+                            <h4>🔍 Shape Analysis</h4>
+                            <div class="shape-results">
+                                <div class="shape-item">
+                                    <div id="circularCount">0</div>
+                                    <div>Circular</div>
+                                </div>
+                                <div class="shape-item">
+                                    <div id="elongatedCount">0</div>
+                                    <div>Elongated</div>
+                                </div>
+                                <div class="shape-item">
+                                    <div id="irregularCount">0</div>
+                                    <div>Irregular</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="data-export">
+                            <h4>💾 Export Data</h4>
+                            <div class="export-controls">
+                                <button class="btn btn-primary" id="saveImage">Save Image</button>
+                                <button class="btn btn-success" id="exportData">Export CSV</button>
+                                <button class="btn btn-warning" id="copyData">Copy Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CellCounter {
+            constructor() {
+                this.video = document.getElementById('video');
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.stream = null;
+                this.isAnalyzing = false;
+                this.lastAnalysis = null;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.updateSensitivityDisplays();
+            }
+
+            initializeElements() {
+                this.startBtn = document.getElementById('startCamera');
+                this.captureBtn = document.getElementById('captureBtn');
+                this.stopBtn = document.getElementById('stopCamera');
+                this.statusIndicator = document.getElementById('statusIndicator');
+                
+                this.sensitivitySlider = document.getElementById('sensitivity');
+                this.minSizeSlider = document.getElementById('minSize');
+                this.maxSizeSlider = document.getElementById('maxSize');
+                
+                this.colorFilters = document.querySelectorAll('.color-filter');
+            }
+
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.startCamera());
+                this.captureBtn.addEventListener('click', () => this.captureAndAnalyze());
+                this.stopBtn.addEventListener('click', () => this.stopCamera());
+                
+                this.sensitivitySlider.addEventListener('input', () => this.updateSensitivityDisplays());
+                this.minSizeSlider.addEventListener('input', () => this.updateSensitivityDisplays());
+                this.maxSizeSlider.addEventListener('input', () => this.updateSensitivityDisplays());
+                
+                this.colorFilters.forEach(filter => {
+                    filter.addEventListener('click', () => this.toggleColorFilter(filter));
+                });
+
+                document.getElementById('saveImage').addEventListener('click', () => this.saveImage());
+                document.getElementById('exportData').addEventListener('click', () => this.exportData());
+                document.getElementById('copyData').addEventListener('click', () => this.copyData());
+            }
+
+            updateSensitivityDisplays() {
+                document.getElementById('sensitivityValue').textContent = this.sensitivitySlider.value;
+                document.getElementById('minSizeValue').textContent = this.minSizeSlider.value;
+                document.getElementById('maxSizeValue').textContent = this.maxSizeSlider.value;
+            }
+
+            toggleColorFilter(filter) {
+                filter.classList.toggle('active');
+            }
+
+            async startCamera() {
+                try {
+                    this.updateStatus('🟡 Starting camera...', 'status-processing');
+                    
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: { 
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 },
+                            facingMode: 'environment'
+                        }
+                    });
+                    
+                    this.video.srcObject = this.stream;
+                    
+                    this.video.addEventListener('loadedmetadata', () => {
+                        this.canvas.width = this.video.videoWidth;
+                        this.canvas.height = this.video.videoHeight;
+                        this.canvas.style.width = '100%';
+                        this.canvas.style.height = '100%';
+                        
+                        this.updateStatus('🟢 Camera active - Ready to capture', 'status-ready');
+                        this.startBtn.disabled = true;
+                        this.captureBtn.disabled = false;
+                        this.stopBtn.disabled = false;
+                    });
+                    
+                } catch (error) {
+                    console.error('Camera access error:', error);
+                    this.updateStatus('🔴 Camera access denied or unavailable', 'status-error');
+                }
+            }
+
+            stopCamera() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                }
+                
+                this.video.srcObject = null;
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.updateStatus('🟢 Ready to start camera', 'status-ready');
+                this.startBtn.disabled = false;
+                this.captureBtn.disabled = true;
+                this.stopBtn.disabled = true;
+            }
+
+            updateStatus(message, className) {
+                this.statusIndicator.textContent = message;
+                this.statusIndicator.className = `status-indicator ${className}`;
+            }
+
+            async captureAndAnalyze() {
+                if (this.isAnalyzing) return;
+                
+                this.isAnalyzing = true;
+                this.updateStatus('🟡 Analyzing cells...', 'status-processing');
+                
+                // Capture current frame
+                this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+                
+                // Simulate analysis delay for realistic feel
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                // Perform cell detection
+                const results = this.detectCells(imageData);
+                this.displayResults(results);
+                this.drawDetections(results);
+                
+                this.lastAnalysis = {
+                    timestamp: new Date(),
+                    results: results,
+                    imageData: this.canvas.toDataURL()
+                };
+                
+                this.updateStatus('🟢 Analysis complete', 'status-ready');
+                this.isAnalyzing = false;
+            }
+
+            detectCells(imageData) {
+                const data = imageData.data;
+                const width = imageData.width;
+                const height = imageData.height;
+                const sensitivity = parseInt(this.sensitivitySlider.value);
+                const minSize = parseInt(this.minSizeSlider.value);
+                const maxSize = parseInt(this.maxSizeSlider.value);
+                
+                const activeColors = Array.from(this.colorFilters)
+                    .filter(filter => filter.classList.contains('active'))
+                    .map(filter => filter.dataset.color);
+                
+                const colorRanges = {
+                    red: { r: [150, 255], g: [0, 100], b: [0, 100] },
+                    blue: { r: [0, 100], g: [0, 150], b: [150, 255] },
+                    green: { r: [0, 100], g: [150, 255], b: [0, 100] },
+                    purple: { r: [100, 200], g: [0, 100], b: [150, 255] }
+                };
+                
+                const detectedCells = [];
+                const visited = new Set();
+                
+                // Simple blob detection algorithm
+                for (let y = minSize; y < height - minSize; y += 3) {
+                    for (let x = minSize; x < width - minSize; x += 3) {
+                        const key = `${x},${y}`;
+                        if (visited.has(key)) continue;
+                        
+                        const pixelIndex = (y * width + x) * 4;
+                        const r = data[pixelIndex];
+                        const g = data[pixelIndex + 1];
+                        const b = data[pixelIndex + 2];
+                        
+                        // Check if pixel matches any active color
+                        let matchedColor = null;
+                        for (const color of activeColors) {
+                            const range = colorRanges[color];
+                            if (r >= range.r[0] && r <= range.r[1] &&
+                                g >= range.g[0] && g <= range.g[1] &&
+                                b >= range.b[0] && b <= range.b[1]) {
+                                matchedColor = color;
+                                break;
+                            }
+                        }
+                        
+                        if (matchedColor) {
+                            // Found a potential cell, grow the region
+                            const cell = this.growRegion(data, width, height, x, y, matchedColor, colorRanges[matchedColor], visited, sensitivity);
+                            
+                            if (cell.pixels.length >= minSize && cell.pixels.length <= maxSize * maxSize) {
+                                cell.color = matchedColor;
+                                cell.shape = this.classifyShape(cell);
+                                detectedCells.push(cell);
+                            }
+                        }
+                    }
+                }
+                
+                return {
+                    totalCells: detectedCells.length,
+                    colorCounts: this.countByColor(detectedCells),
+                    shapeCounts: this.countByShape(detectedCells),
+                    cells: detectedCells
+                };
+            }
+
+            growRegion(data, width, height, startX, startY, color, colorRange, visited, sensitivity) {
+                const pixels = [];
+                const stack = [{x: startX, y: startY}];
+                const regionVisited = new Set();
+                
+                let minX = startX, maxX = startX, minY = startY, maxY = startY;
+                
+                while (stack.length > 0 && pixels.length < 1000) {
+                    const {x, y} = stack.pop();
+                    const key = `${x},${y}`;
+                    
+                    if (regionVisited.has(key) || visited.has(key)) continue;
+                    if (x < 0 || x >= width || y < 0 || y >= height) continue;
+                    
+                    const pixelIndex = (y * width + x) * 4;
+                    const r = data[pixelIndex];
+                    const g = data[pixelIndex + 1];
+                    const b = data[pixelIndex + 2];
+                    
+                    // Check if pixel matches color with sensitivity
+                    const tolerance = sensitivity;
+                    if (r >= colorRange.r[0] - tolerance && r <= colorRange.r[1] + tolerance &&
+                        g >= colorRange.g[0] - tolerance && g <= colorRange.g[1] + tolerance &&
+                        b >= colorRange.b[0] - tolerance && b <= colorRange.b[1] + tolerance) {
+                        
+                        regionVisited.add(key);
+                        visited.add(key);
+                        pixels.push({x, y});
+                        
+                        minX = Math.min(minX, x);
+                        maxX = Math.max(maxX, x);
+                        minY = Math.min(minY, y);
+                        maxY = Math.max(maxY, y);
+                        
+                        // Add neighbors
+                        stack.push({x: x + 1, y}, {x: x - 1, y}, {x, y: y + 1}, {x, y: y - 1});
+                    }
+                }
+                
+                return {
+                    pixels,
+                    bounds: {minX, maxX, minY, maxY},
+                    center: {
+                        x: Math.round((minX + maxX) / 2),
+                        y: Math.round((minY + maxY) / 2)
+                    }
+                };
+            }
+
+            classifyShape(cell) {
+                const {bounds, pixels} = cell;
+                const width = bounds.maxX - bounds.minX;
+                const height = bounds.maxY - bounds.minY;
+                const area = pixels.length;
+                
+                const aspectRatio = Math.max(width, height) / Math.min(width, height);
+                const rectangularArea = width * height;
+                const fillRatio = area / rectangularArea;
+                
+                if (aspectRatio < 1.5 && fillRatio > 0.6) {
+                    return 'circular';
+                } else if (aspectRatio > 2.5) {
+                    return 'elongated';
+                } else {
+                    return 'irregular';
+                }
+            }
+
+            countByColor(cells) {
+                const counts = {red: 0, blue: 0, green: 0, purple: 0};
+                cells.forEach(cell => {
+                    if (counts.hasOwnProperty(cell.color)) {
+                        counts[cell.color]++;
+                    }
+                });
+                return counts;
+            }
+
+            countByShape(cells) {
+                const counts = {circular: 0, elongated: 0, irregular: 0};
+                cells.forEach(cell => {
+                    if (counts.hasOwnProperty(cell.shape)) {
+                        counts[cell.shape]++;
+                    }
+                });
+                return counts;
+            }
+
+            displayResults(results) {
+                document.getElementById('totalCount').textContent = results.totalCells;
+                document.getElementById('colorCount').textContent = 
+                    Object.values(results.colorCounts).reduce((a, b) => a + b, 0);
+                
+                document.getElementById('circularCount').textContent = results.shapeCounts.circular;
+                document.getElementById('elongatedCount').textContent = results.shapeCounts.elongated;
+                document.getElementById('irregularCount').textContent = results.shapeCounts.irregular;
+            }
+
+            drawDetections(results) {
+                // Clear previous detections
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.ctx.drawImage(this.video, 0, 0, this.canvas.width, this.canvas.height);
+                
+                // Draw cell detections
+                results.cells.forEach((cell, index) => {
+                    const colorMap = {
+                        red: '#ff4757',
+                        blue: '#3742fa',
+                        green: '#2ed573',
+                        purple: '#a55eea'
+                    };
+                    
+                    this.ctx.strokeStyle = colorMap[cell.color] || '#ffffff';
+                    this.ctx.lineWidth = 2;
+                    this.ctx.fillStyle = colorMap[cell.color] + '40';
+                    
+                    // Draw bounding box
+                    const width = cell.bounds.maxX - cell.bounds.minX;
+                    const height = cell.bounds.maxY - cell.bounds.minY;
+                    
+                    this.ctx.fillRect(cell.bounds.minX, cell.bounds.minY, width, height);
+                    this.ctx.strokeRect(cell.bounds.minX, cell.bounds.minY, width, height);
+                    
+                    // Draw center point
+                    this.ctx.fillStyle = colorMap[cell.color];
+                    this.ctx.beginPath();
+                    this.ctx.arc(cell.center.x, cell.center.y, 3, 0, 2 * Math.PI);
+                    this.ctx.fill();
+                    
+                    // Draw label
+                    this.ctx.fillStyle = '#ffffff';
+                    this.ctx.font = '12px Arial';
+                    this.ctx.fillText(`${index + 1}`, cell.center.x + 5, cell.center.y - 5);
+                });
+            }
+
+            saveImage() {
+                if (!this.lastAnalysis) {
+                    alert('Please capture and analyze an image first!');
+                    return;
+                }
+                
+                const link = document.createElement('a');
+                link.download = `cell-analysis-${Date.now()}.png`;
+                link.href = this.lastAnalysis.imageData;
+                link.click();
+            }
+
+            exportData() {
+                if (!this.lastAnalysis) {
+                    alert('Please capture and analyze an image first!');
+                    return;
+                }
+                
+                const results = this.lastAnalysis.results;
+                const timestamp = this.lastAnalysis.timestamp.toISOString();
+                
+                let csv = 'Cell Analysis Report\n';
+                csv += `Timestamp,${timestamp}\n`;
+                csv += `Total Cells,${results.totalCells}\n\n`;
+                
+                csv += 'Color Analysis\n';
+                csv += 'Color,Count\n';
+                Object.entries(results.colorCounts).forEach(([color, count]) => {
+                    csv += `${color},${count}\n`;
+                });
+                
+                csv += '\nShape Analysis\n';
+                csv += 'Shape,Count\n';
+                Object.entries(results.shapeCounts).forEach(([shape, count]) => {
+                    csv += `${shape},${count}\n`;
+                });
+                
+                csv += '\nDetailed Cell Data\n';
+                csv += 'Cell ID,Color,Shape,Center X,Center Y,Size (pixels)\n';
+                results.cells.forEach((cell, index) => {
+                    csv += `${index + 1},${cell.color},${cell.shape},${cell.center.x},${cell.center.y},${cell.pixels.length}\n`;
+                });
+                
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `cell-data-${Date.now()}.csv`;
+                link.click();
+                window.URL.revokeObjectURL(url);
+            }
+
+            async copyData() {
+                if (!this.lastAnalysis) {
+                    alert('Please capture and analyze an image first!');
+                    return;
+                }
+                
+                const results = this.lastAnalysis.results;
+                const data = `Cell Analysis Results:
+Total Cells: ${results.totalCells}
+Red Cells: ${results.colorCounts.red}
+Blue Cells: ${results.colorCounts.blue}
+Green Cells: ${results.colorCounts.green}
+Purple Cells: ${results.colorCounts.purple}
+
+Shape Classification:
+Circular: ${results.shapeCounts.circular}
+Elongated: ${results.shapeCounts.elongated}
+Irregular: ${results.shapeCounts.irregular}
+
+Analysis Time: ${this.lastAnalysis.timestamp.toLocaleString()}`;
+                
+                try {
+                    await navigator.clipboard.writeText(data);
+                    alert('Data copied to clipboard!');
+                } catch (err) {
+                    console.error('Failed to copy data:', err);
+                    alert('Failed to copy data to clipboard');
+                }
+            }
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            new CellCounter();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c96d7584228937',t:'MTc1NDc2NTMwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
