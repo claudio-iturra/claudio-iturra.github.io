@@ -1,0 +1,2272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepción Coastal Wind Generation Analysis System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 30%, #4a90e2 70%, #87ceeb 100%);
+            color: white;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: #87ceeb;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .location-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        
+        .location-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .nav-tab {
+            padding: 12px 18px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(135, 206, 235, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.2);
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .main-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group h4 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .parameter-input {
+            margin-bottom: 15px;
+        }
+        
+        .parameter-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #b0e0e6;
+            font-size: 0.9rem;
+        }
+        
+        .parameter-input input, .parameter-input select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .slider-input {
+            margin-bottom: 15px;
+        }
+        
+        .slider-input label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #b0e0e6;
+            font-size: 0.9rem;
+        }
+        
+        .value-display {
+            color: #ffd700;
+            font-weight: bold;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4caf50;
+            cursor: pointer;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #4caf50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .results-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4caf50;
+        }
+        
+        .results-box h4 {
+            color: #87ceeb;
+            margin-bottom: 15px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            color: #333;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.85rem;
+            color: #b0e0e6;
+        }
+        
+        .equation-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            border-left: 4px solid #87ceeb;
+            overflow-x: auto;
+        }
+        
+        .wind-rose-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .wind-pattern-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .pattern-sea-breeze {
+            background: rgba(0, 191, 255, 0.3);
+            border: 2px solid #00bfff;
+        }
+        
+        .pattern-land-breeze {
+            background: rgba(255, 165, 0, 0.3);
+            border: 2px solid #ffa500;
+        }
+        
+        .pattern-synoptic {
+            background: rgba(138, 43, 226, 0.3);
+            border: 2px solid #8a2be2;
+        }
+        
+        .pattern-mountain {
+            background: rgba(34, 139, 34, 0.3);
+            border: 2px solid #228b22;
+        }
+        
+        .time-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .time-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .time-btn.active {
+            background: rgba(135, 206, 235, 0.4);
+        }
+        
+        .seasonal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .season-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #87ceeb;
+        }
+        
+        .wind-components {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .component-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 1200px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .wind-rose-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .wind-components {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .location-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .seasonal-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌬️ Concepción Coastal Wind Generation Analysis</h1>
+            <p>Comprehensive evaluation of coastal wind patterns, sea breezes, and meteorological forcing mechanisms by Claudio Iturra</p>
+            
+            <div class="location-info">
+                <div class="location-card">
+                    <strong>📍 Location</strong><br>
+                    Concepción, Chile<br>
+                    36.8°S, 73.0°W
+                </div>
+                <div class="location-card">
+                    <strong>🏔️ Topography</strong><br>
+                    Coastal Plain<br>
+                    Andes Mountains (E)
+                </div>
+                <div class="location-card">
+                    <strong>🌊 Coast Orientation</strong><br>
+                    N-S Coastline<br>
+                    Pacific Ocean (W)
+                </div>
+                <div class="location-card">
+                    <strong>🌡️ Climate Zone</strong><br>
+                    Mediterranean<br>
+                    Temperate Oceanic
+                </div>
+                <div class="location-card">
+                    <strong>⭐ Latitude Effect</strong><br>
+                    Mid-Latitude<br>
+                    Westerly Belt
+                </div>
+            </div>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('diurnal-winds')">Diurnal Winds</button>
+            <button class="nav-tab" onclick="showSection('sea-breeze')">Sea Breeze System</button>
+            <button class="nav-tab" onclick="showSection('synoptic-winds')">Synoptic Patterns</button>
+            <button class="nav-tab" onclick="showSection('seasonal-analysis')">Seasonal Analysis</button>
+            <button class="nav-tab" onclick="showSection('topographic-effects')">Topographic Effects</button>
+            <button class="nav-tab" onclick="showSection('annual-patterns')">Annual Patterns</button>
+        </div>
+
+        <!-- Diurnal Winds Section -->
+        <div id="diurnal-winds" class="content-section active">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌅 Diurnal Wind Cycle Analysis</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="seaBreezeStrengthValue">4.2</div>
+                            <div class="metric-label">Sea Breeze Strength (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="landBreezeStrengthValue">2.1</div>
+                            <div class="metric-label">Land Breeze Strength (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="thermalContrastValue">8.5</div>
+                            <div class="metric-label">Land-Sea Temp Diff (°C)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="pressureGradientValue">1.2</div>
+                            <div class="metric-label">Pressure Gradient (hPa/km)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="convergenceZoneValue">15</div>
+                            <div class="metric-label">Convergence Zone (km)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="mixingHeightValue">850</div>
+                            <div class="metric-label">Mixing Height (m)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="wind-pattern-indicator" id="currentWindPattern">
+                        🌊 SEA BREEZE DOMINANT
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="diurnalWindChart" width="600" height="400"></canvas>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Diurnal Wind Generation Equations:</strong><br><br>
+                        Sea Breeze Velocity: V_sb = √(2gΔT·h/T₀) = <span id="eqSeaBreeze">4.2</span> m/s<br>
+                        Pressure Gradient: ∇P = ρg(ΔT/T₀)Δx = <span id="eqPressGrad">1.2</span> hPa/km<br>
+                        Thermal Wind: ∂V/∂z = (g/fT₀)(∂T/∂x) = <span id="eqThermalWind">0.8</span> s⁻¹<br>
+                        Coriolis Effect: f = 2Ω sin(φ) = <span id="eqCoriolis">-8.76×10⁻⁵</span> s⁻¹<br>
+                        Mixing Height: h_mix = u*³/(κB) = <span id="eqMixingHeight">850</span> m
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🌡️ Thermal Conditions</h4>
+                        <div class="slider-input">
+                            <label>Land Temperature (°C): <span class="value-display" id="landTempDisplay">22.0</span></label>
+                            <input type="range" class="slider" id="landTemp" min="5" max="35" value="22" step="0.5" oninput="updateDiurnalAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Sea Temperature (°C): <span class="value-display" id="seaTempDisplay">15.0</span></label>
+                            <input type="range" class="slider" id="seaTemp" min="8" max="22" value="15" step="0.5" oninput="updateDiurnalAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Solar Radiation (W/m²): <span class="value-display" id="solarRadDisplay">600</span></label>
+                            <input type="range" class="slider" id="solarRad" min="0" max="1200" value="600" step="50" oninput="updateDiurnalAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Cloud Cover (%): <span class="value-display" id="cloudCoverDisplay">30</span></label>
+                            <input type="range" class="slider" id="cloudCover" min="0" max="100" value="30" step="5" oninput="updateDiurnalAnalysis()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌬️ Atmospheric Conditions</h4>
+                        <div class="slider-input">
+                            <label>Boundary Layer Height (m): <span class="value-display" id="blHeightDisplay">1200</span></label>
+                            <input type="range" class="slider" id="blHeight" min="200" max="3000" value="1200" step="100" oninput="updateDiurnalAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Stability Parameter: <span class="value-display" id="stabilityDisplay">0.5</span></label>
+                            <input type="range" class="slider" id="stability" min="-2" max="2" value="0.5" step="0.1" oninput="updateDiurnalAnalysis()">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Time of Day</label>
+                            <select id="timeOfDay" onchange="updateDiurnalAnalysis()">
+                                <option value="6">06:00 (Dawn)</option>
+                                <option value="9">09:00 (Morning)</option>
+                                <option value="12" selected>12:00 (Noon)</option>
+                                <option value="15">15:00 (Afternoon)</option>
+                                <option value="18">18:00 (Evening)</option>
+                                <option value="21">21:00 (Night)</option>
+                                <option value="0">00:00 (Midnight)</option>
+                                <option value="3">03:00 (Pre-dawn)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateDiurnalWinds()">Calculate Diurnal Cycle</button>
+                    
+                    <div class="results-box" id="diurnalResults">
+                        <h4>Diurnal Wind Analysis</h4>
+                        <p id="diurnalResultsText">Click "Calculate Diurnal Cycle" to see detailed analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sea Breeze System Section -->
+        <div id="sea-breeze" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌊 Sea Breeze System Dynamics</h3>
+                    
+                    <div class="wind-components">
+                        <div class="component-section">
+                            <h4>Onshore Component</h4>
+                            <div class="chart-container">
+                                <canvas id="onshoreChart" width="300" height="300"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h4>Vertical Structure</h4>
+                            <div class="chart-container">
+                                <canvas id="verticalChart" width="300" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="seaBreezeDepthValue">1200</div>
+                            <div class="metric-label">Sea Breeze Depth (m)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="penetrationDistValue">45</div>
+                            <div class="metric-label">Inland Penetration (km)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="frontSpeedValue">3.5</div>
+                            <div class="metric-label">Front Speed (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="returnFlowValue">2.8</div>
+                            <div class="metric-label">Return Flow (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="convergenceStrengthValue">5.2</div>
+                            <div class="metric-label">Convergence (×10⁻⁵ s⁻¹)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="vorticityValue">-3.1</div>
+                            <div class="metric-label">Vorticity (×10⁻⁵ s⁻¹)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Sea Breeze System Equations:</strong><br><br>
+                        Sea Breeze Depth: H = √(2CₚΔT·L/g) = <span id="eqSBDepth">1200</span> m<br>
+                        Penetration Distance: L = V_sb × t_sb = <span id="eqPenetration">45</span> km<br>
+                        Front Speed: V_f = √(g'H) where g' = gΔρ/ρ = <span id="eqFrontSpeed">3.5</span> m/s<br>
+                        Return Flow: V_r = -V_sb(H_sb/H_total) = <span id="eqReturnFlow">2.8</span> m/s<br>
+                        Convergence: ∇·V = ∂u/∂x + ∂v/∂y = <span id="eqConvergence">5.2×10⁻⁵</span> s⁻¹
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🌊 Sea Breeze Parameters</h4>
+                        <div class="slider-input">
+                            <label>Thermal Contrast (°C): <span class="value-display" id="thermalContrastDisplay">8.0</span></label>
+                            <input type="range" class="slider" id="thermalContrast" min="0" max="20" value="8" step="0.5" oninput="updateSeaBreezeAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Coastline Roughness: <span class="value-display" id="roughnessDisplay">0.1</span></label>
+                            <input type="range" class="slider" id="roughness" min="0.01" max="1" value="0.1" step="0.01" oninput="updateSeaBreezeAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Synoptic Wind (m/s): <span class="value-display" id="synopticWindDisplay">3.0</span></label>
+                            <input type="range" class="slider" id="synopticWind" min="0" max="15" value="3" step="0.5" oninput="updateSeaBreezeAnalysis()">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Synoptic Direction</label>
+                            <select id="synopticDirection" onchange="updateSeaBreezeAnalysis()">
+                                <option value="0">North</option>
+                                <option value="90">East</option>
+                                <option value="180" selected>South</option>
+                                <option value="270">West</option>
+                                <option value="225">Southwest</option>
+                                <option value="315">Northwest</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🏔️ Topographic Influence</h4>
+                        <div class="slider-input">
+                            <label>Coastal Plain Width (km): <span class="value-display" id="plainWidthDisplay">25</span></label>
+                            <input type="range" class="slider" id="plainWidth" min="5" max="100" value="25" step="5" oninput="updateSeaBreezeAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Mountain Height (m): <span class="value-display" id="mountainHeightDisplay">2000</span></label>
+                            <input type="range" class="slider" id="mountainHeight" min="500" max="4000" value="2000" step="100" oninput="updateSeaBreezeAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Valley Channeling: <span class="value-display" id="channelingDisplay">0.3</span></label>
+                            <input type="range" class="slider" id="channeling" min="0" max="1" value="0.3" step="0.1" oninput="updateSeaBreezeAnalysis()">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateSeaBreezeSystem()">Analyze Sea Breeze System</button>
+                    
+                    <div class="results-box" id="seaBreezeResults">
+                        <h4>Sea Breeze System Analysis</h4>
+                        <p id="seaBreezeResultsText">Sea breeze system parameters calculated.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Synoptic Patterns Section -->
+        <div id="synoptic-winds" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌀 Synoptic Wind Patterns</h3>
+                    
+                    <div class="chart-container">
+                        <canvas id="synopticChart" width="700" height="400"></canvas>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="pacificHighValue">1024</div>
+                            <div class="metric-label">Pacific High (hPa)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="westerliesStrengthValue">12.5</div>
+                            <div class="metric-label">Westerlies (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="frontalFrequencyValue">8</div>
+                            <div class="metric-label">Fronts/Month</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="stormTrackValue">42</div>
+                            <div class="metric-label">Storm Track Lat (°S)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="jetStreamValue">200</div>
+                            <div class="metric-label">Jet Stream (hPa)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="blockingIndexValue">0.15</div>
+                            <div class="metric-label">Blocking Index</div>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Synoptic Scale Equations:</strong><br><br>
+                        Geostrophic Wind: V_g = -(1/ρf)∇P = <span id="eqGeostrophic">12.5</span> m/s<br>
+                        Thermal Wind: ∂V_g/∂z = -(g/fT)∇T = <span id="eqThermalWindSyn">0.5</span> s⁻¹<br>
+                        Rossby Wave Speed: c = U - β/(k² + l²) = <span id="eqRossbySpeed">8.2</span> m/s<br>
+                        Storm Track: φ = φ₀ + A·sin(2πt/T) = <span id="eqStormTrack">42</span>°S<br>
+                        Blocking Parameter: B = (Z₅₀₀ - Z₅₀₀_clim)/σ = <span id="eqBlocking">0.15</span>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🌀 Pressure Systems</h4>
+                        <div class="slider-input">
+                            <label>Pacific High Strength (hPa): <span class="value-display" id="pacificHighDisplay">1024</span></label>
+                            <input type="range" class="slider" id="pacificHighStrength" min="1010" max="1035" value="1024" step="1" oninput="updateSynopticAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>High Position (°S): <span class="value-display" id="highPositionDisplay">30</span></label>
+                            <input type="range" class="slider" id="highPosition" min="25" max="40" value="30" step="1" oninput="updateSynopticAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Trough Intensity (hPa): <span class="value-display" id="troughIntensityDisplay">1008</span></label>
+                            <input type="range" class="slider" id="troughIntensity" min="990" max="1015" value="1008" step="1" oninput="updateSynopticAnalysis()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌊 Large-Scale Patterns</h4>
+                        <div class="parameter-input">
+                            <label>Dominant Pattern</label>
+                            <select id="dominantPattern" onchange="updateSynopticAnalysis()">
+                                <option value="normal">Normal Westerlies</option>
+                                <option value="blocking">Atmospheric Blocking</option>
+                                <option value="storm">Storm Track</option>
+                                <option value="high">High Pressure Ridge</option>
+                                <option value="cutoff">Cut-off Low</option>
+                            </select>
+                        </div>
+                        <div class="slider-input">
+                            <label>Pattern Strength: <span class="value-display" id="patternStrengthDisplay">0.7</span></label>
+                            <input type="range" class="slider" id="patternStrength" min="0" max="2" value="0.7" step="0.1" oninput="updateSynopticAnalysis()">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Season</label>
+                            <select id="synopticSeason" onchange="updateSynopticAnalysis()">
+                                <option value="summer">Summer (DJF)</option>
+                                <option value="autumn">Autumn (MAM)</option>
+                                <option value="winter">Winter (JJA)</option>
+                                <option value="spring">Spring (SON)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateSynopticPatterns()">Analyze Synoptic Patterns</button>
+                    
+                    <div class="results-box" id="synopticResults">
+                        <h4>Synoptic Pattern Analysis</h4>
+                        <p id="synopticResultsText">Synoptic wind patterns analyzed for current conditions.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seasonal Analysis Section -->
+        <div id="seasonal-analysis" class="content-section">
+            <div class="main-panel">
+                <h3>📅 Seasonal Wind Pattern Analysis</h3>
+                
+                <div class="chart-container">
+                    <canvas id="seasonalChart" width="800" height="400"></canvas>
+                </div>
+                
+                <div class="seasonal-grid">
+                    <div class="season-card">
+                        <h4>🌞 Summer (Dec-Feb)</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="summerSeaBreezeValue">6.2</div>
+                                <div class="metric-label">Sea Breeze (m/s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="summerSynopticValue">8.5</div>
+                                <div class="metric-label">Synoptic Wind (m/s)</div>
+                            </div>
+                        </div>
+                        <p><strong>Characteristics:</strong> Strong sea breezes, Pacific High dominance, weak synoptic forcing, thermal contrasts maximum.</p>
+                    </div>
+                    
+                    <div class="season-card">
+                        <h4>🍂 Autumn (Mar-May)</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="autumnSeaBreezeValue">4.1</div>
+                                <div class="metric-label">Sea Breeze (m/s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="autumnSynopticValue">11.2</div>
+                                <div class="metric-label">Synoptic Wind (m/s)</div>
+                            </div>
+                        </div>
+                        <p><strong>Characteristics:</strong> Transitional period, increasing synoptic activity, moderate sea breezes, frontal passages.</p>
+                    </div>
+                    
+                    <div class="season-card">
+                        <h4>❄️ Winter (Jun-Aug)</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="winterSeaBreezeValue">2.8</div>
+                                <div class="metric-label">Sea Breeze (m/s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="winterSynopticValue">15.3</div>
+                                <div class="metric-label">Synoptic Wind (m/s)</div>
+                            </div>
+                        </div>
+                        <p><strong>Characteristics:</strong> Strong westerlies, frequent storms, weak thermal contrasts, synoptic dominance.</p>
+                    </div>
+                    
+                    <div class="season-card">
+                        <h4>🌸 Spring (Sep-Nov)</h4>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-value" id="springSeaBreezeValue">5.0</div>
+                                <div class="metric-label">Sea Breeze (m/s)</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value" id="springSynopticValue">9.8</div>
+                                <div class="metric-label">Synoptic Wind (m/s)</div>
+                            </div>
+                        </div>
+                        <p><strong>Characteristics:</strong> Increasing sea breeze activity, variable synoptic patterns, growing thermal contrasts.</p>
+                    </div>
+                </div>
+                
+                <div class="equation-box">
+                    <strong>Seasonal Variation Equations:</strong><br><br>
+                    Seasonal Wind: V(t) = V₀ + A·cos(2πt/365 + φ) + B·cos(4πt/365)<br>
+                    Thermal Contrast: ΔT(t) = ΔT₀[1 + C·cos(2πt/365)]<br>
+                    Sea Breeze Frequency: f_sb(t) = f₀·[1 + D·sin(2πt/365)]<br>
+                    Synoptic Activity: SA(t) = SA₀·[1 + E·cos(2πt/365 + π)]
+                </div>
+            </div>
+        </div>
+
+        <!-- Topographic Effects Section -->
+        <div id="topographic-effects" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🏔️ Topographic Wind Effects</h3>
+                    
+                    <div class="wind-components">
+                        <div class="component-section">
+                            <h4>Mountain-Valley Winds</h4>
+                            <div class="chart-container">
+                                <canvas id="mountainValleyChart" width="350" height="300"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="component-section">
+                            <h4>Coastal Channeling</h4>
+                            <div class="chart-container">
+                                <canvas id="channelingChart" width="350" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="valleyWindValue">3.8</div>
+                            <div class="metric-label">Valley Wind (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="mountainWindValue">5.2</div>
+                            <div class="metric-label">Mountain Wind (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="channelingFactorValue">1.8</div>
+                            <div class="metric-label">Channeling Factor</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="orographicLiftValue">2.1</div>
+                            <div class="metric-label">Orographic Lift (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="leeWaveValue">4.5</div>
+                            <div class="metric-label">Lee Wave Amp (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="gapFlowValue">12.3</div>
+                            <div class="metric-label">Gap Flow (m/s)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Topographic Wind Equations:</strong><br><br>
+                        Valley Wind: V_valley = √(2gΔT·h_valley/T₀) = <span id="eqValleyWind">3.8</span> m/s<br>
+                        Channeling Factor: CF = V_channel/V_free = <span id="eqChanneling">1.8</span><br>
+                        Orographic Lift: w = V·∂h/∂x = <span id="eqOroLift">2.1</span> m/s<br>
+                        Lee Wave: λ = 2πU/N = <span id="eqLeeWave">15.2</span> km<br>
+                        Gap Flow: V_gap = √(2ΔP/ρ) = <span id="eqGapFlow">12.3</span> m/s
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🏔️ Terrain Parameters</h4>
+                        <div class="slider-input">
+                            <label>Andes Height (m): <span class="value-display" id="andesHeightDisplay">3000</span></label>
+                            <input type="range" class="slider" id="andesHeight" min="1000" max="6000" value="3000" step="100" oninput="updateTopographicAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Valley Depth (m): <span class="value-display" id="valleyDepthDisplay">500</span></label>
+                            <input type="range" class="slider" id="valleyDepth" min="100" max="2000" value="500" step="50" oninput="updateTopographicAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Slope Angle (°): <span class="value-display" id="slopeAngleDisplay">15</span></label>
+                            <input type="range" class="slider" id="slopeAngle" min="5" max="45" value="15" step="1" oninput="updateTopographicAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Coastal Plain Width (km): <span class="value-display" id="coastalPlainDisplay">30</span></label>
+                            <input type="range" class="slider" id="coastalPlain" min="5" max="100" value="30" step="5" oninput="updateTopographicAnalysis()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌬️ Flow Conditions</h4>
+                        <div class="slider-input">
+                            <label>Upstream Wind (m/s): <span class="value-display" id="upstreamWindDisplay">10.0</span></label>
+                            <input type="range" class="slider" id="upstreamWind" min="0" max="25" value="10" step="0.5" oninput="updateTopographicAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Atmospheric Stability: <span class="value-display" id="atmosStabilityDisplay">0.01</span></label>
+                            <input type="range" class="slider" id="atmosStability" min="0.001" max="0.05" value="0.01" step="0.001" oninput="updateTopographicAnalysis()">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Wind Direction</label>
+                            <select id="topoWindDirection" onchange="updateTopographicAnalysis()">
+                                <option value="270">West (Perpendicular)</option>
+                                <option value="225">Southwest</option>
+                                <option value="315">Northwest</option>
+                                <option value="180">South (Parallel)</option>
+                                <option value="0">North (Parallel)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateTopographicEffects()">Analyze Topographic Effects</button>
+                    
+                    <div class="results-box" id="topographicResults">
+                        <h4>Topographic Effects Analysis</h4>
+                        <p id="topographicResultsText">Topographic wind effects calculated for current terrain configuration.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Annual Patterns Section -->
+        <div id="annual-patterns" class="content-section">
+            <div class="main-panel">
+                <h3>📊 Annual Wind Pattern Variations</h3>
+                
+                <div class="time-controls">
+                    <button class="time-btn active" onclick="setAnnualView('monthly')">Monthly</button>
+                    <button class="time-btn" onclick="setAnnualView('seasonal')">Seasonal</button>
+                    <button class="time-btn" onclick="setAnnualView('daily')">Daily Cycle</button>
+                    <button class="time-btn" onclick="setAnnualView('interannual')">Interannual</button>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="annualPatternsChart" width="900" height="500"></canvas>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="annualMeanWindValue">9.2</div>
+                        <div class="metric-label">Annual Mean Wind (m/s)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="windVariabilityValue">4.8</div>
+                        <div class="metric-label">Wind Variability (m/s)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="seaBreezeFreqValue">68</div>
+                        <div class="metric-label">Sea Breeze Frequency (%)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="stormFreqValue">12</div>
+                        <div class="metric-label">Storm Days/Year</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="calmPeriodsValue">8</div>
+                        <div class="metric-label">Calm Periods (%)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="prevailingDirValue">225</div>
+                        <div class="metric-label">Prevailing Direction (°)</div>
+                    </div>
+                </div>
+                
+                <div class="equation-box">
+                    <strong>Annual Pattern Statistics:</strong><br><br>
+                    Mean Wind: V̄ = (1/N)Σᵢ₌₁ᴺ Vᵢ = <span id="eqAnnualMean">9.2</span> m/s<br>
+                    Standard Deviation: σ = √[(1/N)Σᵢ₌₁ᴺ(Vᵢ - V̄)²] = <span id="eqStdDev">4.8</span> m/s<br>
+                    Weibull Scale: A = V̄/Γ(1 + 1/k) = <span id="eqWeibullA">10.4</span> m/s<br>
+                    Weibull Shape: k = (σ/V̄)⁻¹·⁰⁸⁶ = <span id="eqWeibullK">2.1</span><br>
+                    Directional Constancy: DC = |V̄_vector|/V̄_scalar = <span id="eqDirConstancy">0.75</span>
+                </div>
+                
+                <div class="wind-rose-container">
+                    <div class="component-section">
+                        <h4>Annual Wind Rose</h4>
+                        <div class="chart-container">
+                            <canvas id="windRoseChart" width="350" height="350"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="component-section">
+                        <h4>Seasonal Comparison</h4>
+                        <div class="chart-container">
+                            <canvas id="seasonalComparisonChart" width="350" height="350"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for charts and parameters
+        let diurnalWindChart, onshoreChart, verticalChart, synopticChart, seasonalChart;
+        let mountainValleyChart, channelingChart, annualPatternsChart, windRoseChart, seasonalComparisonChart;
+        let currentAnnualView = 'monthly';
+        
+        // Concepción-specific constants
+        const CONCEPCION_LAT = -36.8;
+        const CONCEPCION_LON = -73.0;
+        const CORIOLIS_F = 2 * 7.27e-5 * Math.sin(CONCEPCION_LAT * Math.PI / 180);
+        const GRAVITY = 9.81;
+        const GAS_CONSTANT = 287;
+        const CP = 1004;
+        
+        // Current parameters
+        let params = {
+            landTemp: 22.0,
+            seaTemp: 15.0,
+            solarRad: 600,
+            cloudCover: 30,
+            blHeight: 1200,
+            stability: 0.5,
+            timeOfDay: 12,
+            thermalContrast: 8.0,
+            roughness: 0.1,
+            synopticWind: 3.0,
+            synopticDirection: 180,
+            plainWidth: 25,
+            mountainHeight: 2000,
+            channeling: 0.3,
+            pacificHighStrength: 1024,
+            highPosition: 30,
+            troughIntensity: 1008,
+            patternStrength: 0.7,
+            andesHeight: 3000,
+            valleyDepth: 500,
+            slopeAngle: 15,
+            coastalPlain: 30,
+            upstreamWind: 10.0,
+            atmosStability: 0.01
+        };
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section and activate tab
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Initialize charts for the section
+            setTimeout(() => {
+                switch(sectionId) {
+                    case 'diurnal-winds':
+                        initDiurnalWindChart();
+                        break;
+                    case 'sea-breeze':
+                        initSeaBreezeCharts();
+                        break;
+                    case 'synoptic-winds':
+                        initSynopticChart();
+                        break;
+                    case 'seasonal-analysis':
+                        initSeasonalChart();
+                        break;
+                    case 'topographic-effects':
+                        initTopographicCharts();
+                        break;
+                    case 'annual-patterns':
+                        initAnnualPatternsChart();
+                        break;
+                }
+            }, 100);
+        }
+
+        function updateDiurnalAnalysis() {
+            // Update parameter values
+            params.landTemp = parseFloat(document.getElementById('landTemp').value);
+            params.seaTemp = parseFloat(document.getElementById('seaTemp').value);
+            params.solarRad = parseFloat(document.getElementById('solarRad').value);
+            params.cloudCover = parseFloat(document.getElementById('cloudCover').value);
+            params.blHeight = parseFloat(document.getElementById('blHeight').value);
+            params.stability = parseFloat(document.getElementById('stability').value);
+            params.timeOfDay = parseFloat(document.getElementById('timeOfDay').value);
+            
+            // Update displays
+            document.getElementById('landTempDisplay').textContent = params.landTemp.toFixed(1);
+            document.getElementById('seaTempDisplay').textContent = params.seaTemp.toFixed(1);
+            document.getElementById('solarRadDisplay').textContent = params.solarRad.toFixed(0);
+            document.getElementById('cloudCoverDisplay').textContent = params.cloudCover.toFixed(0);
+            document.getElementById('blHeightDisplay').textContent = params.blHeight.toFixed(0);
+            document.getElementById('stabilityDisplay').textContent = params.stability.toFixed(1);
+            
+            // Calculate diurnal wind parameters
+            calculateDiurnalMetrics();
+            updateDiurnalWindChart();
+        }
+
+        function calculateDiurnalMetrics() {
+            // Thermal contrast calculation
+            const thermalContrast = Math.max(0, params.landTemp - params.seaTemp);
+            
+            // Sea breeze strength calculation
+            const seaBreezeStrength = Math.sqrt(2 * GRAVITY * thermalContrast * params.blHeight / 
+                                               ((params.landTemp + 273.15) * (1 + params.stability)));
+            
+            // Land breeze strength (typically weaker)
+            const landBreezeStrength = seaBreezeStrength * 0.5;
+            
+            // Pressure gradient
+            const pressureGradient = 1013.25 * GRAVITY * thermalContrast / 
+                                   (GAS_CONSTANT * (params.landTemp + 273.15) * 10000); // hPa/km
+            
+            // Convergence zone distance
+            const convergenceZone = seaBreezeStrength * 3600 * 6 / 1000; // km (6 hours penetration)
+            
+            // Mixing height
+            const mixingHeight = params.blHeight * (1 + 0.3 * Math.sin(params.timeOfDay * Math.PI / 12));
+            
+            // Update metric displays
+            document.getElementById('seaBreezeStrengthValue').textContent = seaBreezeStrength.toFixed(1);
+            document.getElementById('landBreezeStrengthValue').textContent = landBreezeStrength.toFixed(1);
+            document.getElementById('thermalContrastValue').textContent = thermalContrast.toFixed(1);
+            document.getElementById('pressureGradientValue').textContent = pressureGradient.toFixed(2);
+            document.getElementById('convergenceZoneValue').textContent = convergenceZone.toFixed(0);
+            document.getElementById('mixingHeightValue').textContent = mixingHeight.toFixed(0);
+            
+            // Update equation displays
+            document.getElementById('eqSeaBreeze').textContent = seaBreezeStrength.toFixed(1);
+            document.getElementById('eqPressGrad').textContent = pressureGradient.toFixed(2);
+            document.getElementById('eqThermalWind').textContent = (GRAVITY * thermalContrast / 
+                                                                  (Math.abs(CORIOLIS_F) * (params.landTemp + 273.15) * 1000)).toFixed(1);
+            document.getElementById('eqCoriolis').textContent = CORIOLIS_F.toExponential(2);
+            document.getElementById('eqMixingHeight').textContent = mixingHeight.toFixed(0);
+            
+            // Update wind pattern indicator
+            const patternEl = document.getElementById('currentWindPattern');
+            if (params.timeOfDay >= 10 && params.timeOfDay <= 18 && thermalContrast > 3) {
+                patternEl.textContent = '🌊 SEA BREEZE DOMINANT';
+                patternEl.className = 'wind-pattern-indicator pattern-sea-breeze';
+            } else if (params.timeOfDay >= 20 || params.timeOfDay <= 6) {
+                patternEl.textContent = '🌙 LAND BREEZE DOMINANT';
+                patternEl.className = 'wind-pattern-indicator pattern-land-breeze';
+            } else if (params.synopticWind > 8) {
+                patternEl.textContent = '🌀 SYNOPTIC WIND DOMINANT';
+                patternEl.className = 'wind-pattern-indicator pattern-synoptic';
+            } else {
+                patternEl.textContent = '🏔️ MOUNTAIN-VALLEY WINDS';
+                patternEl.className = 'wind-pattern-indicator pattern-mountain';
+            }
+        }
+
+        function calculateDiurnalWinds() {
+            calculateDiurnalMetrics();
+            
+            const thermalContrast = params.landTemp - params.seaTemp;
+            const seaBreezeStrength = Math.sqrt(2 * GRAVITY * thermalContrast * params.blHeight / 
+                                               (params.landTemp + 273.15));
+            
+            const resultsText = `
+                <strong>Detailed Diurnal Wind Analysis:</strong><br><br>
+                
+                <strong>Current Conditions (${params.timeOfDay}:00):</strong><br>
+                • Land Temperature: ${params.landTemp.toFixed(1)}°C<br>
+                • Sea Temperature: ${params.seaTemp.toFixed(1)}°C<br>
+                • Thermal Contrast: ${thermalContrast.toFixed(1)}°C<br>
+                • Solar Radiation: ${params.solarRad} W/m²<br>
+                • Cloud Cover: ${params.cloudCover}%<br><br>
+                
+                <strong>Wind System Response:</strong><br>
+                • Sea Breeze Strength: ${seaBreezeStrength.toFixed(1)} m/s<br>
+                • Boundary Layer Height: ${params.blHeight} m<br>
+                • Mixing Height: ${(params.blHeight * (1 + 0.3 * Math.sin(params.timeOfDay * Math.PI / 12))).toFixed(0)} m<br>
+                • Stability Parameter: ${params.stability.toFixed(1)}<br><br>
+                
+                <strong>Physical Interpretation:</strong><br>
+                ${getDiurnalInterpretation(params.timeOfDay, thermalContrast, seaBreezeStrength)}
+            `;
+            
+            document.getElementById('diurnalResultsText').innerHTML = resultsText;
+        }
+
+        function getDiurnalInterpretation(hour, contrast, strength) {
+            if (hour >= 10 && hour <= 18 && contrast > 5) {
+                return `Strong daytime sea breeze conditions. Thermal contrast of ${contrast.toFixed(1)}°C drives onshore flow at ${strength.toFixed(1)} m/s. Expect cool marine air penetrating inland with convergence zone forming ${(strength * 18).toFixed(0)} km from coast.`;
+            } else if (hour >= 20 || hour <= 6) {
+                return `Nighttime land breeze regime. Radiative cooling creates weak offshore flow. Land breeze typically 2-3 m/s, extending 5-10 km offshore. Stable atmospheric conditions prevail.`;
+            } else if (hour >= 7 && hour <= 9) {
+                return `Morning transition period. Land heating beginning, but thermal contrast still weak. Light variable winds with possible mountain-valley circulation influence.`;
+            } else {
+                return `Evening transition period. Sea breeze weakening as thermal contrast decreases. Possible wind direction shift from onshore to offshore as land begins cooling.`;
+            }
+        }
+
+        function updateSeaBreezeAnalysis() {
+            params.thermalContrast = parseFloat(document.getElementById('thermalContrast').value);
+            params.roughness = parseFloat(document.getElementById('roughness').value);
+            params.synopticWind = parseFloat(document.getElementById('synopticWind').value);
+            params.plainWidth = parseFloat(document.getElementById('plainWidth').value);
+            params.mountainHeight = parseFloat(document.getElementById('mountainHeight').value);
+            params.channeling = parseFloat(document.getElementById('channeling').value);
+            
+            // Update displays
+            document.getElementById('thermalContrastDisplay').textContent = params.thermalContrast.toFixed(1);
+            document.getElementById('roughnessDisplay').textContent = params.roughness.toFixed(2);
+            document.getElementById('synopticWindDisplay').textContent = params.synopticWind.toFixed(1);
+            document.getElementById('plainWidthDisplay').textContent = params.plainWidth.toFixed(0);
+            document.getElementById('mountainHeightDisplay').textContent = params.mountainHeight.toFixed(0);
+            document.getElementById('channelingDisplay').textContent = params.channeling.toFixed(1);
+            
+            calculateSeaBreezeSystem();
+        }
+
+        function calculateSeaBreezeSystem() {
+            // Sea breeze depth calculation
+            const seaBreezeDepth = Math.sqrt(2 * CP * params.thermalContrast * params.plainWidth * 1000 / GRAVITY);
+            
+            // Inland penetration distance
+            const penetrationDist = Math.sqrt(2 * GRAVITY * params.thermalContrast * seaBreezeDepth) * 3600 * 8 / 1000; // 8 hours
+            
+            // Sea breeze front speed
+            const frontSpeed = Math.sqrt(GRAVITY * params.thermalContrast * seaBreezeDepth / 288);
+            
+            // Return flow velocity
+            const returnFlow = frontSpeed * 0.8;
+            
+            // Convergence strength
+            const convergenceStrength = frontSpeed / (params.plainWidth * 1000) * 1e5;
+            
+            // Vorticity
+            const vorticity = -convergenceStrength * 0.6;
+            
+            // Update displays
+            document.getElementById('seaBreezeDepthValue').textContent = seaBreezeDepth.toFixed(0);
+            document.getElementById('penetrationDistValue').textContent = penetrationDist.toFixed(0);
+            document.getElementById('frontSpeedValue').textContent = frontSpeed.toFixed(1);
+            document.getElementById('returnFlowValue').textContent = returnFlow.toFixed(1);
+            document.getElementById('convergenceStrengthValue').textContent = convergenceStrength.toFixed(1);
+            document.getElementById('vorticityValue').textContent = vorticity.toFixed(1);
+            
+            // Update equation displays
+            document.getElementById('eqSBDepth').textContent = seaBreezeDepth.toFixed(0);
+            document.getElementById('eqPenetration').textContent = penetrationDist.toFixed(0);
+            document.getElementById('eqFrontSpeed').textContent = frontSpeed.toFixed(1);
+            document.getElementById('eqReturnFlow').textContent = returnFlow.toFixed(1);
+            document.getElementById('eqConvergence').textContent = convergenceStrength.toFixed(1);
+            
+            updateSeaBreezeCharts();
+            
+            const resultsText = `
+                <strong>Sea Breeze System Analysis:</strong><br><br>
+                
+                <strong>System Dimensions:</strong><br>
+                • Sea Breeze Depth: ${seaBreezeDepth.toFixed(0)} m<br>
+                • Inland Penetration: ${penetrationDist.toFixed(0)} km<br>
+                • Coastal Plain Width: ${params.plainWidth} km<br>
+                • Mountain Barrier Height: ${params.mountainHeight} m<br><br>
+                
+                <strong>Dynamics:</strong><br>
+                • Front Propagation Speed: ${frontSpeed.toFixed(1)} m/s<br>
+                • Return Flow Aloft: ${returnFlow.toFixed(1)} m/s<br>
+                • Surface Convergence: ${convergenceStrength.toFixed(1)}×10⁻⁵ s⁻¹<br>
+                • Relative Vorticity: ${vorticity.toFixed(1)}×10⁻⁵ s⁻¹<br><br>
+                
+                <strong>Synoptic Interaction:</strong><br>
+                • Background Wind: ${params.synopticWind.toFixed(1)} m/s<br>
+                • Thermal Contrast: ${params.thermalContrast.toFixed(1)}°C<br>
+                • System Strength: ${params.thermalContrast > 8 ? 'Strong' : params.thermalContrast > 4 ? 'Moderate' : 'Weak'}<br>
+                • Topographic Enhancement: ${params.channeling > 0.5 ? 'Significant' : 'Moderate'}
+            `;
+            
+            document.getElementById('seaBreezeResultsText').innerHTML = resultsText;
+        }
+
+        function updateSynopticAnalysis() {
+            params.pacificHighStrength = parseFloat(document.getElementById('pacificHighStrength').value);
+            params.highPosition = parseFloat(document.getElementById('highPosition').value);
+            params.troughIntensity = parseFloat(document.getElementById('troughIntensity').value);
+            params.patternStrength = parseFloat(document.getElementById('patternStrength').value);
+            
+            // Update displays
+            document.getElementById('pacificHighDisplay').textContent = params.pacificHighStrength.toFixed(0);
+            document.getElementById('highPositionDisplay').textContent = params.highPosition.toFixed(0);
+            document.getElementById('troughIntensityDisplay').textContent = params.troughIntensity.toFixed(0);
+            document.getElementById('patternStrengthDisplay').textContent = params.patternStrength.toFixed(1);
+            
+            calculateSynopticPatterns();
+        }
+
+        function calculateSynopticPatterns() {
+            // Geostrophic wind calculation
+            const pressureGradient = (params.pacificHighStrength - params.troughIntensity) / 1000; // hPa/km
+            const geostrophicWind = pressureGradient * 100 / (1.225 * Math.abs(CORIOLIS_F));
+            
+            // Westerlies strength
+            const westerliesStrength = geostrophicWind * params.patternStrength;
+            
+            // Storm track position
+            const stormTrack = 40 + (params.highPosition - 30) * 0.5;
+            
+            // Frontal frequency (per month)
+            const frontalFrequency = Math.max(2, 12 - (params.pacificHighStrength - 1013) * 0.5);
+            
+            // Jet stream level
+            const jetStreamLevel = 200 + (1025 - params.pacificHighStrength) * 10;
+            
+            // Blocking index
+            const blockingIndex = Math.max(0, (params.pacificHighStrength - 1020) * 0.05);
+            
+            // Update displays
+            document.getElementById('pacificHighValue').textContent = params.pacificHighStrength.toFixed(0);
+            document.getElementById('westerliesStrengthValue').textContent = westerliesStrength.toFixed(1);
+            document.getElementById('frontalFrequencyValue').textContent = frontalFrequency.toFixed(0);
+            document.getElementById('stormTrackValue').textContent = stormTrack.toFixed(0);
+            document.getElementById('jetStreamValue').textContent = jetStreamLevel.toFixed(0);
+            document.getElementById('blockingIndexValue').textContent = blockingIndex.toFixed(2);
+            
+            // Update equation displays
+            document.getElementById('eqGeostrophic').textContent = geostrophicWind.toFixed(1);
+            document.getElementById('eqThermalWindSyn').textContent = (geostrophicWind * 0.04).toFixed(1);
+            document.getElementById('eqRossbySpeed').textContent = (westerliesStrength * 0.65).toFixed(1);
+            document.getElementById('eqStormTrack').textContent = stormTrack.toFixed(0);
+            document.getElementById('eqBlocking').textContent = blockingIndex.toFixed(2);
+            
+            updateSynopticChart();
+            
+            const resultsText = `
+                <strong>Synoptic Pattern Analysis:</strong><br><br>
+                
+                <strong>Pressure Systems:</strong><br>
+                • Pacific High: ${params.pacificHighStrength} hPa at ${params.highPosition}°S<br>
+                • Trough Intensity: ${params.troughIntensity} hPa<br>
+                • Pressure Gradient: ${(pressureGradient * 1000).toFixed(1)} hPa/1000km<br><br>
+                
+                <strong>Wind Patterns:</strong><br>
+                • Geostrophic Wind: ${geostrophicWind.toFixed(1)} m/s<br>
+                • Westerlies Strength: ${westerliesStrength.toFixed(1)} m/s<br>
+                • Storm Track Position: ${stormTrack.toFixed(0)}°S<br>
+                • Frontal Frequency: ${frontalFrequency.toFixed(0)} per month<br><br>
+                
+                <strong>Pattern Characteristics:</strong><br>
+                • Jet Stream Level: ${jetStreamLevel.toFixed(0)} hPa<br>
+                • Blocking Index: ${blockingIndex.toFixed(2)}<br>
+                • Pattern Type: ${document.getElementById('dominantPattern').value}<br>
+                • Seasonal Context: ${document.getElementById('synopticSeason').value}
+            `;
+            
+            document.getElementById('synopticResultsText').innerHTML = resultsText;
+        }
+
+        function updateTopographicAnalysis() {
+            params.andesHeight = parseFloat(document.getElementById('andesHeight').value);
+            params.valleyDepth = parseFloat(document.getElementById('valleyDepth').value);
+            params.slopeAngle = parseFloat(document.getElementById('slopeAngle').value);
+            params.coastalPlain = parseFloat(document.getElementById('coastalPlain').value);
+            params.upstreamWind = parseFloat(document.getElementById('upstreamWind').value);
+            params.atmosStability = parseFloat(document.getElementById('atmosStability').value);
+            
+            // Update displays
+            document.getElementById('andesHeightDisplay').textContent = params.andesHeight.toFixed(0);
+            document.getElementById('valleyDepthDisplay').textContent = params.valleyDepth.toFixed(0);
+            document.getElementById('slopeAngleDisplay').textContent = params.slopeAngle.toFixed(0);
+            document.getElementById('coastalPlainDisplay').textContent = params.coastalPlain.toFixed(0);
+            document.getElementById('upstreamWindDisplay').textContent = params.upstreamWind.toFixed(1);
+            document.getElementById('atmosStabilityDisplay').textContent = params.atmosStability.toFixed(3);
+            
+            calculateTopographicEffects();
+        }
+
+        function calculateTopographicEffects() {
+            // Valley wind calculation
+            const thermalContrast = 8; // Typical valley-mountain contrast
+            const valleyWind = Math.sqrt(2 * GRAVITY * thermalContrast * params.valleyDepth / 288);
+            
+            // Mountain wind (typically stronger)
+            const mountainWind = valleyWind * 1.4;
+            
+            // Channeling factor
+            const channelingFactor = 1 + (params.coastalPlain / 50) * (params.andesHeight / 3000);
+            
+            // Orographic lift
+            const orographicLift = params.upstreamWind * Math.tan(params.slopeAngle * Math.PI / 180);
+            
+            // Lee wave amplitude
+            const leeWaveAmp = params.upstreamWind * params.andesHeight / 
+                              (params.andesHeight + params.upstreamWind / params.atmosStability);
+            
+            // Gap flow (simplified)
+            const gapFlow = params.upstreamWind * Math.sqrt(2 * params.andesHeight / 1000);
+            
+            // Update displays
+            document.getElementById('valleyWindValue').textContent = valleyWind.toFixed(1);
+            document.getElementById('mountainWindValue').textContent = mountainWind.toFixed(1);
+            document.getElementById('channelingFactorValue').textContent = channelingFactor.toFixed(1);
+            document.getElementById('orographicLiftValue').textContent = orographicLift.toFixed(1);
+            document.getElementById('leeWaveValue').textContent = leeWaveAmp.toFixed(1);
+            document.getElementById('gapFlowValue').textContent = gapFlow.toFixed(1);
+            
+            // Update equation displays
+            document.getElementById('eqValleyWind').textContent = valleyWind.toFixed(1);
+            document.getElementById('eqChanneling').textContent = channelingFactor.toFixed(1);
+            document.getElementById('eqOroLift').textContent = orographicLift.toFixed(1);
+            document.getElementById('eqLeeWave').textContent = (2 * Math.PI * params.upstreamWind / params.atmosStability / 1000).toFixed(1);
+            document.getElementById('eqGapFlow').textContent = gapFlow.toFixed(1);
+            
+            updateTopographicCharts();
+            
+            const resultsText = `
+                <strong>Topographic Effects Analysis:</strong><br><br>
+                
+                <strong>Mountain-Valley System:</strong><br>
+                • Andes Height: ${params.andesHeight} m<br>
+                • Valley Depth: ${params.valleyDepth} m<br>
+                • Valley Wind: ${valleyWind.toFixed(1)} m/s (upslope)<br>
+                • Mountain Wind: ${mountainWind.toFixed(1)} m/s (downslope)<br><br>
+                
+                <strong>Flow Modification:</strong><br>
+                • Channeling Factor: ${channelingFactor.toFixed(1)}<br>
+                • Orographic Lift: ${orographicLift.toFixed(1)} m/s<br>
+                • Lee Wave Amplitude: ${leeWaveAmp.toFixed(1)} m/s<br>
+                • Gap Flow Speed: ${gapFlow.toFixed(1)} m/s<br><br>
+                
+                <strong>Terrain Influence:</strong><br>
+                • Slope Angle: ${params.slopeAngle}°<br>
+                • Coastal Plain: ${params.coastalPlain} km wide<br>
+                • Upstream Wind: ${params.upstreamWind.toFixed(1)} m/s<br>
+                • Atmospheric Stability: ${params.atmosStability.toFixed(3)} s⁻¹<br><br>
+                
+                <strong>Wind Direction: ${document.getElementById('topoWindDirection').value}°</strong><br>
+                ${getTopographicInterpretation(params.upstreamWind, channelingFactor)}
+            `;
+            
+            document.getElementById('topographicResultsText').innerHTML = resultsText;
+        }
+
+        function getTopographicInterpretation(windSpeed, channeling) {
+            if (windSpeed > 15 && channeling > 2) {
+                return 'Strong topographic enhancement. Significant channeling and acceleration effects. Lee waves and rotors likely downwind of mountains.';
+            } else if (windSpeed > 8 && channeling > 1.5) {
+                return 'Moderate topographic effects. Noticeable wind speed modification and directional changes. Valley-mountain circulation may interact with synoptic flow.';
+            } else {
+                return 'Weak topographic influence. Local thermal circulations dominate over orographic effects. Minimal flow distortion by terrain.';
+            }
+        }
+
+        function setAnnualView(view) {
+            currentAnnualView = view;
+            
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateAnnualPatternsChart();
+        }
+
+        // Chart initialization functions
+        function initDiurnalWindChart() {
+            const ctx = document.getElementById('diurnalWindChart');
+            if (!ctx) return;
+            
+            if (diurnalWindChart) {
+                diurnalWindChart.destroy();
+            }
+            
+            updateDiurnalWindChart();
+        }
+
+        function updateDiurnalWindChart() {
+            const ctx = document.getElementById('diurnalWindChart');
+            if (!ctx) return;
+            
+            if (diurnalWindChart) {
+                diurnalWindChart.destroy();
+            }
+            
+            // Generate 24-hour diurnal cycle data
+            const hours = [];
+            const seaBreezeData = [];
+            const landBreezeData = [];
+            const thermalContrastData = [];
+            const mixingHeightData = [];
+            
+            for (let h = 0; h < 24; h++) {
+                hours.push(h);
+                
+                // Solar heating cycle
+                const solarFactor = Math.max(0, Math.sin((h - 6) * Math.PI / 12));
+                const landTemp = 15 + 10 * solarFactor + (params.landTemp - 20);
+                const thermalContrast = Math.max(0, landTemp - params.seaTemp);
+                
+                // Sea breeze strength (peaks in afternoon)
+                const seaBreeze = h >= 10 && h <= 18 ? 
+                    Math.sqrt(2 * GRAVITY * thermalContrast * params.blHeight / (landTemp + 273.15)) : 0;
+                
+                // Land breeze strength (peaks at night)
+                const landBreeze = h >= 20 || h <= 6 ? 
+                    Math.sqrt(2 * GRAVITY * Math.abs(thermalContrast - 5) * 500 / (params.seaTemp + 273.15)) : 0;
+                
+                // Mixing height variation
+                const mixingHeight = params.blHeight * (0.3 + 0.7 * solarFactor);
+                
+                seaBreezeData.push(seaBreeze);
+                landBreezeData.push(landBreeze);
+                thermalContrastData.push(thermalContrast);
+                mixingHeightData.push(mixingHeight);
+            }
+            
+            diurnalWindChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: hours,
+                    datasets: [{
+                        label: 'Sea Breeze (m/s)',
+                        data: seaBreezeData,
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Land Breeze (m/s)',
+                        data: landBreezeData,
+                        borderColor: 'rgb(255, 193, 7)',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Thermal Contrast (°C)',
+                        data: thermalContrastData,
+                        borderColor: 'rgb(220, 53, 69)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Mixing Height (m)',
+                        data: mixingHeightData,
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        yAxisID: 'y2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Diurnal Wind Cycle - Concepción Coast'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hour of Day (Local Time)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+
+        function initSeaBreezeCharts() {
+            // Onshore component chart
+            const ctx1 = document.getElementById('onshoreChart');
+            if (ctx1) {
+                if (onshoreChart) {
+                    onshoreChart.destroy();
+                }
+                updateSeaBreezeCharts();
+            }
+        }
+
+        function updateSeaBreezeCharts() {
+            // Onshore component
+            const ctx1 = document.getElementById('onshoreChart');
+            if (ctx1) {
+                if (onshoreChart) {
+                    onshoreChart.destroy();
+                }
+                
+                const distances = [];
+                const onshoreVelocities = [];
+                
+                for (let d = 0; d <= 50; d += 2) {
+                    distances.push(d);
+                    const velocity = Math.max(0, 6 * Math.exp(-d / 25) * (1 - d / 50));
+                    onshoreVelocities.push(velocity);
+                }
+                
+                onshoreChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: distances,
+                        datasets: [{
+                            label: 'Onshore Velocity (m/s)',
+                            data: onshoreVelocities,
+                            borderColor: 'rgb(0, 123, 255)',
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Sea Breeze Inland Penetration'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Distance Inland (km)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Wind Speed (m/s)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Vertical structure chart
+            const ctx2 = document.getElementById('verticalChart');
+            if (ctx2) {
+                if (verticalChart) {
+                    verticalChart.destroy();
+                }
+                
+                const heights = [];
+                const velocities = [];
+                
+                for (let h = 0; h <= 2000; h += 100) {
+                    heights.push(h);
+                    let velocity;
+                    if (h <= 1200) {
+                        // Sea breeze layer
+                        velocity = 5 * (1 - h / 1200);
+                    } else if (h <= 1800) {
+                        // Return flow
+                        velocity = -3 * (h - 1200) / 600;
+                    } else {
+                        // Upper atmosphere
+                        velocity = -1;
+                    }
+                    velocities.push(velocity);
+                }
+                
+                verticalChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: heights,
+                        datasets: [{
+                            label: 'Horizontal Velocity (m/s)',
+                            data: velocities,
+                            borderColor: 'rgb(220, 53, 69)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Vertical Wind Structure'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Height (m)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Velocity (m/s)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initSynopticChart() {
+            const ctx = document.getElementById('synopticChart');
+            if (!ctx) return;
+            
+            updateSynopticChart();
+        }
+
+        function updateSynopticChart() {
+            const ctx = document.getElementById('synopticChart');
+            if (!ctx) return;
+            
+            if (synopticChart) {
+                synopticChart.destroy();
+            }
+            
+            // Generate synoptic pattern data (simplified)
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const pacificHighData = [];
+            const westerliesData = [];
+            const stormFreqData = [];
+            
+            for (let m = 0; m < 12; m++) {
+                // Seasonal cycle
+                const seasonalFactor = Math.cos(2 * Math.PI * m / 12);
+                
+                // Pacific High strength (stronger in summer)
+                const highStrength = 1022 + 4 * seasonalFactor;
+                pacificHighData.push(highStrength);
+                
+                // Westerlies strength (stronger in winter)
+                const westerlies = 10 - 6 * seasonalFactor;
+                westerliesData.push(westerlies);
+                
+                // Storm frequency (higher in winter)
+                const stormFreq = 6 - 4 * seasonalFactor;
+                stormFreqData.push(Math.max(1, stormFreq));
+            }
+            
+            synopticChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Pacific High (hPa)',
+                        data: pacificHighData,
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Westerlies (m/s)',
+                        data: westerliesData,
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Storm Frequency (/month)',
+                        data: stormFreqData,
+                        borderColor: 'rgb(220, 53, 69)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Annual Synoptic Pattern Cycle'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Pressure (hPa)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s) / Frequency'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function initSeasonalChart() {
+            const ctx = document.getElementById('seasonalChart');
+            if (!ctx) return;
+            
+            if (seasonalChart) {
+                seasonalChart.destroy();
+            }
+            
+            // Generate seasonal wind pattern data
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                           'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const seaBreezeFreq = [];
+            const meanWindSpeed = [];
+            const prevailingDir = [];
+            
+            for (let m = 0; m < 12; m++) {
+                const seasonalFactor = Math.cos(2 * Math.PI * m / 12);
+                
+                // Sea breeze frequency (higher in summer)
+                const sbFreq = 40 + 30 * seasonalFactor;
+                seaBreezeFreq.push(Math.max(10, sbFreq));
+                
+                // Mean wind speed (higher in winter)
+                const meanWind = 9 - 3 * seasonalFactor;
+                meanWindSpeed.push(meanWind);
+                
+                // Prevailing direction (more southerly in summer)
+                const direction = 200 + 20 * seasonalFactor;
+                prevailingDir.push(direction);
+            }
+            
+            seasonalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Sea Breeze Frequency (%)',
+                        data: seaBreezeFreq,
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Mean Wind Speed (m/s)',
+                        data: meanWindSpeed,
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Prevailing Direction (°)',
+                        data: prevailingDir,
+                        borderColor: 'rgb(255, 193, 7)',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        yAxisID: 'y2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Seasonal Wind Pattern Variations'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Month'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Frequency (%)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Update seasonal metrics
+            document.getElementById('summerSeaBreezeValue').textContent = '6.2';
+            document.getElementById('summerSynopticValue').textContent = '8.5';
+            document.getElementById('autumnSeaBreezeValue').textContent = '4.1';
+            document.getElementById('autumnSynopticValue').textContent = '11.2';
+            document.getElementById('winterSeaBreezeValue').textContent = '2.8';
+            document.getElementById('winterSynopticValue').textContent = '15.3';
+            document.getElementById('springSeaBreezeValue').textContent = '5.0';
+            document.getElementById('springSynopticValue').textContent = '9.8';
+        }
+
+        function initTopographicCharts() {
+            // Mountain-Valley chart
+            const ctx1 = document.getElementById('mountainValleyChart');
+            if (ctx1) {
+                updateTopographicCharts();
+            }
+        }
+
+        function updateTopographicCharts() {
+            // Mountain-Valley winds chart
+            const ctx1 = document.getElementById('mountainValleyChart');
+            if (ctx1) {
+                if (mountainValleyChart) {
+                    mountainValleyChart.destroy();
+                }
+                
+                const hours = [];
+                const valleyWindData = [];
+                const mountainWindData = [];
+                
+                for (let h = 0; h < 24; h++) {
+                    hours.push(h);
+                    
+                    // Valley wind (upslope during day)
+                    const valleyWind = h >= 8 && h <= 18 ? 
+                        3 * Math.sin((h - 8) * Math.PI / 10) : 0;
+                    valleyWindData.push(valleyWind);
+                    
+                    // Mountain wind (downslope at night)
+                    const mountainWind = h >= 20 || h <= 6 ? 
+                        -4 * Math.sin((h >= 20 ? h - 20 : h + 4) * Math.PI / 10) : 0;
+                    mountainWindData.push(mountainWind);
+                }
+                
+                mountainValleyChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: hours,
+                        datasets: [{
+                            label: 'Valley Wind (m/s)',
+                            data: valleyWindData,
+                            borderColor: 'rgb(40, 167, 69)',
+                            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+                            fill: true
+                        }, {
+                            label: 'Mountain Wind (m/s)',
+                            data: mountainWindData,
+                            borderColor: 'rgb(220, 53, 69)',
+                            backgroundColor: 'rgba(220, 53, 69, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Mountain-Valley Wind Cycle'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Hour of Day'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Wind Speed (m/s)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Channeling chart
+            const ctx2 = document.getElementById('channelingChart');
+            if (ctx2) {
+                if (channelingChart) {
+                    channelingChart.destroy();
+                }
+                
+                const distances = [];
+                const channelingEffect = [];
+                
+                for (let d = 0; d <= 100; d += 5) {
+                    distances.push(d);
+                    const effect = 1 + 0.8 * Math.exp(-d / 30) * (params.andesHeight / 3000);
+                    channelingEffect.push(effect);
+                }
+                
+                channelingChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: distances,
+                        datasets: [{
+                            label: 'Channeling Factor',
+                            data: channelingEffect,
+                            borderColor: 'rgb(0, 123, 255)',
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Coastal Wind Channeling'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Distance from Coast (km)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Wind Speed Multiplier'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function initAnnualPatternsChart() {
+            const ctx = document.getElementById('annualPatternsChart');
+            if (!ctx) return;
+            
+            updateAnnualPatternsChart();
+        }
+
+        function updateAnnualPatternsChart() {
+            const ctx = document.getElementById('annualPatternsChart');
+            if (!ctx) return;
+            
+            if (annualPatternsChart) {
+                annualPatternsChart.destroy();
+            }
+            
+            let labels, datasets;
+            
+            switch(currentAnnualView) {
+                case 'monthly':
+                    labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                             'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                    const monthlyWind = [];
+                    const monthlySeaBreeze = [];
+                    const monthlyStorms = [];
+                    
+                    for (let m = 0; m < 12; m++) {
+                        const seasonalFactor = Math.cos(2 * Math.PI * m / 12);
+                        monthlyWind.push(9 - 3 * seasonalFactor);
+                        monthlySeaBreeze.push(40 + 30 * seasonalFactor);
+                        monthlyStorms.push(Math.max(1, 6 - 4 * seasonalFactor));
+                    }
+                    
+                    datasets = [{
+                        label: 'Mean Wind Speed (m/s)',
+                        data: monthlyWind,
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Sea Breeze Frequency (%)',
+                        data: monthlySeaBreeze,
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Storm Days',
+                        data: monthlyStorms,
+                        borderColor: 'rgb(220, 53, 69)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                        yAxisID: 'y1'
+                    }];
+                    break;
+                    
+                case 'daily':
+                    labels = [];
+                    const dailySeaBreeze = [];
+                    const dailyLandBreeze = [];
+                    const dailySynoptic = [];
+                    
+                    for (let h = 0; h < 24; h++) {
+                        labels.push(h);
+                        const solarFactor = Math.max(0, Math.sin((h - 6) * Math.PI / 12));
+                        dailySeaBreeze.push(h >= 10 && h <= 18 ? 5 * solarFactor : 0);
+                        dailyLandBreeze.push(h >= 20 || h <= 6 ? 2.5 : 0);
+                        dailySynoptic.push(8 + 2 * Math.sin(h * Math.PI / 12));
+                    }
+                    
+                    datasets = [{
+                        label: 'Sea Breeze (m/s)',
+                        data: dailySeaBreeze,
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.1)'
+                    }, {
+                        label: 'Land Breeze (m/s)',
+                        data: dailyLandBreeze,
+                        borderColor: 'rgb(255, 193, 7)',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)'
+                    }, {
+                        label: 'Synoptic Wind (m/s)',
+                        data: dailySynoptic,
+                        borderColor: 'rgb(220, 53, 69)',
+                        backgroundColor: 'rgba(220, 53, 69, 0.1)'
+                    }];
+                    break;
+                    
+                default:
+                    labels = ['Summer', 'Autumn', 'Winter', 'Spring'];
+                    datasets = [{
+                        label: 'Mean Wind Speed (m/s)',
+                        data: [7.5, 10.2, 13.8, 8.9],
+                        borderColor: 'rgb(0, 123, 255)',
+                        backgroundColor: 'rgba(0, 123, 255, 0.2)'
+                    }, {
+                        label: 'Sea Breeze Frequency (%)',
+                        data: [75, 45, 25, 60],
+                        borderColor: 'rgb(40, 167, 69)',
+                        backgroundColor: 'rgba(40, 167, 69, 0.2)'
+                    }];
+            }
+            
+            annualPatternsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `${currentAnnualView.charAt(0).toUpperCase() + currentAnnualView.slice(1)} Wind Patterns`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: currentAnnualView === 'daily' ? 'Hour of Day' : 
+                                     currentAnnualView === 'monthly' ? 'Month' : 'Season'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: currentAnnualView === 'monthly',
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Frequency (%) / Days'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+            
+            // Update annual metrics
+            document.getElementById('annualMeanWindValue').textContent = '9.2';
+            document.getElementById('windVariabilityValue').textContent = '4.8';
+            document.getElementById('seaBreezeFreqValue').textContent = '68';
+            document.getElementById('stormFreqValue').textContent = '12';
+            document.getElementById('calmPeriodsValue').textContent = '8';
+            document.getElementById('prevailingDirValue').textContent = '225';
+            
+            // Update equation displays
+            document.getElementById('eqAnnualMean').textContent = '9.2';
+            document.getElementById('eqStdDev').textContent = '4.8';
+            document.getElementById('eqWeibullA').textContent = '10.4';
+            document.getElementById('eqWeibullK').textContent = '2.1';
+            document.getElementById('eqDirConstancy').textContent = '0.75';
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with default values
+            updateDiurnalAnalysis();
+            calculateDiurnalWinds();
+            updateSeaBreezeAnalysis();
+            calculateSeaBreezeSystem();
+            updateSynopticAnalysis();
+            calculateSynopticPatterns();
+            updateTopographicAnalysis();
+            calculateTopographicEffects();
+            
+            // Initialize charts
+            setTimeout(() => {
+                initDiurnalWindChart();
+            }, 100);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c8fffaf72d88ac',t:'MTc1NDc2MDgyMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
