@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTD Profile Analyzer</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        // Ensure Plotly is loaded before proceeding
+        let plotlyReady = false;
+        
+        function checkPlotly() {
+            if (typeof Plotly !== 'undefined') {
+                plotlyReady = true;
+                return true;
+            }
+            return false;
+        }
+        
+        // Check if Plotly loaded, if not try alternative CDN
+        window.addEventListener('load', function() {
+            if (!checkPlotly()) {
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/plotly.js@2.26.0/dist/plotly.min.js';
+                script.onload = function() {
+                    plotlyReady = true;
+                };
+                script.onerror = function() {
+                    showError('Failed to load Plotly library. Please check your internet connection.');
+                };
+                document.head.appendChild(script);
+            }
+        });
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            padding: 40px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            border: none;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .file-info {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .variables-section {
+            padding: 30px;
+            display: none;
+        }
+
+        .variables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .variable-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .variable-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .variable-card.selected {
+            border-color: #2ecc71;
+            background: #e8f5e8;
+        }
+
+        .variable-name {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .variable-description {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .plot-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+        }
+
+        .plot-button {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .plot-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.3);
+        }
+
+        .plot-button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .plots-container {
+            padding: 30px;
+            display: none;
+        }
+
+        .plot-item {
+            margin-bottom: 40px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .plot-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .error-message {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px;
+            display: none;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 CTD Profile Analyzer</h1>
+            <p>Upload and visualize oceanographic CTD data files (.txt, .cnv, .dat) by Claudio Iturra</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" class="file-input" accept=".txt,.cnv,.dat,.csv">
+                <button class="file-input-button">📁 Choose CTD File</button>
+            </div>
+            <div class="file-info" id="fileInfo"></div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing CTD data...</p>
+        </div>
+
+        <div class="variables-section" id="variablesSection">
+            <h2 style="margin-bottom: 20px; color: #2c3e50;">📊 Detected Variables</h2>
+            <div class="variables-grid" id="variablesGrid"></div>
+            
+            <div class="plot-controls">
+                <div class="control-group">
+                    <label>Plot Type:</label>
+                    <select id="plotType">
+                        <option value="profiles">Depth Profiles</option>
+                        <option value="scatter">Scatter Matrix</option>
+                        <option value="timeseries">Time Series</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label>Depth Variable:</label>
+                    <select id="depthVariable"></select>
+                </div>
+            </div>
+            
+            <button class="plot-button" id="plotButton" onclick="generatePlots()">🎯 Generate Plots</button>
+        </div>
+
+        <div class="plots-container" id="plotsContainer"></div>
+    </div>
+
+    <script>
+        let ctdData = null;
+        let variables = [];
+        let selectedVariables = new Set();
+
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showLoading(true);
+            hideError();
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    parseCtdFile(e.target.result, file.name);
+                } catch (error) {
+                    showError('Error parsing file: ' + error.message);
+                    showLoading(false);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseCtdFile(content, filename) {
+            const lines = content.split('\n');
+            variables = [];
+            let dataStartIndex = -1;
+            
+            // Parse header to extract variable definitions
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                // Look for variable definitions (# name X = ...)
+                if (line.startsWith('# name')) {
+                    const match = line.match(/# name (\d+) = ([^:]+):\s*(.+)/);
+                    if (match) {
+                        variables.push({
+                            index: parseInt(match[1]),
+                            name: match[2].trim(),
+                            description: match[3].trim(),
+                            fullLine: line
+                        });
+                    }
+                }
+                
+                // Look for data start marker
+                if (line.includes('*END*') || line.includes('*end*') || 
+                    (line.startsWith('*') && line.toLowerCase().includes('end'))) {
+                    dataStartIndex = i + 1;
+                    break;
+                }
+            }
+
+            // If no *END* found, look for first line that looks like numeric data
+            if (dataStartIndex === -1) {
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (line && !line.startsWith('#') && !line.startsWith('*') && 
+                        /^[\d\s\.\-\+eE,\t]+$/.test(line)) {
+                        dataStartIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (dataStartIndex === -1) {
+                throw new Error('Could not find data section in file');
+            }
+
+            // Parse data matrix
+            const dataLines = lines.slice(dataStartIndex).filter(line => {
+                const trimmed = line.trim();
+                return trimmed && /^[\d\s\.\-\+eE,\t]+$/.test(trimmed);
+            });
+
+            if (dataLines.length === 0) {
+                throw new Error('No data found in file');
+            }
+
+            // Parse numeric data
+            ctdData = dataLines.map(line => {
+                return line.trim().split(/\s+|,|\t/).map(val => {
+                    const num = parseFloat(val);
+                    return isNaN(num) ? null : num;
+                });
+            });
+
+            // If no variables were defined in header, create generic ones
+            if (variables.length === 0) {
+                const numCols = ctdData[0].length;
+                for (let i = 0; i < numCols; i++) {
+                    variables.push({
+                        index: i,
+                        name: `Column_${i}`,
+                        description: `Data column ${i}`,
+                        fullLine: `# name ${i} = Column_${i}: Data column ${i}`
+                    });
+                }
+            }
+
+            displayFileInfo(filename, ctdData.length, variables.length);
+            displayVariables();
+            showLoading(false);
+        }
+
+        function displayFileInfo(filename, rows, cols) {
+            const fileInfo = document.getElementById('fileInfo');
+            fileInfo.innerHTML = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value">${filename}</div>
+                        <div class="stat-label">File Name</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${rows.toLocaleString()}</div>
+                        <div class="stat-label">Data Points</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">${cols}</div>
+                        <div class="stat-label">Variables</div>
+                    </div>
+                </div>
+            `;
+            fileInfo.style.display = 'block';
+        }
+
+        function displayVariables() {
+            const grid = document.getElementById('variablesGrid');
+            const depthSelect = document.getElementById('depthVariable');
+            
+            grid.innerHTML = '';
+            depthSelect.innerHTML = '';
+
+            variables.forEach(variable => {
+                const card = document.createElement('div');
+                card.className = 'variable-card';
+                card.onclick = () => toggleVariable(variable.index, card);
+                
+                card.innerHTML = `
+                    <div class="variable-name">${variable.name}</div>
+                    <div class="variable-description">${variable.description}</div>
+                `;
+                
+                grid.appendChild(card);
+
+                // Add to depth variable selector
+                const option = document.createElement('option');
+                option.value = variable.index;
+                option.textContent = `${variable.name} - ${variable.description}`;
+                depthSelect.appendChild(option);
+            });
+
+            // Auto-select depth variable (look for depth, pressure, or similar)
+            const depthVar = variables.find(v => 
+                v.name.toLowerCase().includes('dep') || 
+                v.name.toLowerCase().includes('pres') ||
+                v.description.toLowerCase().includes('depth') ||
+                v.description.toLowerCase().includes('pressure')
+            );
+            
+            if (depthVar) {
+                depthSelect.value = depthVar.index;
+            }
+
+            document.getElementById('variablesSection').style.display = 'block';
+        }
+
+        function toggleVariable(index, card) {
+            if (selectedVariables.has(index)) {
+                selectedVariables.delete(index);
+                card.classList.remove('selected');
+            } else {
+                selectedVariables.add(index);
+                card.classList.add('selected');
+            }
+            
+            document.getElementById('plotButton').disabled = selectedVariables.size === 0;
+        }
+
+        function generatePlots() {
+            if (selectedVariables.size === 0) {
+                showError('Please select at least one variable to plot');
+                return;
+            }
+
+            // Check if Plotly is available
+            if (typeof Plotly === 'undefined') {
+                showError('Plotly library is still loading. Please wait a moment and try again.');
+                return;
+            }
+
+            showLoading(true);
+            const plotType = document.getElementById('plotType').value;
+            const depthIndex = parseInt(document.getElementById('depthVariable').value);
+
+            setTimeout(() => {
+                try {
+                    if (plotType === 'profiles') {
+                        createDepthProfiles(depthIndex);
+                    } else if (plotType === 'scatter') {
+                        createScatterMatrix();
+                    } else if (plotType === 'timeseries') {
+                        createTimeSeries();
+                    }
+                    
+                    document.getElementById('plotsContainer').style.display = 'block';
+                    document.getElementById('plotsContainer').scrollIntoView({ behavior: 'smooth' });
+                } catch (error) {
+                    showError('Error creating plots: ' + error.message);
+                }
+                showLoading(false);
+            }, 100);
+        }
+
+        function createDepthProfiles(depthIndex) {
+            const container = document.getElementById('plotsContainer');
+            container.innerHTML = '';
+
+            const depthData = ctdData.map(row => row[depthIndex]).filter(val => val !== null);
+            
+            selectedVariables.forEach(varIndex => {
+                if (varIndex === depthIndex) return; // Skip depth vs depth
+                
+                const variable = variables[varIndex];
+                const varData = ctdData.map(row => row[varIndex]).filter(val => val !== null);
+                
+                const plotDiv = document.createElement('div');
+                plotDiv.className = 'plot-item';
+                plotDiv.innerHTML = `<div class="plot-title">${variable.name} vs Depth</div>`;
+                
+                const plotContainer = document.createElement('div');
+                plotContainer.style.height = '500px';
+                plotDiv.appendChild(plotContainer);
+                container.appendChild(plotDiv);
+
+                const trace = {
+                    x: varData,
+                    y: depthData,
+                    type: 'scatter',
+                    mode: 'lines+markers',
+                    marker: { size: 3, color: '#3498db' },
+                    line: { color: '#2980b9', width: 2 },
+                    name: variable.name
+                };
+
+                const layout = {
+                    xaxis: { 
+                        title: `${variable.name} (${variable.description})`,
+                        showgrid: true,
+                        gridcolor: '#ecf0f1'
+                    },
+                    yaxis: { 
+                        title: `${variables[depthIndex].name} (${variables[depthIndex].description})`,
+                        autorange: 'reversed',
+                        showgrid: true,
+                        gridcolor: '#ecf0f1'
+                    },
+                    plot_bgcolor: 'white',
+                    paper_bgcolor: 'white',
+                    font: { family: 'Segoe UI, sans-serif' },
+                    margin: { t: 20, r: 20, b: 60, l: 80 }
+                };
+
+                Plotly.newPlot(plotContainer, [trace], layout, {responsive: true});
+            });
+        }
+
+        function createScatterMatrix() {
+            const container = document.getElementById('plotsContainer');
+            container.innerHTML = '';
+
+            const selectedVars = Array.from(selectedVariables);
+            if (selectedVars.length < 2) {
+                showError('Please select at least 2 variables for scatter matrix');
+                return;
+            }
+
+            for (let i = 0; i < selectedVars.length; i++) {
+                for (let j = i + 1; j < selectedVars.length; j++) {
+                    const var1 = variables[selectedVars[i]];
+                    const var2 = variables[selectedVars[j]];
+                    
+                    const data1 = ctdData.map(row => row[selectedVars[i]]).filter(val => val !== null);
+                    const data2 = ctdData.map(row => row[selectedVars[j]]).filter(val => val !== null);
+                    
+                    const plotDiv = document.createElement('div');
+                    plotDiv.className = 'plot-item';
+                    plotDiv.innerHTML = `<div class="plot-title">${var1.name} vs ${var2.name}</div>`;
+                    
+                    const plotContainer = document.createElement('div');
+                    plotContainer.style.height = '500px';
+                    plotDiv.appendChild(plotContainer);
+                    container.appendChild(plotDiv);
+
+                    const trace = {
+                        x: data1,
+                        y: data2,
+                        type: 'scatter',
+                        mode: 'markers',
+                        marker: { 
+                            size: 4, 
+                            color: data1,
+                            colorscale: 'Viridis',
+                            showscale: true
+                        },
+                        name: `${var1.name} vs ${var2.name}`
+                    };
+
+                    const layout = {
+                        xaxis: { 
+                            title: `${var1.name} (${var1.description})`,
+                            showgrid: true,
+                            gridcolor: '#ecf0f1'
+                        },
+                        yaxis: { 
+                            title: `${var2.name} (${var2.description})`,
+                            showgrid: true,
+                            gridcolor: '#ecf0f1'
+                        },
+                        plot_bgcolor: 'white',
+                        paper_bgcolor: 'white',
+                        font: { family: 'Segoe UI, sans-serif' },
+                        margin: { t: 20, r: 20, b: 60, l: 80 }
+                    };
+
+                    Plotly.newPlot(plotContainer, [trace], layout, {responsive: true});
+                }
+            }
+        }
+
+        function createTimeSeries() {
+            const container = document.getElementById('plotsContainer');
+            container.innerHTML = '';
+
+            const plotDiv = document.createElement('div');
+            plotDiv.className = 'plot-item';
+            plotDiv.innerHTML = `<div class="plot-title">Time Series of Selected Variables</div>`;
+            
+            const plotContainer = document.createElement('div');
+            plotContainer.style.height = '600px';
+            plotDiv.appendChild(plotContainer);
+            container.appendChild(plotDiv);
+
+            const traces = [];
+            const colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'];
+            
+            Array.from(selectedVariables).forEach((varIndex, i) => {
+                const variable = variables[varIndex];
+                const varData = ctdData.map(row => row[varIndex]).filter(val => val !== null);
+                const indices = Array.from({length: varData.length}, (_, i) => i);
+                
+                traces.push({
+                    x: indices,
+                    y: varData,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: variable.name,
+                    line: { color: colors[i % colors.length], width: 2 },
+                    yaxis: i === 0 ? 'y' : `y${i + 1}`
+                });
+            });
+
+            const layout = {
+                xaxis: { 
+                    title: 'Sample Index',
+                    showgrid: true,
+                    gridcolor: '#ecf0f1'
+                },
+                plot_bgcolor: 'white',
+                paper_bgcolor: 'white',
+                font: { family: 'Segoe UI, sans-serif' },
+                margin: { t: 20, r: 20, b: 60, l: 80 },
+                legend: { x: 1.05, y: 1 }
+            };
+
+            // Add multiple y-axes for different variables
+            Array.from(selectedVariables).forEach((varIndex, i) => {
+                const variable = variables[varIndex];
+                if (i === 0) {
+                    layout.yaxis = {
+                        title: variable.name,
+                        side: 'left',
+                        showgrid: true,
+                        gridcolor: '#ecf0f1'
+                    };
+                } else {
+                    layout[`yaxis${i + 1}`] = {
+                        title: variable.name,
+                        overlaying: 'y',
+                        side: 'right',
+                        position: 0.95 + (i - 1) * 0.1
+                    };
+                }
+            });
+
+            Plotly.newPlot(plotContainer, traces, layout, {responsive: true});
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c95cfaf2f988ac',t:'MTc1NDc2NDYzMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
