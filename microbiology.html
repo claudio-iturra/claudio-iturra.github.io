@@ -1,0 +1,1732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Sediment Microbiology - Bacterial Process Analysis</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 2000px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #065f46 0%, #047857 25%, #059669 50%, #10b981 75%, #34d399 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><circle cx="10" cy="10" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="30" cy="15" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="50" cy="8" r="1" fill="rgba(255,255,255,0.06)"/><circle cx="70" cy="12" r="2.5" fill="rgba(255,255,255,0.1)"/><circle cx="90" cy="6" r="1.2" fill="rgba(255,255,255,0.07)"/></svg>') repeat;
+            background-size: 100px 20px;
+            animation: microbeFloat 15s linear infinite;
+        }
+        
+        @keyframes microbeFloat {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100px); }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            border-left: 5px solid #10b981;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #10b981;
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16,185,129,0.4);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .analysis-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #10b981;
+            text-align: center;
+            position: relative;
+        }
+        
+        .metric-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .metric-unit {
+            font-size: 0.8em;
+            color: #6b7280;
+        }
+        
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .process-card {
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #bbf7d0;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .process-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: rgba(16,185,129,0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+        
+        .process-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .process-description {
+            color: #374151;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .process-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .process-metric {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #d1fae5;
+        }
+        
+        .process-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #059669;
+        }
+        
+        .process-label {
+            font-size: 0.8em;
+            color: #6b7280;
+        }
+        
+        .microbial-community {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .community-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 15px;
+        }
+        
+        .bacteria-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .bacteria-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #fed7aa;
+            position: relative;
+        }
+        
+        .bacteria-name {
+            font-weight: 600;
+            color: #9a3412;
+            margin-bottom: 5px;
+        }
+        
+        .bacteria-function {
+            font-size: 0.9em;
+            color: #374151;
+            margin-bottom: 10px;
+        }
+        
+        .bacteria-abundance {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .abundance-bar {
+            flex: 1;
+            height: 8px;
+            background: #fed7aa;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .abundance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .abundance-value {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #92400e;
+        }
+        
+        .biogeochemical-cycles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .cycle-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #bfdbfe;
+            text-align: center;
+        }
+        
+        .cycle-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+        }
+        
+        .cycle-name {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #1e40af;
+            margin-bottom: 10px;
+        }
+        
+        .cycle-rate {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #2563eb;
+            margin-bottom: 5px;
+        }
+        
+        .cycle-unit {
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        
+        .environmental-factors {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #8b5cf6;
+        }
+        
+        .factors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .factor-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #c4b5fd;
+        }
+        
+        .factor-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #7c3aed;
+        }
+        
+        .factor-label {
+            font-size: 0.9em;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .simulation-controls {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #ef4444;
+        }
+        
+        .simulation-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 15px;
+        }
+        
+        .simulation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .data-log {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 2px solid #cbd5e1;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #10b981;
+        }
+        
+        .log-timestamp {
+            color: #6b7280;
+            font-size: 11px;
+        }
+        
+        .log-message {
+            color: #374151;
+            margin-top: 2px;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #10b981;
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .chart-canvas {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+        }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🦠 Coastal Sediment Microbiology</h1>
+            <p>Advanced bacterial process analysis and biogeochemical cycle evaluation in marine sediments by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- Sample Collection -->
+                <div class="section">
+                    <h3>🧪 Sample Parameters</h3>
+                    <div class="input-group">
+                        <label for="sampleLocation">Sample Location:</label>
+                        <select id="sampleLocation">
+                            <option value="intertidal">Intertidal Zone</option>
+                            <option value="subtidal" selected>Subtidal Zone</option>
+                            <option value="estuarine">Estuarine</option>
+                            <option value="continental_shelf">Continental Shelf</option>
+                            <option value="deep_water">Deep Water</option>
+                        </select>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="sedimentDepth">Depth (cm):</label>
+                            <input type="number" id="sedimentDepth" value="5" min="0" max="100" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="waterDepth">Water Depth (m):</label>
+                            <input type="number" id="waterDepth" value="10" min="0" max="1000" step="1">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="temperature">Temperature (°C):</label>
+                            <input type="number" id="temperature" value="15" min="-2" max="35" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="salinity">Salinity (PSU):</label>
+                            <input type="number" id="salinity" value="35" min="0" max="45" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="pH">pH:</label>
+                            <input type="number" id="pH" value="8.1" min="6" max="9" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="oxygenLevel">O₂ (mg/L):</label>
+                            <input type="number" id="oxygenLevel" value="6.5" min="0" max="15" step="0.1">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Settings -->
+                <div class="section">
+                    <h3>🔬 Analysis Configuration</h3>
+                    <div class="input-group">
+                        <label for="analysisType">Analysis Focus:</label>
+                        <select id="analysisType">
+                            <option value="comprehensive" selected>Comprehensive Analysis</option>
+                            <option value="nitrogen_cycle">Nitrogen Cycling</option>
+                            <option value="sulfur_cycle">Sulfur Cycling</option>
+                            <option value="carbon_cycle">Carbon Cycling</option>
+                            <option value="iron_cycle">Iron Cycling</option>
+                            <option value="methanogenesis">Methanogenesis</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="incubationTime">Incubation Time (hours):</label>
+                        <input type="number" id="incubationTime" value="24" min="1" max="168" step="1">
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <input type="checkbox" id="anaerobicConditions" checked> Anaerobic Conditions
+                        </label>
+                    </div>
+                    <div class="input-group">
+                        <label>
+                            <input type="checkbox" id="isotopicTracing" checked> Isotopic Tracing
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Simulation Controls -->
+                <div class="section">
+                    <h3>⚙️ Simulation Controls</h3>
+                    <button class="btn" onclick="startAnalysis()" id="startBtn">🔬 Start Analysis</button>
+                    <button class="btn btn-warning" onclick="pauseAnalysis()" id="pauseBtn" disabled>⏸️ Pause</button>
+                    <button class="btn btn-danger" onclick="stopAnalysis()" id="stopBtn" disabled>⏹️ Stop</button>
+                    <div class="input-group">
+                        <label for="simulationSpeed">Simulation Speed:</label>
+                        <select id="simulationSpeed">
+                            <option value="0.5">0.5x (Slow)</option>
+                            <option value="1" selected>1x (Normal)</option>
+                            <option value="2">2x (Fast)</option>
+                            <option value="5">5x (Very Fast)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Data Export -->
+                <div class="section">
+                    <h3>💾 Data Management</h3>
+                    <button class="btn btn-primary" onclick="exportResults()" id="exportBtn" disabled>📊 Export Results</button>
+                    <button class="btn btn-warning" onclick="generateReport()" id="reportBtn" disabled>📋 Generate Report</button>
+                    <button class="btn" onclick="resetAnalysis()">🔄 Reset Analysis</button>
+                </div>
+            </div>
+            
+            <div class="analysis-panel">
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalBacteria">--</div>
+                        <div class="metric-label">Total Bacteria</div>
+                        <div class="metric-unit">cells/g sediment</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="metabolicActivity">--</div>
+                        <div class="metric-label">Metabolic Activity</div>
+                        <div class="metric-unit">μmol/g/day</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="diversityIndex">--</div>
+                        <div class="metric-label">Shannon Diversity</div>
+                        <div class="metric-unit">H'</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="oxygenConsumption">--</div>
+                        <div class="metric-label">O₂ Consumption</div>
+                        <div class="metric-unit">mg/L/hr</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="carbonTurnover">--</div>
+                        <div class="metric-label">Carbon Turnover</div>
+                        <div class="metric-unit">mg C/g/day</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="analysisProgress">0</div>
+                        <div class="metric-label">Analysis Progress</div>
+                        <div class="metric-unit">%</div>
+                    </div>
+                </div>
+                
+                <!-- Bacterial Processes -->
+                <div class="process-grid">
+                    <div class="process-card">
+                        <div class="process-title">🫁 Aerobic Respiration</div>
+                        <div class="process-description">Oxygen-dependent organic matter decomposition by heterotrophic bacteria</div>
+                        <div class="process-metrics">
+                            <div class="process-metric">
+                                <div class="process-value" id="aerobicRate">--</div>
+                                <div class="process-label">Rate (μmol/g/day)</div>
+                            </div>
+                            <div class="process-metric">
+                                <div class="process-value" id="aerobicEfficiency">--</div>
+                                <div class="process-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-title">🔄 Denitrification</div>
+                        <div class="process-description">Nitrate reduction to nitrogen gas under anaerobic conditions</div>
+                        <div class="process-metrics">
+                            <div class="process-metric">
+                                <div class="process-value" id="denitrificationRate">--</div>
+                                <div class="process-label">Rate (μmol/g/day)</div>
+                            </div>
+                            <div class="process-metric">
+                                <div class="process-value" id="nitrateReduction">--</div>
+                                <div class="process-label">NO₃⁻ Reduction (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-title">🌿 Nitrification</div>
+                        <div class="process-description">Ammonia oxidation to nitrite and nitrate by chemolithotrophic bacteria</div>
+                        <div class="process-metrics">
+                            <div class="process-metric">
+                                <div class="process-value" id="nitrificationRate">--</div>
+                                <div class="process-label">Rate (μmol/g/day)</div>
+                            </div>
+                            <div class="process-metric">
+                                <div class="process-value" id="ammoniaOxidation">--</div>
+                                <div class="process-label">NH₄⁺ Oxidation (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-title">🔥 Sulfate Reduction</div>
+                        <div class="process-description">Sulfate reduction to hydrogen sulfide by sulfate-reducing bacteria</div>
+                        <div class="process-metrics">
+                            <div class="process-metric">
+                                <div class="process-value" id="sulfateReductionRate">--</div>
+                                <div class="process-label">Rate (μmol/g/day)</div>
+                            </div>
+                            <div class="process-metric">
+                                <div class="process-value" id="sulfideProduction">--</div>
+                                <div class="process-label">H₂S Production</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-title">💨 Methanogenesis</div>
+                        <div class="process-description">Methane production from organic matter by methanogenic archaea</div>
+                        <div class="process-metrics">
+                            <div class="process-metric">
+                                <div class="process-value" id="methanogenesisRate">--</div>
+                                <div class="process-label">Rate (μmol/g/day)</div>
+                            </div>
+                            <div class="process-metric">
+                                <div class="process-value" id="methaneProduction">--</div>
+                                <div class="process-label">CH₄ Production</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-title">⚡ Iron Reduction</div>
+                        <div class="process-description">Iron(III) reduction coupled to organic matter oxidation</div>
+                        <div class="process-metrics">
+                            <div class="process-metric">
+                                <div class="process-value" id="ironReductionRate">--</div>
+                                <div class="process-label">Rate (μmol/g/day)</div>
+                            </div>
+                            <div class="process-metric">
+                                <div class="process-value" id="ironSolubilization">--</div>
+                                <div class="process-label">Fe²⁺ Release (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Microbial Community -->
+                <div class="microbial-community">
+                    <div class="community-title">🦠 Microbial Community Composition</div>
+                    <div class="bacteria-list">
+                        <div class="bacteria-item">
+                            <div class="bacteria-name">Proteobacteria</div>
+                            <div class="bacteria-function">Diverse metabolic functions, dominant in marine sediments</div>
+                            <div class="bacteria-abundance">
+                                <div class="abundance-bar">
+                                    <div class="abundance-fill" id="proteobacteriaBar" style="width: 0%"></div>
+                                </div>
+                                <div class="abundance-value" id="proteobacteriaValue">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bacteria-item">
+                            <div class="bacteria-name">Bacteroidetes</div>
+                            <div class="bacteria-function">Organic matter degradation, polysaccharide breakdown</div>
+                            <div class="bacteria-abundance">
+                                <div class="abundance-bar">
+                                    <div class="abundance-fill" id="bacteroidetesBar" style="width: 0%"></div>
+                                </div>
+                                <div class="abundance-value" id="bacteroidetesValue">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bacteria-item">
+                            <div class="bacteria-name">Firmicutes</div>
+                            <div class="bacteria-function">Spore formation, anaerobic fermentation</div>
+                            <div class="bacteria-abundance">
+                                <div class="abundance-bar">
+                                    <div class="abundance-fill" id="firmicutesBar" style="width: 0%"></div>
+                                </div>
+                                <div class="abundance-value" id="firmicutesValue">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bacteria-item">
+                            <div class="bacteria-name">Actinobacteria</div>
+                            <div class="bacteria-function">Complex organic compound degradation</div>
+                            <div class="bacteria-abundance">
+                                <div class="abundance-bar">
+                                    <div class="abundance-fill" id="actinobacteriaBar" style="width: 0%"></div>
+                                </div>
+                                <div class="abundance-value" id="actinobacteriaValue">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bacteria-item">
+                            <div class="bacteria-name">Chloroflexi</div>
+                            <div class="bacteria-function">Anaerobic respiration, organic matter cycling</div>
+                            <div class="bacteria-abundance">
+                                <div class="abundance-bar">
+                                    <div class="abundance-fill" id="chloroflexiBar" style="width: 0%"></div>
+                                </div>
+                                <div class="abundance-value" id="chloroflexiValue">0%</div>
+                            </div>
+                        </div>
+                        
+                        <div class="bacteria-item">
+                            <div class="bacteria-name">Archaea</div>
+                            <div class="bacteria-function">Methanogenesis, ammonia oxidation</div>
+                            <div class="bacteria-abundance">
+                                <div class="abundance-bar">
+                                    <div class="abundance-fill" id="archaeaBar" style="width: 0%"></div>
+                                </div>
+                                <div class="abundance-value" id="archaeaValue">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Biogeochemical Cycles -->
+                <div class="biogeochemical-cycles">
+                    <div class="cycle-card">
+                        <div class="cycle-icon">N</div>
+                        <div class="cycle-name">Nitrogen Cycle</div>
+                        <div class="cycle-rate" id="nitrogenCycleRate">--</div>
+                        <div class="cycle-unit">μmol N/g/day</div>
+                    </div>
+                    
+                    <div class="cycle-card">
+                        <div class="cycle-icon">C</div>
+                        <div class="cycle-name">Carbon Cycle</div>
+                        <div class="cycle-rate" id="carbonCycleRate">--</div>
+                        <div class="cycle-unit">mg C/g/day</div>
+                    </div>
+                    
+                    <div class="cycle-card">
+                        <div class="cycle-icon">S</div>
+                        <div class="cycle-name">Sulfur Cycle</div>
+                        <div class="cycle-rate" id="sulfurCycleRate">--</div>
+                        <div class="cycle-unit">μmol S/g/day</div>
+                    </div>
+                    
+                    <div class="cycle-card">
+                        <div class="cycle-icon">P</div>
+                        <div class="cycle-name">Phosphorus Cycle</div>
+                        <div class="cycle-rate" id="phosphorusCycleRate">--</div>
+                        <div class="cycle-unit">μmol P/g/day</div>
+                    </div>
+                </div>
+                
+                <!-- Environmental Factors -->
+                <div class="environmental-factors">
+                    <h3 style="color: #7c3aed; margin-bottom: 15px;">🌊 Environmental Conditions</h3>
+                    <div class="factors-grid">
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentTemp">--</div>
+                            <div class="factor-label">Temperature (°C)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentPH">--</div>
+                            <div class="factor-label">pH</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentOxygen">--</div>
+                            <div class="factor-label">Dissolved O₂</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentSalinity">--</div>
+                            <div class="factor-label">Salinity (PSU)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="organicMatter">--</div>
+                            <div class="factor-label">Organic Matter (%)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="porosity">--</div>
+                            <div class="factor-label">Porosity (%)</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Charts -->
+                <div class="chart-container">
+                    <div class="chart-title">📈 Bacterial Activity Over Time</div>
+                    <canvas class="chart-canvas" id="activityChart" width="800" height="300"></canvas>
+                </div>
+                
+                <!-- Data Log -->
+                <div class="data-log" id="dataLog">
+                    <div class="log-entry">
+                        <div class="log-timestamp">System Ready</div>
+                        <div class="log-message">🦠 Coastal Sediment Microbiology Analysis System initialized</div>
+                    </div>
+                </div>
+                
+                <!-- Information Panel -->
+                <div class="info-panel">
+                    <strong>🔬 Sediment Microbiology Analysis:</strong><br>
+                    This system evaluates key bacterial and microbiological processes in coastal marine sediments:
+                    <br><br>
+                    <strong>• Aerobic Processes:</strong> Oxygen-dependent respiration and nitrification<br>
+                    <strong>• Anaerobic Processes:</strong> Denitrification, sulfate reduction, methanogenesis<br>
+                    <strong>• Biogeochemical Cycles:</strong> Carbon, nitrogen, sulfur, and phosphorus cycling<br>
+                    <strong>• Community Analysis:</strong> Bacterial diversity and abundance patterns<br>
+                    <strong>• Environmental Factors:</strong> Temperature, pH, oxygen, salinity effects
+                    <br><br>
+                    <strong>📋 Analysis Methods:</strong><br>
+                    • Isotopic tracing for metabolic pathway analysis<br>
+                    • Molecular techniques for community composition<br>
+                    • Biogeochemical rate measurements<br>
+                    • Environmental parameter monitoring<br>
+                    • Statistical diversity analysis
+                </div>
+                
+                <div class="warning-panel">
+                    <strong>⚠️ Important Considerations:</strong><br>
+                    • Results are based on established oceanographic models<br>
+                    • Environmental conditions significantly affect bacterial activity<br>
+                    • Anaerobic processes dominate in deeper sediment layers<br>
+                    • Seasonal variations can alter microbial community structure<br>
+                    • Organic matter availability controls metabolic rates<br><br>
+                    <strong>🔬 Research Applications:</strong> Marine biogeochemistry, climate change studies, environmental monitoring, ecosystem health assessment, and biotechnology applications.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let analysisActive = false;
+        let analysisInterval = null;
+        let analysisData = [];
+        let timeElapsed = 0;
+        let chartCanvas, chartCtx;
+        
+        // Analysis parameters
+        let sedimentConditions = {
+            location: 'subtidal',
+            depth: 5,
+            waterDepth: 10,
+            temperature: 15,
+            salinity: 35,
+            pH: 8.1,
+            oxygen: 6.5,
+            organicMatter: 2.5,
+            porosity: 65
+        };
+        
+        // Bacterial process data
+        let bacterialProcesses = {
+            aerobicRespiration: { rate: 0, efficiency: 0 },
+            denitrification: { rate: 0, reduction: 0 },
+            nitrification: { rate: 0, oxidation: 0 },
+            sulfateReduction: { rate: 0, production: 0 },
+            methanogenesis: { rate: 0, production: 0 },
+            ironReduction: { rate: 0, solubilization: 0 }
+        };
+        
+        // Microbial community composition
+        let microbialCommunity = {
+            proteobacteria: 0,
+            bacteroidetes: 0,
+            firmicutes: 0,
+            actinobacteria: 0,
+            chloroflexi: 0,
+            archaea: 0
+        };
+        
+        // Biogeochemical cycles
+        let biogeochemicalCycles = {
+            nitrogen: 0,
+            carbon: 0,
+            sulfur: 0,
+            phosphorus: 0
+        };
+        
+        // Overall metrics
+        let overallMetrics = {
+            totalBacteria: 0,
+            metabolicActivity: 0,
+            diversityIndex: 0,
+            oxygenConsumption: 0,
+            carbonTurnover: 0
+        };
+        
+        window.onload = function() {
+            chartCanvas = document.getElementById('activityChart');
+            chartCtx = chartCanvas.getContext('2d');
+            
+            setupEventListeners();
+            updateEnvironmentalDisplay();
+            initializeChart();
+            
+            logMessage('🦠 Coastal Sediment Microbiology System ready for analysis');
+        };
+        
+        function setupEventListeners() {
+            // Environmental parameter listeners
+            document.getElementById('temperature').addEventListener('change', updateConditions);
+            document.getElementById('salinity').addEventListener('change', updateConditions);
+            document.getElementById('pH').addEventListener('change', updateConditions);
+            document.getElementById('oxygenLevel').addEventListener('change', updateConditions);
+            document.getElementById('sedimentDepth').addEventListener('change', updateConditions);
+            document.getElementById('waterDepth').addEventListener('change', updateConditions);
+            document.getElementById('sampleLocation').addEventListener('change', updateConditions);
+        }
+        
+        function updateConditions() {
+            sedimentConditions.temperature = parseFloat(document.getElementById('temperature').value);
+            sedimentConditions.salinity = parseFloat(document.getElementById('salinity').value);
+            sedimentConditions.pH = parseFloat(document.getElementById('pH').value);
+            sedimentConditions.oxygen = parseFloat(document.getElementById('oxygenLevel').value);
+            sedimentConditions.depth = parseFloat(document.getElementById('sedimentDepth').value);
+            sedimentConditions.waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            sedimentConditions.location = document.getElementById('sampleLocation').value;
+            
+            updateEnvironmentalDisplay();
+            
+            if (analysisActive) {
+                calculateBacterialProcesses();
+                updateDisplays();
+            }
+        }
+        
+        function updateEnvironmentalDisplay() {
+            document.getElementById('currentTemp').textContent = sedimentConditions.temperature.toFixed(1);
+            document.getElementById('currentPH').textContent = sedimentConditions.pH.toFixed(2);
+            document.getElementById('currentOxygen').textContent = sedimentConditions.oxygen.toFixed(1);
+            document.getElementById('currentSalinity').textContent = sedimentConditions.salinity.toFixed(1);
+            
+            // Calculate derived parameters
+            sedimentConditions.organicMatter = calculateOrganicMatter();
+            sedimentConditions.porosity = calculatePorosity();
+            
+            document.getElementById('organicMatter').textContent = sedimentConditions.organicMatter.toFixed(1);
+            document.getElementById('porosity').textContent = sedimentConditions.porosity.toFixed(0);
+        }
+        
+        function calculateOrganicMatter() {
+            // Organic matter content based on location and depth
+            let baseOM = 2.0;
+            
+            switch (sedimentConditions.location) {
+                case 'intertidal': baseOM = 3.5; break;
+                case 'subtidal': baseOM = 2.5; break;
+                case 'estuarine': baseOM = 4.0; break;
+                case 'continental_shelf': baseOM = 1.8; break;
+                case 'deep_water': baseOM = 1.2; break;
+            }
+            
+            // Decrease with depth
+            const depthFactor = Math.exp(-sedimentConditions.depth * 0.05);
+            return baseOM * depthFactor * (0.8 + Math.random() * 0.4);
+        }
+        
+        function calculatePorosity() {
+            // Porosity based on sediment type and depth
+            let basePorosity = 65;
+            
+            // Decrease with depth due to compaction
+            const compactionFactor = Math.exp(-sedimentConditions.depth * 0.02);
+            return basePorosity * compactionFactor * (0.9 + Math.random() * 0.2);
+        }
+        
+        function startAnalysis() {
+            analysisActive = true;
+            timeElapsed = 0;
+            analysisData = [];
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = false;
+            
+            const speed = parseFloat(document.getElementById('simulationSpeed').value);
+            const intervalTime = 1000 / speed; // Adjust interval based on speed
+            
+            analysisInterval = setInterval(() => {
+                timeElapsed += 1;
+                calculateBacterialProcesses();
+                updateDisplays();
+                updateChart();
+                
+                // Update progress
+                const maxTime = parseInt(document.getElementById('incubationTime').value);
+                const progress = Math.min(100, (timeElapsed / maxTime) * 100);
+                document.getElementById('analysisProgress').textContent = progress.toFixed(0);
+                
+                if (timeElapsed >= maxTime) {
+                    completeAnalysis();
+                }
+            }, intervalTime);
+            
+            logMessage(`🔬 Analysis started - ${document.getElementById('analysisType').value} focus`);
+            logMessage(`📊 Incubation time: ${document.getElementById('incubationTime').value} hours`);
+        }
+        
+        function pauseAnalysis() {
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+                document.getElementById('pauseBtn').textContent = '▶️ Resume';
+                document.getElementById('pauseBtn').onclick = resumeAnalysis;
+                logMessage('⏸️ Analysis paused');
+            }
+        }
+        
+        function resumeAnalysis() {
+            const speed = parseFloat(document.getElementById('simulationSpeed').value);
+            const intervalTime = 1000 / speed;
+            
+            analysisInterval = setInterval(() => {
+                timeElapsed += 1;
+                calculateBacterialProcesses();
+                updateDisplays();
+                updateChart();
+                
+                const maxTime = parseInt(document.getElementById('incubationTime').value);
+                const progress = Math.min(100, (timeElapsed / maxTime) * 100);
+                document.getElementById('analysisProgress').textContent = progress.toFixed(0);
+                
+                if (timeElapsed >= maxTime) {
+                    completeAnalysis();
+                }
+            }, intervalTime);
+            
+            document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+            document.getElementById('pauseBtn').onclick = pauseAnalysis;
+            logMessage('▶️ Analysis resumed');
+        }
+        
+        function stopAnalysis() {
+            analysisActive = false;
+            
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('reportBtn').disabled = false;
+            
+            logMessage('⏹️ Analysis stopped');
+        }
+        
+        function completeAnalysis() {
+            stopAnalysis();
+            logMessage('✅ Analysis completed successfully');
+            logMessage(`📊 Total samples collected: ${analysisData.length}`);
+        }
+        
+        function calculateBacterialProcesses() {
+            const temp = sedimentConditions.temperature;
+            const pH = sedimentConditions.pH;
+            const oxygen = sedimentConditions.oxygen;
+            const organicMatter = sedimentConditions.organicMatter;
+            const depth = sedimentConditions.depth;
+            const anaerobic = document.getElementById('anaerobicConditions').checked;
+            
+            // Temperature factor (Q10 = 2)
+            const tempFactor = Math.pow(2, (temp - 15) / 10);
+            
+            // pH factor (optimal around 7-8)
+            const pHFactor = Math.exp(-Math.pow((pH - 7.5) / 1.5, 2));
+            
+            // Organic matter factor
+            const omFactor = Math.min(1, organicMatter / 3.0);
+            
+            // Depth factor (decreasing activity with depth)
+            const depthFactor = Math.exp(-depth * 0.1);
+            
+            // Base rates (μmol/g/day)
+            const baseRates = {
+                aerobic: 50,
+                denitrification: 20,
+                nitrification: 15,
+                sulfateReduction: 30,
+                methanogenesis: 10,
+                ironReduction: 25
+            };
+            
+            // Aerobic respiration
+            if (oxygen > 2 && !anaerobic) {
+                bacterialProcesses.aerobicRespiration.rate = baseRates.aerobic * tempFactor * pHFactor * omFactor * depthFactor * (oxygen / 8);
+                bacterialProcesses.aerobicRespiration.efficiency = Math.min(95, 60 + (oxygen / 8) * 20);
+            } else {
+                bacterialProcesses.aerobicRespiration.rate = 0;
+                bacterialProcesses.aerobicRespiration.efficiency = 0;
+            }
+            
+            // Denitrification (anaerobic)
+            if (oxygen < 4 || anaerobic) {
+                bacterialProcesses.denitrification.rate = baseRates.denitrification * tempFactor * pHFactor * omFactor * depthFactor * (1 - oxygen / 8);
+                bacterialProcesses.denitrification.reduction = Math.min(90, 40 + (1 - oxygen / 8) * 30);
+            } else {
+                bacterialProcesses.denitrification.rate = 0;
+                bacterialProcesses.denitrification.reduction = 0;
+            }
+            
+            // Nitrification
+            if (oxygen > 1 && !anaerobic) {
+                bacterialProcesses.nitrification.rate = baseRates.nitrification * tempFactor * pHFactor * depthFactor * (oxygen / 8);
+                bacterialProcesses.nitrification.oxidation = Math.min(85, 30 + (oxygen / 8) * 25);
+            } else {
+                bacterialProcesses.nitrification.rate = 0;
+                bacterialProcesses.nitrification.oxidation = 0;
+            }
+            
+            // Sulfate reduction (anaerobic)
+            if (oxygen < 2 || anaerobic) {
+                const sulfateFactor = Math.min(1, sedimentConditions.salinity / 35); // Sulfate availability
+                bacterialProcesses.sulfateReduction.rate = baseRates.sulfateReduction * tempFactor * pHFactor * omFactor * depthFactor * sulfateFactor * (1 - oxygen / 8);
+                bacterialProcesses.sulfateReduction.production = Math.min(80, 20 + sulfateFactor * 40);
+            } else {
+                bacterialProcesses.sulfateReduction.rate = 0;
+                bacterialProcesses.sulfateReduction.production = 0;
+            }
+            
+            // Methanogenesis (strictly anaerobic)
+            if (oxygen < 0.5 || anaerobic) {
+                bacterialProcesses.methanogenesis.rate = baseRates.methanogenesis * tempFactor * omFactor * depthFactor * (1 - oxygen / 2);
+                bacterialProcesses.methanogenesis.production = Math.min(70, 10 + (1 - oxygen / 2) * 30);
+            } else {
+                bacterialProcesses.methanogenesis.rate = 0;
+                bacterialProcesses.methanogenesis.production = 0;
+            }
+            
+            // Iron reduction
+            if (oxygen < 3 || anaerobic) {
+                bacterialProcesses.ironReduction.rate = baseRates.ironReduction * tempFactor * pHFactor * omFactor * depthFactor * (1 - oxygen / 6);
+                bacterialProcesses.ironReduction.solubilization = Math.min(75, 15 + (1 - oxygen / 6) * 35);
+            } else {
+                bacterialProcesses.ironReduction.rate = 0;
+                bacterialProcesses.ironReduction.solubilization = 0;
+            }
+            
+            // Calculate microbial community composition
+            calculateMicrobialCommunity();
+            
+            // Calculate biogeochemical cycles
+            calculateBiogeochemicalCycles();
+            
+            // Calculate overall metrics
+            calculateOverallMetrics();
+            
+            // Store data point
+            analysisData.push({
+                time: timeElapsed,
+                processes: { ...bacterialProcesses },
+                community: { ...microbialCommunity },
+                cycles: { ...biogeochemicalCycles },
+                metrics: { ...overallMetrics },
+                conditions: { ...sedimentConditions }
+            });
+        }
+        
+        function calculateMicrobialCommunity() {
+            const temp = sedimentConditions.temperature;
+            const oxygen = sedimentConditions.oxygen;
+            const pH = sedimentConditions.pH;
+            const organicMatter = sedimentConditions.organicMatter;
+            const anaerobic = document.getElementById('anaerobicConditions').checked;
+            
+            // Base abundances (%)
+            let abundances = {
+                proteobacteria: 35,
+                bacteroidetes: 20,
+                firmicutes: 15,
+                actinobacteria: 12,
+                chloroflexi: 10,
+                archaea: 8
+            };
+            
+            // Adjust based on conditions
+            if (oxygen < 2 || anaerobic) {
+                // Favor anaerobic groups
+                abundances.firmicutes += 10;
+                abundances.chloroflexi += 8;
+                abundances.archaea += 12;
+                abundances.proteobacteria -= 15;
+                abundances.bacteroidetes -= 10;
+                abundances.actinobacteria -= 5;
+            }
+            
+            if (temp > 25) {
+                // Thermophilic conditions
+                abundances.archaea += 8;
+                abundances.firmicutes += 5;
+                abundances.proteobacteria -= 8;
+                abundances.bacteroidetes -= 5;
+            }
+            
+            if (organicMatter > 3) {
+                // High organic matter
+                abundances.bacteroidetes += 8;
+                abundances.proteobacteria += 5;
+                abundances.actinobacteria += 3;
+                abundances.archaea -= 8;
+                abundances.chloroflexi -= 8;
+            }
+            
+            // Normalize to 100%
+            const total = Object.values(abundances).reduce((sum, val) => sum + val, 0);
+            Object.keys(abundances).forEach(key => {
+                microbialCommunity[key] = Math.max(0, (abundances[key] / total) * 100);
+            });
+        }
+        
+        function calculateBiogeochemicalCycles() {
+            // Nitrogen cycle
+            biogeochemicalCycles.nitrogen = bacterialProcesses.nitrification.rate + bacterialProcesses.denitrification.rate;
+            
+            // Carbon cycle
+            biogeochemicalCycles.carbon = (bacterialProcesses.aerobicRespiration.rate * 0.8) + 
+                                         (bacterialProcesses.methanogenesis.rate * 0.6) + 
+                                         (bacterialProcesses.sulfateReduction.rate * 0.4);
+            
+            // Sulfur cycle
+            biogeochemicalCycles.sulfur = bacterialProcesses.sulfateReduction.rate;
+            
+            // Phosphorus cycle (estimated from overall activity)
+            biogeochemicalCycles.phosphorus = (biogeochemicalCycles.carbon * 0.1) + (Math.random() * 2);
+        }
+        
+        function calculateOverallMetrics() {
+            const temp = sedimentConditions.temperature;
+            const organicMatter = sedimentConditions.organicMatter;
+            const depth = sedimentConditions.depth;
+            
+            // Total bacteria (cells/g sediment)
+            const baseBacteria = 1e8;
+            const tempFactor = Math.pow(1.5, (temp - 15) / 10);
+            const omFactor = Math.pow(organicMatter / 2, 0.5);
+            const depthFactor = Math.exp(-depth * 0.08);
+            
+            overallMetrics.totalBacteria = baseBacteria * tempFactor * omFactor * depthFactor * (0.8 + Math.random() * 0.4);
+            
+            // Metabolic activity (sum of all processes)
+            overallMetrics.metabolicActivity = Object.values(bacterialProcesses).reduce((sum, process) => sum + process.rate, 0);
+            
+            // Shannon diversity index
+            const abundances = Object.values(microbialCommunity).filter(val => val > 0);
+            overallMetrics.diversityIndex = -abundances.reduce((sum, p) => {
+                const proportion = p / 100;
+                return sum + (proportion * Math.log(proportion));
+            }, 0);
+            
+            // Oxygen consumption
+            overallMetrics.oxygenConsumption = bacterialProcesses.aerobicRespiration.rate * 0.8 + bacterialProcesses.nitrification.rate * 0.6;
+            
+            // Carbon turnover
+            overallMetrics.carbonTurnover = biogeochemicalCycles.carbon;
+        }
+        
+        function updateDisplays() {
+            // Update overall metrics
+            document.getElementById('totalBacteria').textContent = formatScientific(overallMetrics.totalBacteria);
+            document.getElementById('metabolicActivity').textContent = overallMetrics.metabolicActivity.toFixed(1);
+            document.getElementById('diversityIndex').textContent = overallMetrics.diversityIndex.toFixed(2);
+            document.getElementById('oxygenConsumption').textContent = overallMetrics.oxygenConsumption.toFixed(2);
+            document.getElementById('carbonTurnover').textContent = overallMetrics.carbonTurnover.toFixed(1);
+            
+            // Update bacterial processes
+            document.getElementById('aerobicRate').textContent = bacterialProcesses.aerobicRespiration.rate.toFixed(1);
+            document.getElementById('aerobicEfficiency').textContent = bacterialProcesses.aerobicRespiration.efficiency.toFixed(0);
+            
+            document.getElementById('denitrificationRate').textContent = bacterialProcesses.denitrification.rate.toFixed(1);
+            document.getElementById('nitrateReduction').textContent = bacterialProcesses.denitrification.reduction.toFixed(0);
+            
+            document.getElementById('nitrificationRate').textContent = bacterialProcesses.nitrification.rate.toFixed(1);
+            document.getElementById('ammoniaOxidation').textContent = bacterialProcesses.nitrification.oxidation.toFixed(0);
+            
+            document.getElementById('sulfateReductionRate').textContent = bacterialProcesses.sulfateReduction.rate.toFixed(1);
+            document.getElementById('sulfideProduction').textContent = bacterialProcesses.sulfateReduction.production.toFixed(0);
+            
+            document.getElementById('methanogenesisRate').textContent = bacterialProcesses.methanogenesis.rate.toFixed(1);
+            document.getElementById('methaneProduction').textContent = bacterialProcesses.methanogenesis.production.toFixed(0);
+            
+            document.getElementById('ironReductionRate').textContent = bacterialProcesses.ironReduction.rate.toFixed(1);
+            document.getElementById('ironSolubilization').textContent = bacterialProcesses.ironReduction.solubilization.toFixed(0);
+            
+            // Update microbial community
+            updateCommunityBars();
+            
+            // Update biogeochemical cycles
+            document.getElementById('nitrogenCycleRate').textContent = biogeochemicalCycles.nitrogen.toFixed(1);
+            document.getElementById('carbonCycleRate').textContent = biogeochemicalCycles.carbon.toFixed(1);
+            document.getElementById('sulfurCycleRate').textContent = biogeochemicalCycles.sulfur.toFixed(1);
+            document.getElementById('phosphorusCycleRate').textContent = biogeochemicalCycles.phosphorus.toFixed(1);
+        }
+        
+        function updateCommunityBars() {
+            const groups = ['proteobacteria', 'bacteroidetes', 'firmicutes', 'actinobacteria', 'chloroflexi', 'archaea'];
+            
+            groups.forEach(group => {
+                const percentage = microbialCommunity[group];
+                const bar = document.getElementById(group + 'Bar');
+                const value = document.getElementById(group + 'Value');
+                
+                if (bar && value) {
+                    bar.style.width = percentage + '%';
+                    value.textContent = percentage.toFixed(1) + '%';
+                }
+            });
+        }
+        
+        function initializeChart() {
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            // Draw axes
+            chartCtx.strokeStyle = '#d1d5db';
+            chartCtx.lineWidth = 1;
+            
+            // Y-axis
+            chartCtx.beginPath();
+            chartCtx.moveTo(50, 20);
+            chartCtx.lineTo(50, chartCanvas.height - 40);
+            chartCtx.stroke();
+            
+            // X-axis
+            chartCtx.beginPath();
+            chartCtx.moveTo(50, chartCanvas.height - 40);
+            chartCtx.lineTo(chartCanvas.width - 20, chartCanvas.height - 40);
+            chartCtx.stroke();
+            
+            // Labels
+            chartCtx.fillStyle = '#374151';
+            chartCtx.font = '12px Arial';
+            chartCtx.fillText('Time (hours)', chartCanvas.width / 2 - 30, chartCanvas.height - 10);
+            
+            chartCtx.save();
+            chartCtx.translate(15, chartCanvas.height / 2);
+            chartCtx.rotate(-Math.PI / 2);
+            chartCtx.fillText('Activity (μmol/g/day)', -50, 0);
+            chartCtx.restore();
+        }
+        
+        function updateChart() {
+            if (analysisData.length < 2) return;
+            
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            initializeChart();
+            
+            const maxTime = Math.max(...analysisData.map(d => d.time));
+            const maxActivity = Math.max(...analysisData.map(d => d.metrics.metabolicActivity));
+            
+            const chartWidth = chartCanvas.width - 70;
+            const chartHeight = chartCanvas.height - 60;
+            
+            // Draw metabolic activity line
+            chartCtx.strokeStyle = '#10b981';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            
+            analysisData.forEach((data, index) => {
+                const x = 50 + (data.time / maxTime) * chartWidth;
+                const y = chartCanvas.height - 40 - (data.metrics.metabolicActivity / maxActivity) * chartHeight;
+                
+                if (index === 0) {
+                    chartCtx.moveTo(x, y);
+                } else {
+                    chartCtx.lineTo(x, y);
+                }
+            });
+            
+            chartCtx.stroke();
+            
+            // Draw oxygen consumption line
+            chartCtx.strokeStyle = '#3b82f6';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            
+            const maxOxygen = Math.max(...analysisData.map(d => d.metrics.oxygenConsumption));
+            
+            analysisData.forEach((data, index) => {
+                const x = 50 + (data.time / maxTime) * chartWidth;
+                const y = chartCanvas.height - 40 - (data.metrics.oxygenConsumption / maxOxygen) * chartHeight;
+                
+                if (index === 0) {
+                    chartCtx.moveTo(x, y);
+                } else {
+                    chartCtx.lineTo(x, y);
+                }
+            });
+            
+            chartCtx.stroke();
+            
+            // Legend
+            chartCtx.fillStyle = '#10b981';
+            chartCtx.fillRect(chartCanvas.width - 150, 30, 15, 3);
+            chartCtx.fillStyle = '#374151';
+            chartCtx.font = '11px Arial';
+            chartCtx.fillText('Metabolic Activity', chartCanvas.width - 130, 35);
+            
+            chartCtx.fillStyle = '#3b82f6';
+            chartCtx.fillRect(chartCanvas.width - 150, 50, 15, 3);
+            chartCtx.fillStyle = '#374151';
+            chartCtx.fillText('O₂ Consumption', chartCanvas.width - 130, 55);
+        }
+        
+        function formatScientific(number) {
+            if (number >= 1e6) {
+                return (number / 1e6).toFixed(1) + 'M';
+            } else if (number >= 1e3) {
+                return (number / 1e3).toFixed(1) + 'K';
+            } else {
+                return number.toFixed(0);
+            }
+        }
+        
+        function resetAnalysis() {
+            stopAnalysis();
+            
+            timeElapsed = 0;
+            analysisData = [];
+            
+            // Reset all values
+            Object.keys(bacterialProcesses).forEach(key => {
+                bacterialProcesses[key] = { rate: 0, efficiency: 0, reduction: 0, oxidation: 0, production: 0, solubilization: 0 };
+            });
+            
+            Object.keys(microbialCommunity).forEach(key => {
+                microbialCommunity[key] = 0;
+            });
+            
+            Object.keys(biogeochemicalCycles).forEach(key => {
+                biogeochemicalCycles[key] = 0;
+            });
+            
+            Object.keys(overallMetrics).forEach(key => {
+                overallMetrics[key] = 0;
+            });
+            
+            document.getElementById('analysisProgress').textContent = '0';
+            document.getElementById('exportBtn').disabled = true;
+            document.getElementById('reportBtn').disabled = true;
+            
+            updateDisplays();
+            initializeChart();
+            
+            logMessage('🔄 Analysis reset - ready for new analysis');
+        }
+        
+        function exportResults() {
+            if (analysisData.length === 0) {
+                alert('No data to export. Run an analysis first.');
+                return;
+            }
+            
+            const exportData = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    analysisType: document.getElementById('analysisType').value,
+                    sampleLocation: sedimentConditions.location,
+                    incubationTime: document.getElementById('incubationTime').value,
+                    totalDataPoints: analysisData.length,
+                    conditions: sedimentConditions
+                },
+                data: analysisData
+            };
+            
+            // Create CSV
+            let csv = 'Time,TotalBacteria,MetabolicActivity,DiversityIndex,OxygenConsumption,CarbonTurnover,AerobicRate,DenitrificationRate,NitrificationRate,SulfateReductionRate,MethanogenesisRate,IronReductionRate\n';
+            
+            analysisData.forEach(record => {
+                csv += `${record.time},${record.metrics.totalBacteria.toFixed(0)},${record.metrics.metabolicActivity.toFixed(3)},${record.metrics.diversityIndex.toFixed(3)},${record.metrics.oxygenConsumption.toFixed(3)},${record.metrics.carbonTurnover.toFixed(3)},${record.processes.aerobicRespiration.rate.toFixed(3)},${record.processes.denitrification.rate.toFixed(3)},${record.processes.nitrification.rate.toFixed(3)},${record.processes.sulfateReduction.rate.toFixed(3)},${record.processes.methanogenesis.rate.toFixed(3)},${record.processes.ironReduction.rate.toFixed(3)}\n`;
+            });
+            
+            // Download files
+            downloadFile(csv, `sediment_microbiology_${new Date().toISOString().slice(0, 10)}.csv`);
+            downloadFile(JSON.stringify(exportData, null, 2), `sediment_microbiology_${new Date().toISOString().slice(0, 10)}.json`);
+            
+            logMessage(`💾 Data exported: ${analysisData.length} data points`);
+        }
+        
+        function generateReport() {
+            if (analysisData.length === 0) {
+                alert('No data available. Run an analysis first.');
+                return;
+            }
+            
+            const finalData = analysisData[analysisData.length - 1];
+            
+            const report = `
+COASTAL SEDIMENT MICROBIOLOGY ANALYSIS REPORT
+Generated: ${new Date().toLocaleString()}
+
+SAMPLE INFORMATION:
+- Location: ${sedimentConditions.location}
+- Sediment Depth: ${sedimentConditions.depth} cm
+- Water Depth: ${sedimentConditions.waterDepth} m
+- Temperature: ${sedimentConditions.temperature}°C
+- Salinity: ${sedimentConditions.salinity} PSU
+- pH: ${sedimentConditions.pH}
+- Dissolved Oxygen: ${sedimentConditions.oxygen} mg/L
+- Organic Matter: ${sedimentConditions.organicMatter.toFixed(1)}%
+- Porosity: ${sedimentConditions.porosity.toFixed(0)}%
+
+OVERALL METRICS:
+- Total Bacteria: ${formatScientific(finalData.metrics.totalBacteria)} cells/g
+- Metabolic Activity: ${finalData.metrics.metabolicActivity.toFixed(1)} μmol/g/day
+- Shannon Diversity: ${finalData.metrics.diversityIndex.toFixed(2)}
+- Oxygen Consumption: ${finalData.metrics.oxygenConsumption.toFixed(2)} mg/L/hr
+- Carbon Turnover: ${finalData.metrics.carbonTurnover.toFixed(1)} mg C/g/day
+
+BACTERIAL PROCESSES:
+- Aerobic Respiration: ${finalData.processes.aerobicRespiration.rate.toFixed(1)} μmol/g/day (${finalData.processes.aerobicRespiration.efficiency.toFixed(0)}% efficiency)
+- Denitrification: ${finalData.processes.denitrification.rate.toFixed(1)} μmol/g/day (${finalData.processes.denitrification.reduction.toFixed(0)}% NO₃⁻ reduction)
+- Nitrification: ${finalData.processes.nitrification.rate.toFixed(1)} μmol/g/day (${finalData.processes.nitrification.oxidation.toFixed(0)}% NH₄⁺ oxidation)
+- Sulfate Reduction: ${finalData.processes.sulfateReduction.rate.toFixed(1)} μmol/g/day (${finalData.processes.sulfateReduction.production.toFixed(0)}% H₂S production)
+- Methanogenesis: ${finalData.processes.methanogenesis.rate.toFixed(1)} μmol/g/day (${finalData.processes.methanogenesis.production.toFixed(0)}% CH₄ production)
+- Iron Reduction: ${finalData.processes.ironReduction.rate.toFixed(1)} μmol/g/day (${finalData.processes.ironReduction.solubilization.toFixed(0)}% Fe²⁺ release)
+
+MICROBIAL COMMUNITY COMPOSITION:
+- Proteobacteria: ${finalData.community.proteobacteria.toFixed(1)}%
+- Bacteroidetes: ${finalData.community.bacteroidetes.toFixed(1)}%
+- Firmicutes: ${finalData.community.firmicutes.toFixed(1)}%
+- Actinobacteria: ${finalData.community.actinobacteria.toFixed(1)}%
+- Chloroflexi: ${finalData.community.chloroflexi.toFixed(1)}%
+- Archaea: ${finalData.community.archaea.toFixed(1)}%
+
+BIOGEOCHEMICAL CYCLES:
+- Nitrogen Cycle: ${finalData.cycles.nitrogen.toFixed(1)} μmol N/g/day
+- Carbon Cycle: ${finalData.cycles.carbon.toFixed(1)} mg C/g/day
+- Sulfur Cycle: ${finalData.cycles.sulfur.toFixed(1)} μmol S/g/day
+- Phosphorus Cycle: ${finalData.cycles.phosphorus.toFixed(1)} μmol P/g/day
+
+ANALYSIS SUMMARY:
+Total incubation time: ${timeElapsed} hours
+Data points collected: ${analysisData.length}
+Analysis type: ${document.getElementById('analysisType').value}
+
+This analysis provides insights into the microbial processes occurring in coastal marine sediments,
+including bacterial community composition, metabolic activities, and biogeochemical cycling rates.
+Results are based on established oceanographic and microbiological models.
+            `;
+            
+            downloadFile(report, `sediment_microbiology_report_${new Date().toISOString().slice(0, 10)}.txt`);
+            logMessage('📋 Comprehensive analysis report generated');
+        }
+        
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function logMessage(message) {
+            const log = document.getElementById('dataLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const timestamp = document.createElement('div');
+            timestamp.className = 'log-timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'log-message';
+            messageDiv.textContent = message;
+            
+            entry.appendChild(timestamp);
+            entry.appendChild(messageDiv);
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        // Initialize environmental display on load
+        setTimeout(updateEnvironmentalDisplay, 100);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c3b65c27898937',t:'MTc1NDcwNTM3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
