@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Near-Inertial Oscillations Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            margin: 10px 0;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: rgba(255,255,255,0.1);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .control-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .control-item label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+        }
+        
+        .control-item select, .control-item input {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .simulation-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-container {
+            background: rgba(255,255,255,0.95);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        
+        .chart-container h3 {
+            color: #333;
+            margin-top: 0;
+            text-align: center;
+            font-size: 1.3em;
+        }
+        
+        .physics-section {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .physics-section h2 {
+            color: #ffd700;
+            border-bottom: 2px solid #ffd700;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .equation-box {
+            background: rgba(0,0,0,0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #ffd700;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .info-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .info-card h4 {
+            color: #87ceeb;
+            margin-top: 0;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-running { background-color: #2ecc71; }
+        .status-stopped { background-color: #e74c3c; }
+        
+        @media (max-width: 768px) {
+            .simulation-area {
+                grid-template-columns: 1fr;
+            }
+            
+            .control-group {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Near-Inertial Oscillations Simulator</h1>
+            <p>Interactive simulation of wind-induced near-inertial motions and their biogeochemical impacts by Claudio Iturra</p>
+        </div>
+
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-item">
+                    <label for="windPattern">Wind Pattern:</label>
+                    <select id="windPattern">
+                        <option value="diurnal">Diurnal Wind (Sea/Land Breeze)</option>
+                        <option value="storm">Storm Event</option>
+                        <option value="constant">Constant Wind</option>
+                        <option value="variable">Variable Wind</option>
+                    </select>
+                </div>
+                
+                <div class="control-item">
+                    <label for="latitude">Latitude (°):</label>
+                    <input type="number" id="latitude" value="35" min="10" max="60" step="1">
+                </div>
+                
+                <div class="control-item">
+                    <label for="windSpeed">Max Wind Speed (m/s):</label>
+                    <input type="number" id="windSpeed" value="10" min="1" max="30" step="1">
+                </div>
+                
+                <div class="control-item">
+                    <label for="depth">Water Depth (m):</label>
+                    <input type="number" id="depth" value="50" min="10" max="200" step="10">
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <button class="btn" onclick="startSimulation()">
+                    <span class="status-indicator" id="statusIndicator"></span>
+                    <span id="btnText">Start Simulation</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="simulation-area">
+            <div class="chart-container">
+                <h3>Current Velocity Components</h3>
+                <canvas id="velocityChart" width="400" height="300"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3>Wind Stress & Inertial Frequency</h3>
+                <canvas id="windChart" width="400" height="300"></canvas>
+            </div>
+        </div>
+
+        <div class="physics-section">
+            <h2>🔬 Physics of Near-Inertial Oscillations</h2>
+            
+            <div class="equation-box">
+                <h4>Governing Equations:</h4>
+                <p><strong>Momentum Equations with Coriolis Effect:</strong></p>
+                <p>$$\frac{\partial u}{\partial t} - fv = -\frac{1}{\rho}\frac{\partial p}{\partial x} + \frac{\tau_x}{\rho h}$$</p>
+                <p>$$\frac{\partial v}{\partial t} + fu = -\frac{1}{\rho}\frac{\partial p}{\partial y} + \frac{\tau_y}{\rho h}$$</p>
+                <p>Where: $f = 2\Omega \sin(\phi)$ is the Coriolis parameter</p>
+            </div>
+
+            <div class="equation-box">
+                <h4>Inertial Frequency:</h4>
+                <p>$$f = 2\Omega \sin(\phi) = 1.458 \times 10^{-4} \sin(\phi) \text{ rad/s}$$</p>
+                <p>Inertial Period: $T_i = \frac{2\pi}{f} = \frac{2\pi}{2\Omega \sin(\phi)}$</p>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>🌪️ Wind-Induced Oscillations</h4>
+                    <p>When wind stress acts on the ocean surface, it generates currents that are deflected by the Coriolis force. This creates circular or elliptical motion at the inertial frequency.</p>
+                    <p><strong>Key Process:</strong> Wind → Surface stress → Momentum input → Coriolis deflection → Inertial oscillations</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>🌅 Diurnal Wind Effects</h4>
+                    <p>Sea-land breeze cycles create periodic wind stress that can resonantly excite near-inertial motions when the wind frequency matches the local inertial frequency.</p>
+                    <p><strong>Resonance Condition:</strong> $\omega_{wind} \approx f$</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>⛈️ Storm Events</h4>
+                    <p>Storms provide impulsive wind stress that efficiently generates near-inertial oscillations. The rotating wind field of storms can particularly enhance these motions.</p>
+                    <p><strong>Energy Input:</strong> Proportional to $|\tau|^2$ where $\tau$ is wind stress</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>🧬 Biogeochemical Impacts</h4>
+                    <p>Near-inertial oscillations enhance vertical mixing, affecting:</p>
+                    <ul>
+                        <li>Nutrient transport from deep waters</li>
+                        <li>Phytoplankton distribution</li>
+                        <li>Oxygen levels in subsurface waters</li>
+                        <li>Carbon export efficiency</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h4>🏖️ Coastal Effects</h4>
+                    <p>In coastal regions, near-inertial oscillations interact with:</p>
+                    <ul>
+                        <li>Topographic features (shelves, canyons)</li>
+                        <li>Stratification changes</li>
+                        <li>Upwelling/downwelling processes</li>
+                        <li>Tidal mixing</li>
+                    </ul>
+                </div>
+
+                <div class="info-card">
+                    <h4>📊 Simulation Parameters</h4>
+                    <p id="simParams">
+                        <strong>Current Settings:</strong><br>
+                        Latitude: <span id="currentLat">35°</span><br>
+                        Inertial Period: <span id="inertialPeriod">20.1 hours</span><br>
+                        Wind Pattern: <span id="currentWind">Diurnal</span><br>
+                        Max Wind Speed: <span id="currentSpeed">10 m/s</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="physics-section">
+            <h2>🌊 Consequences in Coastal Oceans</h2>
+            
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>Vertical Mixing Enhancement</h4>
+                    <p>Near-inertial oscillations increase vertical shear, leading to enhanced turbulent mixing. This breaks down stratification and promotes vertical exchange of heat, salt, and biogeochemical tracers.</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>Nutrient Pumping</h4>
+                    <p>The oscillatory motion creates a "nutrient pump" effect, bringing nutrient-rich deep water to the euphotic zone, supporting primary productivity in coastal ecosystems.</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>Oxygen Dynamics</h4>
+                    <p>Enhanced mixing affects oxygen distribution, potentially alleviating hypoxic conditions in coastal waters or, conversely, increasing oxygen consumption through enhanced biological activity.</p>
+                </div>
+
+                <div class="info-card">
+                    <h4>Carbon Cycle Impact</h4>
+                    <p>Near-inertial mixing influences carbon export by affecting particle aggregation, sinking rates, and the efficiency of the biological pump in coastal regions.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let velocityChart, windChart;
+        let simulationRunning = false;
+        let animationId;
+        let timeStep = 0;
+        
+        // Initialize charts
+        function initCharts() {
+            const velocityCtx = document.getElementById('velocityChart').getContext('2d');
+            const windCtx = document.getElementById('windChart').getContext('2d');
+            
+            velocityChart = new Chart(velocityCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'U-velocity (m/s)',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'V-velocity (m/s)',
+                        data: [],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Time (hours)', color: '#333' },
+                            ticks: { color: '#333' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'Velocity (m/s)', color: '#333' },
+                            ticks: { color: '#333' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#333' } }
+                    }
+                }
+            });
+            
+            windChart = new Chart(windCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Wind Stress X (N/m²)',
+                        data: [],
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Wind Stress Y (N/m²)',
+                        data: [],
+                        borderColor: '#f39c12',
+                        backgroundColor: 'rgba(243, 156, 18, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { 
+                            title: { display: true, text: 'Time (hours)', color: '#333' },
+                            ticks: { color: '#333' }
+                        },
+                        y: { 
+                            title: { display: true, text: 'Wind Stress (N/m²)', color: '#333' },
+                            ticks: { color: '#333' }
+                        }
+                    },
+                    plugins: {
+                        legend: { labels: { color: '#333' } }
+                    }
+                }
+            });
+        }
+        
+        // Calculate inertial frequency
+        function calculateInertialFrequency(latitude) {
+            const omega = 7.2921e-5; // Earth's rotation rate (rad/s)
+            const latRad = latitude * Math.PI / 180;
+            return 2 * omega * Math.sin(latRad);
+        }
+        
+        // Generate wind stress based on pattern
+        function getWindStress(time, pattern, maxSpeed) {
+            const rho_air = 1.225; // kg/m³
+            const Cd = 1.5e-3; // drag coefficient
+            
+            let windX = 0, windY = 0;
+            
+            switch(pattern) {
+                case 'diurnal':
+                    // Sea-land breeze cycle (24-hour period)
+                    windX = maxSpeed * Math.cos(2 * Math.PI * time / 24);
+                    windY = maxSpeed * 0.3 * Math.sin(2 * Math.PI * time / 24);
+                    break;
+                    
+                case 'storm':
+                    // Storm event with rotating winds
+                    const stormIntensity = Math.exp(-Math.pow((time - 48) / 12, 2));
+                    windX = maxSpeed * stormIntensity * Math.cos(time / 6);
+                    windY = maxSpeed * stormIntensity * Math.sin(time / 6);
+                    break;
+                    
+                case 'constant':
+                    windX = maxSpeed;
+                    windY = 0;
+                    break;
+                    
+                case 'variable':
+                    windX = maxSpeed * (0.5 + 0.5 * Math.sin(2 * Math.PI * time / 18));
+                    windY = maxSpeed * 0.4 * Math.cos(2 * Math.PI * time / 30);
+                    break;
+            }
+            
+            // Convert to stress
+            const windSpeed = Math.sqrt(windX * windX + windY * windY);
+            const stressX = rho_air * Cd * windSpeed * windX;
+            const stressY = rho_air * Cd * windSpeed * windY;
+            
+            return { x: stressX, y: stressY };
+        }
+        
+        // Simulation step
+        function simulationStep() {
+            if (!simulationRunning) return;
+            
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const windPattern = document.getElementById('windPattern').value;
+            const maxWindSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const depth = parseFloat(document.getElementById('depth').value);
+            
+            const f = calculateInertialFrequency(latitude);
+            const dt = 0.1; // time step in hours
+            const rho = 1025; // seawater density kg/m³
+            
+            const time = timeStep * dt;
+            const windStress = getWindStress(time, windPattern, maxWindSpeed);
+            
+            // Simple numerical integration of momentum equations
+            const currentData = velocityChart.data.datasets;
+            const windData = windChart.data.datasets;
+            
+            let u = currentData[0].data.length > 0 ? currentData[0].data[currentData[0].data.length - 1] : 0;
+            let v = currentData[1].data.length > 0 ? currentData[1].data[currentData[1].data.length - 1] : 0;
+            
+            // Momentum equations with Coriolis and wind forcing
+            const dudt = f * v + windStress.x / (rho * depth);
+            const dvdt = -f * u + windStress.y / (rho * depth);
+            
+            u += dudt * dt * 3600; // convert hours to seconds
+            v += dvdt * dt * 3600;
+            
+            // Add damping to prevent unrealistic growth
+            u *= 0.999;
+            v *= 0.999;
+            
+            // Update charts
+            const timeLabel = time.toFixed(1);
+            
+            velocityChart.data.labels.push(timeLabel);
+            velocityChart.data.datasets[0].data.push(u);
+            velocityChart.data.datasets[1].data.push(v);
+            
+            windChart.data.labels.push(timeLabel);
+            windChart.data.datasets[0].data.push(windStress.x);
+            windChart.data.datasets[1].data.push(windStress.y);
+            
+            // Keep only last 200 points
+            if (velocityChart.data.labels.length > 200) {
+                velocityChart.data.labels.shift();
+                velocityChart.data.datasets[0].data.shift();
+                velocityChart.data.datasets[1].data.shift();
+                windChart.data.labels.shift();
+                windChart.data.datasets[0].data.shift();
+                windChart.data.datasets[1].data.shift();
+            }
+            
+            velocityChart.update('none');
+            windChart.update('none');
+            
+            timeStep++;
+            animationId = requestAnimationFrame(simulationStep);
+        }
+        
+        // Start/stop simulation
+        function startSimulation() {
+            if (simulationRunning) {
+                simulationRunning = false;
+                cancelAnimationFrame(animationId);
+                document.getElementById('btnText').textContent = 'Start Simulation';
+                document.getElementById('statusIndicator').className = 'status-indicator status-stopped';
+            } else {
+                simulationRunning = true;
+                timeStep = 0;
+                
+                // Clear existing data
+                velocityChart.data.labels = [];
+                velocityChart.data.datasets[0].data = [];
+                velocityChart.data.datasets[1].data = [];
+                windChart.data.labels = [];
+                windChart.data.datasets[0].data = [];
+                windChart.data.datasets[1].data = [];
+                
+                document.getElementById('btnText').textContent = 'Stop Simulation';
+                document.getElementById('statusIndicator').className = 'status-indicator status-running';
+                
+                updateParameters();
+                simulationStep();
+            }
+        }
+        
+        // Update parameter display
+        function updateParameters() {
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const windPattern = document.getElementById('windPattern').value;
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            
+            const f = calculateInertialFrequency(latitude);
+            const inertialPeriod = (2 * Math.PI / f) / 3600; // convert to hours
+            
+            document.getElementById('currentLat').textContent = latitude + '°';
+            document.getElementById('inertialPeriod').textContent = inertialPeriod.toFixed(1) + ' hours';
+            document.getElementById('currentWind').textContent = windPattern.charAt(0).toUpperCase() + windPattern.slice(1);
+            document.getElementById('currentSpeed').textContent = windSpeed + ' m/s';
+        }
+        
+        // Initialize everything when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+            updateParameters();
+            document.getElementById('statusIndicator').className = 'status-indicator status-stopped';
+            
+            // Update parameters when inputs change
+            document.getElementById('latitude').addEventListener('input', updateParameters);
+            document.getElementById('windPattern').addEventListener('change', updateParameters);
+            document.getElementById('windSpeed').addEventListener('input', updateParameters);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96cab7fe245c88a6',t:'MTc1NDc3ODg0NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
