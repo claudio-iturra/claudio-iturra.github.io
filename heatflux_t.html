@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Heat Flux Analyzer - Complete Evaluation System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-indigo-800 to-teal-700 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4">🌊 Coastal Ocean Heat Flux Analyzer</h1>
+            <p class="text-blue-100 text-xl">Complete evaluation of air-sea heat exchange and near-surface temperature dynamics</p>
+            <div class="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4 inline-block">
+                <p class="text-white text-sm">Real-time analysis of radiation, evaporation, convection, and conduction processes by Claudio Iturra</p>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-8">
+            <!-- Environmental Parameters -->
+            <div class="xl:col-span-1 bg-white rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    🌡️ Environmental Parameters
+                </h2>
+                
+                <!-- Atmospheric Conditions -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-4">🌤️ Atmospheric State</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Air Temperature (°C)</label>
+                            <input type="range" id="airTemp" min="-5" max="45" value="22" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>-5°C</span>
+                                <span id="airTempValue" class="font-semibold">22°C</span>
+                                <span>45°C</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sea Surface Temperature (°C)</label>
+                            <input type="range" id="seaTemp" min="0" max="35" value="19" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0°C</span>
+                                <span id="seaTempValue" class="font-semibold">19°C</span>
+                                <span>35°C</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wind Speed (m/s)</label>
+                            <input type="range" id="windSpeed" min="0" max="25" value="7" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="windSpeedValue" class="font-semibold">7 m/s</span>
+                                <span>25</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Relative Humidity (%)</label>
+                            <input type="range" id="humidity" min="20" max="100" value="75" step="1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>20%</span>
+                                <span id="humidityValue" class="font-semibold">75%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Atmospheric Pressure (hPa)</label>
+                            <input type="range" id="pressure" min="980" max="1040" value="1013" step="1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>980</span>
+                                <span id="pressureValue" class="font-semibold">1013 hPa</span>
+                                <span>1040</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Radiation Parameters -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-yellow-700 mb-4">☀️ Radiation</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Solar Irradiance (W/m²)</label>
+                            <input type="range" id="solarIrradiance" min="0" max="1400" value="850" step="10" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="solarIrradianceValue" class="font-semibold">850 W/m²</span>
+                                <span>1400</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Solar Zenith Angle (°)</label>
+                            <input type="range" id="solarZenith" min="0" max="90" value="35" step="1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0°</span>
+                                <span id="solarZenithValue" class="font-semibold">35°</span>
+                                <span>90°</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cloud Cover (%)</label>
+                            <input type="range" id="cloudCover" min="0" max="100" value="25" step="5" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0%</span>
+                                <span id="cloudCoverValue" class="font-semibold">25%</span>
+                                <span>100%</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Cloud Type</label>
+                            <select id="cloudType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
+                                <option value="clear">Clear Sky</option>
+                                <option value="cirrus">Cirrus (High)</option>
+                                <option value="altocumulus">Altocumulus (Mid)</option>
+                                <option value="cumulus" selected>Cumulus (Low)</option>
+                                <option value="stratus">Stratus (Low)</option>
+                                <option value="cumulonimbus">Cumulonimbus</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Atmospheric Visibility (km)</label>
+                            <input type="range" id="visibility" min="1" max="50" value="20" step="1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>1km</span>
+                                <span id="visibilityValue" class="font-semibold">20km</span>
+                                <span>50km</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ocean Properties -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-teal-700 mb-4">🌊 Ocean Properties</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sea Surface Salinity (PSU)</label>
+                            <input type="range" id="salinity" min="30" max="40" value="35" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>30</span>
+                                <span id="salinityValue" class="font-semibold">35 PSU</span>
+                                <span>40</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wave Height (m)</label>
+                            <input type="range" id="waveHeight" min="0.1" max="8" value="1.5" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0.1m</span>
+                                <span id="waveHeightValue" class="font-semibold">1.5m</span>
+                                <span>8m</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wave Period (s)</label>
+                            <input type="range" id="wavePeriod" min="2" max="20" value="8" step="0.5" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>2s</span>
+                                <span id="wavePeriodValue" class="font-semibold">8s</span>
+                                <span>20s</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Water Depth (m)</label>
+                            <input type="range" id="waterDepth" min="5" max="200" value="50" step="5" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>5m</span>
+                                <span id="waterDepthValue" class="font-semibold">50m</span>
+                                <span>200m</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Speed (m/s)</label>
+                            <input type="range" id="currentSpeed" min="0" max="2" value="0.3" step="0.05" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="currentSpeedValue" class="font-semibold">0.3 m/s</span>
+                                <span>2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Scenarios -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">⚡ Quick Scenarios</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setScenario('tropical')" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-2 rounded text-sm">🏝️ Tropical</button>
+                        <button onclick="setScenario('temperate')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm">🌿 Temperate</button>
+                        <button onclick="setScenario('polar')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">🧊 Polar</button>
+                        <button onclick="setScenario('storm')" class="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm">⛈️ Storm</button>
+                        <button onclick="setScenario('upwelling')" class="bg-teal-500 hover:bg-teal-600 text-white px-3 py-2 rounded text-sm">🌊 Upwelling</button>
+                        <button onclick="setScenario('heatwave')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm">🔥 Heat Wave</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Heat Flux Results -->
+            <div class="xl:col-span-2 bg-white rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    📊 Heat Flux Components & Analysis
+                </h2>
+                
+                <!-- Real-time Heat Flux Display -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h4 class="font-bold text-yellow-700 text-sm mb-1">☀️ Solar (Shortwave)</h4>
+                        <p id="solarFlux" class="text-2xl font-bold text-yellow-600">0 W/m²</p>
+                        <p id="solarPercent" class="text-xs text-yellow-500">0% of total</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <h4 class="font-bold text-purple-700 text-sm mb-1">🌙 Longwave</h4>
+                        <p id="longwaveFlux" class="text-2xl font-bold text-purple-600">0 W/m²</p>
+                        <p id="longwavePercent" class="text-xs text-purple-500">0% of total</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h4 class="font-bold text-red-700 text-sm mb-1">🔥 Sensible Heat</h4>
+                        <p id="sensibleFlux" class="text-2xl font-bold text-red-600">0 W/m²</p>
+                        <p id="sensiblePercent" class="text-xs text-red-500">0% of total</p>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-700 text-sm mb-1">💧 Latent Heat</h4>
+                        <p id="latentFlux" class="text-2xl font-bold text-blue-600">0 W/m²</p>
+                        <p id="latentPercent" class="text-xs text-blue-500">0% of total</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 class="font-bold text-green-700 text-sm mb-1">🌊 Net Heat Flux</h4>
+                        <p id="netFlux" class="text-2xl font-bold text-green-600">0 W/m²</p>
+                        <p id="netDirection" class="text-xs text-green-500">Ocean ↔ Atmosphere</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <h4 class="font-bold text-indigo-700 text-sm mb-1">📈 Heat Flux Trend</h4>
+                        <p id="fluxTrend" class="text-2xl font-bold text-indigo-600">Stable</p>
+                        <p id="trendMagnitude" class="text-xs text-indigo-500">±0 W/m²/hr</p>
+                    </div>
+                </div>
+
+                <!-- Heat Flux Chart -->
+                <div class="relative mb-6" style="height: 300px;">
+                    <canvas id="heatFluxChart"></canvas>
+                </div>
+
+                <!-- Temperature Impact Analysis -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-gray-700 mb-3">🌡️ Near-Surface Temperature Impact</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="font-semibold">Surface (0m):</span>
+                            <span id="tempSurface" class="ml-2 text-blue-600">--°C</span>
+                            <div id="tempSurfaceChange" class="text-xs text-gray-500">Δ: --°C</div>
+                        </div>
+                        <div>
+                            <span class="font-semibold">1m depth:</span>
+                            <span id="temp1m" class="ml-2 text-blue-600">--°C</span>
+                            <div id="temp1mChange" class="text-xs text-gray-500">Δ: --°C</div>
+                        </div>
+                        <div>
+                            <span class="font-semibold">5m depth:</span>
+                            <span id="temp5m" class="ml-2 text-blue-600">--°C</span>
+                            <div id="temp5mChange" class="text-xs text-gray-500">Δ: --°C</div>
+                        </div>
+                        <div>
+                            <span class="font-semibold">10m depth:</span>
+                            <span id="temp10m" class="ml-2 text-blue-600">--°C</span>
+                            <div id="temp10mChange" class="text-xs text-gray-500">Δ: --°C</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Temperature Change Rates -->
+                <div class="bg-red-50 p-4 rounded-lg mb-4 border border-red-200">
+                    <h4 class="font-bold text-red-700 mb-3">🔥 Temperature Change Rates</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="font-semibold">Surface (1hr):</span>
+                            <span id="tempChangeRate1hr" class="ml-2 text-red-600">--°C/hr</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Mixed Layer (6hr):</span>
+                            <span id="tempChangeRate6hr" class="ml-2 text-red-600">--°C</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Daily Change:</span>
+                            <span id="tempChangeRateDaily" class="ml-2 text-red-600">--°C/day</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Trend:</span>
+                            <span id="tempTrend" class="ml-2 text-red-600">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heat Flux Component Effects -->
+                <div class="bg-indigo-50 p-4 rounded-lg mb-4 border border-indigo-200">
+                    <h4 class="font-bold text-indigo-700 mb-3">⚡ Individual Heat Flux Temperature Effects (24hr)</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="font-semibold">☀️ Solar:</span>
+                            <span id="solarTempEffect" class="ml-2 text-yellow-600">--°C</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">🌙 Longwave:</span>
+                            <span id="longwaveTempEffect" class="ml-2 text-purple-600">--°C</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">🔥 Sensible:</span>
+                            <span id="sensibleTempEffect" class="ml-2 text-red-600">--°C</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">💧 Latent:</span>
+                            <span id="latentTempEffect" class="ml-2 text-blue-600">--°C</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Heat Balance Equation Explanation -->
+                <div class="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg mb-4 border-2 border-blue-200">
+                    <h4 class="font-bold text-blue-800 mb-4 text-lg flex items-center">
+                        ⚖️ Ocean Heat Balance Analysis
+                    </h4>
+                    
+                    <!-- Heat Balance Equation -->
+                    <div class="bg-white p-4 rounded-lg mb-4 border border-blue-300">
+                        <h5 class="font-bold text-gray-700 mb-2">Heat Balance Equation:</h5>
+                        <div class="font-mono text-sm bg-gray-100 p-3 rounded border">
+                            Q<sub>net</sub> = Q<sub>solar</sub> + Q<sub>longwave</sub> + Q<sub>sensible</sub> + Q<sub>latent</sub>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-600">
+                            <p><strong>Convention:</strong> Positive = Ocean loses heat (cooling) | Negative = Ocean gains heat (warming)</p>
+                        </div>
+                    </div>
+
+                    <!-- Current Heat Balance -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-white p-4 rounded-lg border">
+                            <h6 class="font-bold text-gray-700 mb-2">Current Balance:</h6>
+                            <div id="heatBalanceEquation" class="font-mono text-sm">
+                                <!-- Dynamic equation will be populated here -->
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg border">
+                            <h6 class="font-bold text-gray-700 mb-2">Ocean Status:</h6>
+                            <div id="oceanHeatStatus" class="text-lg font-bold">
+                                <!-- Dynamic status will be populated here -->
+                            </div>
+                            <div id="heatStatusExplanation" class="text-sm text-gray-600 mt-2">
+                                <!-- Dynamic explanation will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Component Analysis -->
+                    <div class="bg-white p-4 rounded-lg border">
+                        <h6 class="font-bold text-gray-700 mb-3">Heat Flux Component Analysis:</h6>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                            <div class="text-center">
+                                <div class="font-semibold text-yellow-700">☀️ Solar Input</div>
+                                <div id="solarContribution" class="text-yellow-600">--</div>
+                                <div id="solarEffect" class="text-xs text-gray-500">--</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-purple-700">🌙 Longwave</div>
+                                <div id="longwaveContribution" class="text-purple-600">--</div>
+                                <div id="longwaveEffect" class="text-xs text-gray-500">--</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-red-700">🔥 Sensible</div>
+                                <div id="sensibleContribution" class="text-red-600">--</div>
+                                <div id="sensibleEffect" class="text-xs text-gray-500">--</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="font-semibold text-blue-700">💧 Latent</div>
+                                <div id="latentContribution" class="text-blue-600">--</div>
+                                <div id="latentEffect" class="text-xs text-gray-500">--</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Energy Balance Interpretation -->
+                    <div class="bg-yellow-50 p-4 rounded-lg mt-4 border border-yellow-200">
+                        <h6 class="font-bold text-yellow-800 mb-2">🔍 Energy Balance Interpretation:</h6>
+                        <div id="energyBalanceInterpretation" class="text-sm text-yellow-800">
+                            <!-- Dynamic interpretation will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Parameters -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div class="bg-orange-50 p-3 rounded border border-orange-200">
+                        <h5 class="font-bold text-orange-700 mb-1">Evaporation Rate</h5>
+                        <p id="evaporationRate" class="text-lg font-bold text-orange-600">-- mm/day</p>
+                    </div>
+                    <div class="bg-cyan-50 p-3 rounded border border-cyan-200">
+                        <h5 class="font-bold text-cyan-700 mb-1">Bowen Ratio</h5>
+                        <p id="bowenRatio" class="text-lg font-bold text-cyan-600">--</p>
+                    </div>
+                    <div class="bg-pink-50 p-3 rounded border border-pink-200">
+                        <h5 class="font-bold text-pink-700 mb-1">Heat Capacity</h5>
+                        <p id="heatCapacity" class="text-lg font-bold text-pink-600">-- MJ/m²/K</p>
+                    </div>
+                    <div class="bg-lime-50 p-3 rounded border border-lime-200">
+                        <h5 class="font-bold text-lime-700 mb-1">Surface Heat Cap.</h5>
+                        <p id="surfaceHeatCapacity" class="text-lg font-bold text-lime-600">-- MJ/m²/K</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperature Profile -->
+            <div class="xl:col-span-1 bg-white rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    📈 Temperature Profile
+                </h2>
+                
+                <div class="relative mb-4" style="height: 400px;">
+                    <canvas id="temperatureProfile"></canvas>
+                </div>
+                
+                <!-- Profile Statistics -->
+                <div class="space-y-3 text-sm">
+                    <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                        <h5 class="font-bold text-blue-700 mb-1">Mixed Layer</h5>
+                        <p>Depth: <span id="mixedLayerDepth" class="font-semibold">-- m</span></p>
+                        <p>Temp: <span id="mixedLayerTemp" class="font-semibold">-- °C</span></p>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded border border-green-200">
+                        <h5 class="font-bold text-green-700 mb-1">Thermocline</h5>
+                        <p>Gradient: <span id="thermoclineGradient" class="font-semibold">-- °C/m</span></p>
+                        <p>Strength: <span id="thermoclineStrength" class="font-semibold">--</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded border border-purple-200">
+                        <h5 class="font-bold text-purple-700 mb-1">Stratification</h5>
+                        <p>Index: <span id="stratificationIndex" class="font-semibold">--</span></p>
+                        <p>Stability: <span id="waterColumnStability" class="font-semibold">--</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Heat Flux Equations Panel -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">🧮 Complete Heat Flux Equations</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Solar Radiation -->
+                <div class="bg-yellow-50 p-6 rounded-lg border border-yellow-200">
+                    <h3 class="font-bold text-yellow-700 mb-4 text-xl">☀️ Solar (Shortwave) Radiation</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        Q<sub>sw</sub> = S<sub>0</sub> × cos(θ) × τ<sub>atm</sub> × (1 - α<sub>ocean</sub>) × f<sub>cloud</sub>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>S<sub>0</sub></strong> = Solar irradiance at top of atmosphere</p>
+                        <p><strong>θ</strong> = Solar zenith angle</p>
+                        <p><strong>τ<sub>atm</sub></strong> = Atmospheric transmittance</p>
+                        <p><strong>α<sub>ocean</sub></strong> = Ocean surface albedo (0.04-0.10)</p>
+                        <p><strong>f<sub>cloud</sub></strong> = Cloud attenuation factor</p>
+                    </div>
+                    <div class="bg-yellow-100 p-3 rounded text-xs">
+                        <p><strong>Cloud Factor:</strong> f<sub>cloud</sub> = 1 - 0.75 × C<sup>3.4</sup></p>
+                        <p><strong>Atmospheric Transmittance:</strong> τ<sub>atm</sub> = 0.7<sup>(1/cos(θ))</sup></p>
+                    </div>
+                </div>
+                
+                <!-- Longwave Radiation -->
+                <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                    <h3 class="font-bold text-purple-700 mb-4 text-xl">🌙 Longwave Radiation</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        Q<sub>lw</sub> = ε<sub>ocean</sub> × σ × T<sub>sea</sub><sup>4</sup> - ε<sub>atm</sub> × σ × T<sub>air</sub><sup>4</sup>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>ε<sub>ocean</sub></strong> = Ocean emissivity (0.97)</p>
+                        <p><strong>ε<sub>atm</sub></strong> = Atmospheric emissivity</p>
+                        <p><strong>σ</strong> = Stefan-Boltzmann constant (5.67×10⁻⁸ W/m²/K⁴)</p>
+                        <p><strong>T<sub>sea</sub>, T<sub>air</sub></strong> = Temperatures in Kelvin</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded text-xs">
+                        <p><strong>Atmospheric Emissivity:</strong> ε<sub>atm</sub> = 0.7 + 5.95×10⁻⁵ × e<sub>a</sub> × exp(1500/T<sub>air</sub>)</p>
+                        <p><strong>e<sub>a</sub></strong> = Water vapor pressure (Pa)</p>
+                    </div>
+                </div>
+                
+                <!-- Sensible Heat -->
+                <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                    <h3 class="font-bold text-red-700 mb-4 text-xl">🔥 Sensible Heat Flux</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        Q<sub>h</sub> = ρ<sub>air</sub> × C<sub>p</sub> × C<sub>H</sub> × U × (T<sub>sea</sub> - T<sub>air</sub>)
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>ρ<sub>air</sub></strong> = Air density (kg/m³)</p>
+                        <p><strong>C<sub>p</sub></strong> = Specific heat of air (1004 J/kg/K)</p>
+                        <p><strong>C<sub>H</sub></strong> = Heat transfer coefficient</p>
+                        <p><strong>U</strong> = Wind speed at 10m height</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded text-xs">
+                        <p><strong>Transfer Coefficient:</strong> C<sub>H</sub> = (0.61 + 0.063×U) × 10⁻³</p>
+                        <p><strong>Air Density:</strong> ρ<sub>air</sub> = P/(R<sub>d</sub> × T<sub>air</sub>)</p>
+                    </div>
+                </div>
+                
+                <!-- Latent Heat -->
+                <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <h3 class="font-bold text-blue-700 mb-4 text-xl">💧 Latent Heat Flux</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        Q<sub>e</sub> = ρ<sub>air</sub> × L<sub>v</sub> × C<sub>E</sub> × U × (q<sub>sea</sub> - q<sub>air</sub>)
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>L<sub>v</sub></strong> = Latent heat of vaporization (2.45×10⁶ J/kg)</p>
+                        <p><strong>C<sub>E</sub></strong> = Moisture transfer coefficient</p>
+                        <p><strong>q<sub>sea</sub></strong> = Specific humidity at sea surface</p>
+                        <p><strong>q<sub>air</sub></strong> = Specific humidity of air</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded text-xs">
+                        <p><strong>Specific Humidity:</strong> q = 0.622 × e/(P - 0.378×e)</p>
+                        <p><strong>Saturation Vapor Pressure:</strong> e<sub>s</sub> = 6.112 × exp(17.67×T/(T+243.5))</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Net Heat Flux and Temperature Change -->
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                    <h3 class="font-bold text-green-700 mb-4 text-xl">🌊 Net Heat Flux</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        Q<sub>net</sub> = Q<sub>sw</sub> + Q<sub>lw</sub> + Q<sub>h</sub> + Q<sub>e</sub>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>Positive Q<sub>net</sub></strong> = Ocean heat loss (cooling)</p>
+                        <p><strong>Negative Q<sub>net</sub></strong> = Ocean heat gain (warming)</p>
+                        <p><strong>Typical Range:</strong> -800 to +400 W/m²</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded text-xs">
+                        <p><strong>Daily Average:</strong> Usually 0-50 W/m² (balanced)</p>
+                        <p><strong>Diurnal Variation:</strong> ±200-400 W/m²</p>
+                    </div>
+                </div>
+                
+                <div class="bg-indigo-50 p-6 rounded-lg border border-indigo-200">
+                    <h3 class="font-bold text-indigo-700 mb-4 text-xl">🌡️ Temperature Change</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        ∂T/∂t = Q<sub>net</sub> / (ρ<sub>w</sub> × C<sub>pw</sub> × h<sub>mix</sub>)
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>ρ<sub>w</sub></strong> = Seawater density (1025 kg/m³)</p>
+                        <p><strong>C<sub>pw</sub></strong> = Specific heat of seawater (4000 J/kg/K)</p>
+                        <p><strong>h<sub>mix</sub></strong> = Mixed layer depth (m)</p>
+                    </div>
+                    <div class="bg-indigo-100 p-3 rounded text-xs">
+                        <p><strong>Depth Profile:</strong> T(z,t) = T<sub>0</sub> + ΔT × exp(-z/h<sub>mix</sub>)</p>
+                        <p><strong>Time Scale:</strong> τ = ρ<sub>w</sub> × C<sub>pw</sub> × h<sub>mix</sub> / |Q<sub>net</sub>|</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Analysis Panel -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">📋 Advanced Heat Flux Analysis</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Physical Processes -->
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-blue-700 mb-4 text-xl">🌊 Physical Processes</h3>
+                    <div id="physicalProcesses" class="space-y-3 text-sm">
+                        <!-- Dynamic content will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Environmental Impact -->
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-green-700 mb-4 text-xl">🌍 Environmental Impact</h3>
+                    <div id="environmentalImpact" class="space-y-3 text-sm">
+                        <!-- Dynamic content will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Coastal Dynamics -->
+                <div class="bg-purple-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-purple-700 mb-4 text-xl">🏖️ Coastal Dynamics</h3>
+                    <div id="coastalDynamics" class="space-y-3 text-sm">
+                        <!-- Dynamic content will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Interpretation -->
+            <div class="mt-8 bg-gray-50 p-6 rounded-lg">
+                <h3 class="font-bold text-gray-700 mb-4 text-xl">💡 System Interpretation</h3>
+                <div id="systemInterpretation" class="text-sm text-gray-700 leading-relaxed">
+                    <!-- Dynamic interpretation will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let heatFluxChart = null;
+        let temperatureChart = null;
+        let isUpdating = false;
+
+        // Physical constants
+        const CONSTANTS = {
+            STEFAN_BOLTZMANN: 5.67e-8,
+            CP_AIR: 1004,
+            CP_WATER: 4000,
+            LATENT_HEAT: 2.45e6,
+            RD_AIR: 287,
+            WATER_DENSITY: 1025,
+            OCEAN_EMISSIVITY: 0.97,
+            OCEAN_ALBEDO_BASE: 0.06
+        };
+
+        // Initialize all controls
+        function initializeControls() {
+            const controls = [
+                'airTemp', 'seaTemp', 'windSpeed', 'humidity', 'pressure',
+                'solarIrradiance', 'solarZenith', 'cloudCover', 'visibility',
+                'salinity', 'waveHeight', 'wavePeriod', 'waterDepth', 'currentSpeed'
+            ];
+            
+            controls.forEach(id => {
+                const element = document.getElementById(id);
+                const valueElement = document.getElementById(id + 'Value');
+                
+                element.addEventListener('input', function() {
+                    updateValueDisplay(id, this.value);
+                    if (!isUpdating) {
+                        updateHeatFluxAnalysis();
+                    }
+                });
+            });
+            
+            // Add listeners for select elements
+            ['cloudType'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateHeatFluxAnalysis);
+            });
+        }
+
+        function updateValueDisplay(id, value) {
+            const valueElement = document.getElementById(id + 'Value');
+            let unit = '';
+            
+            switch(id) {
+                case 'airTemp':
+                case 'seaTemp':
+                    unit = '°C';
+                    break;
+                case 'windSpeed':
+                case 'currentSpeed':
+                    unit = ' m/s';
+                    break;
+                case 'humidity':
+                case 'cloudCover':
+                    unit = '%';
+                    break;
+                case 'pressure':
+                    unit = ' hPa';
+                    break;
+                case 'solarIrradiance':
+                    unit = ' W/m²';
+                    break;
+                case 'solarZenith':
+                    unit = '°';
+                    break;
+                case 'visibility':
+                    unit = 'km';
+                    break;
+                case 'salinity':
+                    unit = ' PSU';
+                    break;
+                case 'waveHeight':
+                case 'waterDepth':
+                    unit = 'm';
+                    break;
+                case 'wavePeriod':
+                    unit = 's';
+                    break;
+            }
+            
+            valueElement.textContent = value + unit;
+        }
+
+        function calculateComprehensiveHeatFluxes() {
+            // Get all parameter values
+            const airTemp = parseFloat(document.getElementById('airTemp').value);
+            const seaTemp = parseFloat(document.getElementById('seaTemp').value);
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const humidity = parseFloat(document.getElementById('humidity').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const solarIrradiance = parseFloat(document.getElementById('solarIrradiance').value);
+            const solarZenith = parseFloat(document.getElementById('solarZenith').value);
+            const cloudCover = parseFloat(document.getElementById('cloudCover').value);
+            const visibility = parseFloat(document.getElementById('visibility').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            const waveHeight = parseFloat(document.getElementById('waveHeight').value);
+            const cloudType = document.getElementById('cloudType').value;
+            
+            // Convert temperatures to Kelvin
+            const T_air_K = airTemp + 273.15;
+            const T_sea_K = seaTemp + 273.15;
+            
+            // Calculate air density
+            const rho_air = (pressure * 100) / (CONSTANTS.RD_AIR * T_air_K);
+            
+            // 1. SOLAR (SHORTWAVE) RADIATION
+            const zenithRad = solarZenith * Math.PI / 180;
+            const cosZenith = Math.cos(zenithRad);
+            
+            // Atmospheric transmittance (simplified Beer's law)
+            const atmosphericTransmittance = Math.pow(0.7, 1 / Math.max(cosZenith, 0.1));
+            
+            // Cloud attenuation factor
+            const cloudFraction = cloudCover / 100;
+            let cloudAttenuationFactor;
+            switch(cloudType) {
+                case 'clear':
+                    cloudAttenuationFactor = 1;
+                    break;
+                case 'cirrus':
+                    cloudAttenuationFactor = 1 - 0.3 * cloudFraction;
+                    break;
+                case 'altocumulus':
+                    cloudAttenuationFactor = 1 - 0.6 * cloudFraction;
+                    break;
+                case 'cumulus':
+                    cloudAttenuationFactor = 1 - 0.75 * Math.pow(cloudFraction, 1.3);
+                    break;
+                case 'stratus':
+                    cloudAttenuationFactor = 1 - 0.8 * cloudFraction;
+                    break;
+                case 'cumulonimbus':
+                    cloudAttenuationFactor = 1 - 0.9 * cloudFraction;
+                    break;
+                default:
+                    cloudAttenuationFactor = 1 - 0.75 * Math.pow(cloudFraction, 1.3);
+            }
+            
+            // Ocean albedo (depends on solar angle and wave conditions)
+            const waveAlbedoEffect = 1 + 0.02 * Math.min(waveHeight, 3);
+            const angleAlbedoEffect = 1 + 0.1 * Math.pow(Math.sin(zenithRad), 2);
+            const oceanAlbedo = CONSTANTS.OCEAN_ALBEDO_BASE * waveAlbedoEffect * angleAlbedoEffect;
+            
+            // Visibility effect on atmospheric transmittance
+            const visibilityFactor = Math.min(1, visibility / 20);
+            
+            const solarFlux = solarIrradiance * cosZenith * atmosphericTransmittance * 
+                            cloudAttenuationFactor * (1 - oceanAlbedo) * visibilityFactor;
+            
+            // 2. LONGWAVE RADIATION
+            // Saturation vapor pressure (Magnus formula)
+            const es_air = 6.112 * Math.exp(17.67 * airTemp / (airTemp + 243.5));
+            const ea = es_air * humidity / 100; // Actual vapor pressure
+            
+            // Atmospheric emissivity (Brutsaert, 1975)
+            const atmosphericEmissivity = 0.7 + 5.95e-5 * ea * Math.exp(1500 / T_air_K);
+            
+            // Cloud effect on longwave
+            const cloudLongwaveEffect = 1 + 0.22 * Math.pow(cloudFraction, 2);
+            const effectiveAtmEmissivity = atmosphericEmissivity * cloudLongwaveEffect;
+            
+            // Longwave radiation balance
+            const longwaveOut = CONSTANTS.OCEAN_EMISSIVITY * CONSTANTS.STEFAN_BOLTZMANN * Math.pow(T_sea_K, 4);
+            const longwaveIn = effectiveAtmEmissivity * CONSTANTS.STEFAN_BOLTZMANN * Math.pow(T_air_K, 4);
+            const longwaveFlux = longwaveIn - longwaveOut;
+            
+            // 3. SENSIBLE HEAT FLUX
+            // Transfer coefficients (COARE 3.0 algorithm simplified)
+            const windSpeed10 = Math.max(windSpeed, 0.1); // Avoid division by zero
+            const CH = (0.61 + 0.063 * windSpeed10) * 1e-3;
+            
+            // Wave enhancement factor
+            const waveEnhancement = 1 + 0.1 * Math.sqrt(waveHeight);
+            const effectiveCH = CH * waveEnhancement;
+            
+            const sensibleFlux = rho_air * CONSTANTS.CP_AIR * effectiveCH * windSpeed10 * (seaTemp - airTemp);
+            
+            // 4. LATENT HEAT FLUX
+            // Specific humidity calculations
+            const es_sea = 6.112 * Math.exp(17.67 * seaTemp / (seaTemp + 243.5));
+            const qs_sea = 0.622 * es_sea / (pressure - 0.378 * es_sea); // Sea surface
+            const qa_air = 0.622 * ea / (pressure - 0.378 * ea); // Air
+            
+            // Moisture transfer coefficient
+            const CE = (0.61 + 0.063 * windSpeed10) * 1e-3;
+            const effectiveCE = CE * waveEnhancement;
+            
+            // Salinity effect on vapor pressure (reduces by ~2% for typical seawater)
+            const salinityFactor = 1 - 0.0006 * salinity;
+            const correctedQs = qs_sea * salinityFactor;
+            
+            const latentFlux = rho_air * CONSTANTS.LATENT_HEAT * effectiveCE * windSpeed10 * (correctedQs - qa_air);
+            
+            // 5. NET HEAT FLUX
+            const netFlux = solarFlux + longwaveFlux + sensibleFlux + latentFlux;
+            
+            // Additional calculations
+            const evaporationRate = latentFlux / CONSTANTS.LATENT_HEAT * 86400; // mm/day
+            const bowenRatio = sensibleFlux / Math.max(latentFlux, 1); // Avoid division by zero
+            
+            return {
+                solarFlux,
+                longwaveFlux,
+                sensibleFlux,
+                latentFlux,
+                netFlux,
+                evaporationRate,
+                bowenRatio,
+                atmosphericTransmittance,
+                cloudAttenuationFactor,
+                oceanAlbedo,
+                atmosphericEmissivity,
+                rho_air,
+                windSpeed10,
+                waveEnhancement
+            };
+        }
+
+        function calculateTemperatureProfile(heatFluxes) {
+            const seaTemp = parseFloat(document.getElementById('seaTemp').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            const waveHeight = parseFloat(document.getElementById('waveHeight').value);
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const currentSpeed = parseFloat(document.getElementById('currentSpeed').value);
+            
+            // Enhanced mixed layer depth calculation
+            const windMixing = Math.pow(windSpeed, 1.5) * 1.5; // Wind-driven mixing
+            const waveMixing = Math.sqrt(waveHeight) * 4; // Wave-driven mixing
+            const currentMixing = currentSpeed * 8; // Current shear mixing
+            const baseMixedLayer = 3; // Minimum mixed layer depth
+            const mixedLayerDepth = Math.min(windMixing + waveMixing + currentMixing + baseMixedLayer, waterDepth * 0.7);
+            
+            // Surface heat flux penetration depths for different components
+            const solarPenetration = 10; // Solar radiation penetrates deeper
+            const thermalPenetration = mixedLayerDepth * 0.8; // Thermal processes
+            
+            // Time scales for temperature response
+            const surfaceTimeScale = 1; // Hours for surface response
+            const mixedLayerTimeScale = 6; // Hours for mixed layer equilibration
+            const deepTimeScale = 24; // Hours for deeper penetration
+            
+            // Calculate temperature changes at different time scales
+            const surfaceHeatCapacity = CONSTANTS.WATER_DENSITY * CONSTANTS.CP_WATER * 0.1; // Top 10cm
+            const mixedLayerHeatCapacity = CONSTANTS.WATER_DENSITY * CONSTANTS.CP_WATER * mixedLayerDepth;
+            
+            // Surface temperature change (immediate response - 1 hour)
+            const surfaceTempChange1hr = -heatFluxes.netFlux / surfaceHeatCapacity * 3600; // °C/hour
+            
+            // Mixed layer temperature change (6-hour response)
+            const mixedLayerTempChange6hr = -heatFluxes.netFlux / mixedLayerHeatCapacity * 6 * 3600; // °C in 6 hours
+            
+            // Daily temperature change (24-hour response)
+            const dailyTempChange = -heatFluxes.netFlux / mixedLayerHeatCapacity * 24 * 3600; // °C in 24 hours
+            
+            // Component-specific temperature effects
+            const solarTempEffect = -heatFluxes.solarFlux / mixedLayerHeatCapacity * 24 * 3600;
+            const longwaveTempEffect = -heatFluxes.longwaveFlux / mixedLayerHeatCapacity * 24 * 3600;
+            const sensibleTempEffect = -heatFluxes.sensibleFlux / mixedLayerHeatCapacity * 24 * 3600;
+            const latentTempEffect = -heatFluxes.latentFlux / mixedLayerHeatCapacity * 24 * 3600;
+            
+            // Generate depth profile with realistic temperature distribution
+            const depths = [];
+            const temperatures = [];
+            const baseTemperatures = [];
+            const tempChanges1hr = [];
+            const tempChanges6hr = [];
+            const tempChanges24hr = [];
+            
+            for (let depth = 0; depth <= Math.min(waterDepth, 50); depth += 0.5) {
+                depths.push(depth);
+                
+                // Base temperature profile (without heat flux effects)
+                let baseTemp = seaTemp;
+                if (depth > mixedLayerDepth) {
+                    const thermoclineDepth = depth - mixedLayerDepth;
+                    const thermoclineGradient = Math.max(0.05, 0.15 - windSpeed * 0.01); // Variable gradient
+                    baseTemp = seaTemp - thermoclineDepth * thermoclineGradient;
+                }
+                baseTemperatures.push(baseTemp);
+                
+                // Calculate temperature changes at different time scales
+                let tempChange1hr = 0;
+                let tempChange6hr = 0;
+                let tempChange24hr = 0;
+                
+                if (depth <= 0.1) {
+                    // Surface layer (0-10cm) - immediate response
+                    tempChange1hr = surfaceTempChange1hr;
+                    tempChange6hr = surfaceTempChange1hr * 0.8 + mixedLayerTempChange6hr * 0.2;
+                    tempChange24hr = dailyTempChange;
+                } else if (depth <= mixedLayerDepth) {
+                    // Mixed layer - gradual response with depth
+                    const depthFactor = Math.exp(-depth / (mixedLayerDepth * 0.4));
+                    const mixingFactor = 1 - Math.exp(-depth / 2); // Mixing efficiency
+                    
+                    tempChange1hr = surfaceTempChange1hr * depthFactor * 0.3;
+                    tempChange6hr = mixedLayerTempChange6hr * mixingFactor;
+                    tempChange24hr = dailyTempChange * mixingFactor;
+                    
+                    // Add solar penetration effect
+                    if (heatFluxes.solarFlux > 0) {
+                        const solarFactor = Math.exp(-depth / solarPenetration);
+                        tempChange24hr += solarTempEffect * solarFactor * 0.3;
+                    }
+                } else {
+                    // Below mixed layer - limited penetration
+                    const penetrationDepth = Math.max(2, mixedLayerDepth * 0.3);
+                    const belowMixedDepth = depth - mixedLayerDepth;
+                    const penetrationFactor = Math.exp(-belowMixedDepth / penetrationDepth);
+                    
+                    tempChange1hr = 0;
+                    tempChange6hr = mixedLayerTempChange6hr * penetrationFactor * 0.1;
+                    tempChange24hr = dailyTempChange * penetrationFactor * 0.2;
+                }
+                
+                tempChanges1hr.push(tempChange1hr);
+                tempChanges6hr.push(tempChange6hr);
+                tempChanges24hr.push(tempChange24hr);
+                
+                // Final temperature with 24-hour heat flux effect
+                const finalTemp = baseTemp + tempChange24hr;
+                temperatures.push(finalTemp);
+            }
+            
+            return {
+                depths,
+                temperatures,
+                baseTemperatures,
+                tempChanges1hr,
+                tempChanges6hr,
+                tempChanges24hr,
+                mixedLayerDepth,
+                surfaceTempChange1hr,
+                mixedLayerTempChange6hr,
+                dailyTempChange,
+                solarTempEffect,
+                longwaveTempEffect,
+                sensibleTempEffect,
+                latentTempEffect,
+                heatCapacity: mixedLayerHeatCapacity / 1e6, // Convert to MJ/m²/K
+                surfaceHeatCapacity: surfaceHeatCapacity / 1e6
+            };
+        }
+
+        function updateHeatFluxAnalysis() {
+            const heatFluxes = calculateComprehensiveHeatFluxes();
+            const tempProfile = calculateTemperatureProfile(heatFluxes);
+            
+            // Update heat flux displays
+            document.getElementById('solarFlux').textContent = heatFluxes.solarFlux.toFixed(0) + ' W/m²';
+            document.getElementById('longwaveFlux').textContent = heatFluxes.longwaveFlux.toFixed(0) + ' W/m²';
+            document.getElementById('sensibleFlux').textContent = heatFluxes.sensibleFlux.toFixed(0) + ' W/m²';
+            document.getElementById('latentFlux').textContent = heatFluxes.latentFlux.toFixed(0) + ' W/m²';
+            document.getElementById('netFlux').textContent = heatFluxes.netFlux.toFixed(0) + ' W/m²';
+            
+            // Update heat balance analysis
+            updateHeatBalanceAnalysis(heatFluxes);
+            
+            // Calculate percentages
+            const totalAbsFlux = Math.abs(heatFluxes.solarFlux) + Math.abs(heatFluxes.longwaveFlux) + 
+                               Math.abs(heatFluxes.sensibleFlux) + Math.abs(heatFluxes.latentFlux);
+            
+            if (totalAbsFlux > 0) {
+                document.getElementById('solarPercent').textContent = 
+                    (Math.abs(heatFluxes.solarFlux) / totalAbsFlux * 100).toFixed(1) + '% of total';
+                document.getElementById('longwavePercent').textContent = 
+                    (Math.abs(heatFluxes.longwaveFlux) / totalAbsFlux * 100).toFixed(1) + '% of total';
+                document.getElementById('sensiblePercent').textContent = 
+                    (Math.abs(heatFluxes.sensibleFlux) / totalAbsFlux * 100).toFixed(1) + '% of total';
+                document.getElementById('latentPercent').textContent = 
+                    (Math.abs(heatFluxes.latentFlux) / totalAbsFlux * 100).toFixed(1) + '% of total';
+            }
+            
+            // Net flux direction
+            const direction = heatFluxes.netFlux > 0 ? 'Ocean → Atmosphere (Cooling)' : 'Atmosphere → Ocean (Warming)';
+            document.getElementById('netDirection').textContent = direction;
+            
+            // Temperature change rates
+            document.getElementById('tempChangeRate1hr').textContent = tempProfile.surfaceTempChange1hr.toFixed(4) + '°C/hr';
+            document.getElementById('tempChangeRate6hr').textContent = tempProfile.mixedLayerTempChange6hr.toFixed(4) + '°C';
+            document.getElementById('tempChangeRateDaily').textContent = tempProfile.dailyTempChange.toFixed(4) + '°C/day';
+            
+            // Temperature trend
+            const trendMagnitude = Math.abs(tempProfile.dailyTempChange);
+            let trend = '';
+            if (trendMagnitude < 0.01) {
+                trend = 'Stable';
+            } else if (tempProfile.dailyTempChange > 0) {
+                trend = trendMagnitude > 0.1 ? 'Rapid Warming' : trendMagnitude > 0.05 ? 'Warming' : 'Slight Warming';
+            } else {
+                trend = trendMagnitude > 0.1 ? 'Rapid Cooling' : trendMagnitude > 0.05 ? 'Cooling' : 'Slight Cooling';
+            }
+            document.getElementById('tempTrend').textContent = trend;
+            
+            // Individual heat flux temperature effects
+            document.getElementById('solarTempEffect').textContent = tempProfile.solarTempEffect.toFixed(4) + '°C';
+            document.getElementById('longwaveTempEffect').textContent = tempProfile.longwaveTempEffect.toFixed(4) + '°C';
+            document.getElementById('sensibleTempEffect').textContent = tempProfile.sensibleTempEffect.toFixed(4) + '°C';
+            document.getElementById('latentTempEffect').textContent = tempProfile.latentTempEffect.toFixed(4) + '°C';
+
+            // Additional parameters
+            document.getElementById('evaporationRate').textContent = heatFluxes.evaporationRate.toFixed(2) + ' mm/day';
+            document.getElementById('bowenRatio').textContent = heatFluxes.bowenRatio.toFixed(2);
+            document.getElementById('heatCapacity').textContent = tempProfile.heatCapacity.toFixed(1) + ' MJ/m²/K';
+            document.getElementById('surfaceHeatCapacity').textContent = tempProfile.surfaceHeatCapacity.toFixed(3) + ' MJ/m²/K';
+            
+            // Temperature profile updates
+            updateTemperatureDisplays(tempProfile);
+            
+            // Update charts
+            updateHeatFluxChart(heatFluxes);
+            updateTemperatureProfileChart(tempProfile);
+            
+            // Update analysis
+            updateAdvancedAnalysis(heatFluxes, tempProfile);
+        }
+
+        function updateTemperatureDisplays(tempProfile) {
+            const seaTemp = parseFloat(document.getElementById('seaTemp').value);
+            
+            // Find indices for specific depths
+            const surface_idx = 0;
+            const depth_1m_idx = tempProfile.depths.findIndex(d => d >= 1);
+            const depth_5m_idx = tempProfile.depths.findIndex(d => d >= 5);
+            const depth_10m_idx = tempProfile.depths.findIndex(d => d >= 10);
+            
+            // Surface temperatures (0m)
+            document.getElementById('tempSurface').textContent = tempProfile.temperatures[surface_idx].toFixed(3) + '°C';
+            document.getElementById('tempSurfaceChange').textContent = 
+                'Δ: ' + tempProfile.tempChanges24hr[surface_idx].toFixed(4) + '°C/day';
+            
+            // 1m depth
+            if (depth_1m_idx >= 0) {
+                document.getElementById('temp1m').textContent = tempProfile.temperatures[depth_1m_idx].toFixed(3) + '°C';
+                document.getElementById('temp1mChange').textContent = 
+                    'Δ: ' + tempProfile.tempChanges24hr[depth_1m_idx].toFixed(4) + '°C/day';
+            }
+            
+            // 5m depth
+            if (depth_5m_idx >= 0) {
+                document.getElementById('temp5m').textContent = tempProfile.temperatures[depth_5m_idx].toFixed(3) + '°C';
+                document.getElementById('temp5mChange').textContent = 
+                    'Δ: ' + tempProfile.tempChanges24hr[depth_5m_idx].toFixed(4) + '°C/day';
+            }
+            
+            // 10m depth
+            if (depth_10m_idx >= 0) {
+                document.getElementById('temp10m').textContent = tempProfile.temperatures[depth_10m_idx].toFixed(3) + '°C';
+                document.getElementById('temp10mChange').textContent = 
+                    'Δ: ' + tempProfile.tempChanges24hr[depth_10m_idx].toFixed(4) + '°C/day';
+            }
+            
+            // Profile statistics
+            document.getElementById('mixedLayerDepth').textContent = tempProfile.mixedLayerDepth.toFixed(1) + ' m';
+            document.getElementById('mixedLayerTemp').textContent = tempProfile.temperatures[0].toFixed(3) + ' °C';
+            
+            // Thermocline gradient - find mixed layer boundary
+            const mixedLayerIdx = tempProfile.depths.findIndex(d => d >= tempProfile.mixedLayerDepth);
+            const thermoclineEndIdx = Math.min(mixedLayerIdx + 10, tempProfile.temperatures.length - 1);
+            
+            if (mixedLayerIdx >= 0 && thermoclineEndIdx > mixedLayerIdx) {
+                const depthDiff = tempProfile.depths[thermoclineEndIdx] - tempProfile.depths[mixedLayerIdx];
+                const tempDiff = tempProfile.temperatures[mixedLayerIdx] - tempProfile.temperatures[thermoclineEndIdx];
+                const gradient = tempDiff / Math.max(depthDiff, 1);
+                document.getElementById('thermoclineGradient').textContent = gradient.toFixed(4) + ' °C/m';
+                
+                const gradientStrength = Math.abs(gradient) > 0.1 ? 'Strong' : 
+                                       Math.abs(gradient) > 0.05 ? 'Moderate' : 'Weak';
+                document.getElementById('thermoclineStrength').textContent = gradientStrength;
+            } else {
+                document.getElementById('thermoclineGradient').textContent = '0.000 °C/m';
+                document.getElementById('thermoclineStrength').textContent = 'None';
+            }
+            
+            // Stratification
+            const stratification = tempProfile.temperatures[0] - tempProfile.temperatures[tempProfile.temperatures.length - 1];
+            document.getElementById('stratificationIndex').textContent = stratification.toFixed(3) + ' °C';
+            
+            const stability = stratification > 3 ? 'Highly Stable' : 
+                            stratification > 1.5 ? 'Stable' : 
+                            stratification > 0.5 ? 'Moderate' : 
+                            stratification > 0 ? 'Weak' : 'Unstable';
+            document.getElementById('waterColumnStability').textContent = stability;
+        }
+
+        function updateHeatFluxChart(heatFluxes) {
+            const ctx = document.getElementById('heatFluxChart').getContext('2d');
+            
+            if (heatFluxChart) {
+                heatFluxChart.destroy();
+            }
+            
+            heatFluxChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Solar', 'Longwave', 'Sensible', 'Latent', 'Net'],
+                    datasets: [{
+                        label: 'Heat Flux (W/m²)',
+                        data: [
+                            heatFluxes.solarFlux,
+                            heatFluxes.longwaveFlux,
+                            heatFluxes.sensibleFlux,
+                            heatFluxes.latentFlux,
+                            heatFluxes.netFlux
+                        ],
+                        backgroundColor: [
+                            'rgba(251, 191, 36, 0.8)',   // Solar - yellow
+                            'rgba(147, 51, 234, 0.8)',   // Longwave - purple
+                            'rgba(239, 68, 68, 0.8)',    // Sensible - red
+                            'rgba(59, 130, 246, 0.8)',   // Latent - blue
+                            'rgba(16, 185, 129, 0.8)'    // Net - green
+                        ],
+                        borderColor: [
+                            'rgba(251, 191, 36, 1)',
+                            'rgba(147, 51, 234, 1)',
+                            'rgba(239, 68, 68, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(16, 185, 129, 1)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Heat Flux Components',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Heat Flux (W/m²)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: 'rgba(0, 0, 0, 0.1)' }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Heat Flux Component',
+                                font: { weight: 'bold' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTemperatureProfileChart(tempProfile) {
+            const ctx = document.getElementById('temperatureProfile').getContext('2d');
+            
+            if (temperatureChart) {
+                temperatureChart.destroy();
+            }
+            
+            // Create datasets
+            const baseDataset = [];
+            const modifiedDataset = [];
+            
+            for (let i = 0; i < tempProfile.depths.length; i++) {
+                baseDataset.push({
+                    x: tempProfile.baseTemperatures[i],
+                    y: tempProfile.depths[i]
+                });
+                modifiedDataset.push({
+                    x: tempProfile.temperatures[i],
+                    y: tempProfile.depths[i]
+                });
+            }
+            
+            temperatureChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [
+                        {
+                            label: 'Base Profile',
+                            data: baseDataset,
+                            borderColor: 'rgba(156, 163, 175, 0.8)',
+                            backgroundColor: 'rgba(156, 163, 175, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 1
+                        },
+                        {
+                            label: 'With Heat Flux',
+                            data: modifiedDataset,
+                            borderColor: 'rgba(239, 68, 68, 0.9)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 2,
+                            borderDash: [5, 3]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Temperature vs Depth',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            reverse: true,
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { weight: 'bold' }
+                            },
+                            min: 0
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAdvancedAnalysis(heatFluxes, tempProfile) {
+            // Physical Processes
+            const physicalProcesses = [];
+            
+            if (Math.abs(heatFluxes.solarFlux) > 200) {
+                physicalProcesses.push(`<p><strong>Solar Heating:</strong> ${heatFluxes.solarFlux > 0 ? 'Strong' : 'Blocked'} solar input ${Math.abs(heatFluxes.solarFlux).toFixed(0)} W/m²</p>`);
+            }
+            
+            if (Math.abs(heatFluxes.latentFlux) > 100) {
+                physicalProcesses.push(`<p><strong>Evaporation:</strong> ${heatFluxes.latentFlux > 0 ? 'High' : 'Condensation'} at ${Math.abs(heatFluxes.evaporationRate).toFixed(1)} mm/day</p>`);
+            }
+            
+            if (Math.abs(heatFluxes.sensibleFlux) > 50) {
+                physicalProcesses.push(`<p><strong>Convection:</strong> ${heatFluxes.sensibleFlux > 0 ? 'Ocean cooling' : 'Ocean warming'} air</p>`);
+            }
+            
+            physicalProcesses.push(`<p><strong>Mixed Layer:</strong> ${tempProfile.mixedLayerDepth.toFixed(1)}m deep, changing at ${Math.abs(tempProfile.tempChangeRate).toFixed(3)}°C/hr</p>`);
+            
+            document.getElementById('physicalProcesses').innerHTML = physicalProcesses.join('');
+            
+            // Environmental Impact
+            const environmentalImpact = [];
+            
+            if (Math.abs(tempProfile.tempChangeRate) > 0.01) {
+                environmentalImpact.push(`<p><strong>Temperature Trend:</strong> ${tempProfile.tempChangeRate > 0 ? 'Warming' : 'Cooling'} at ${Math.abs(tempProfile.tempChangeRate * 24).toFixed(2)}°C/day</p>`);
+            }
+            
+            if (heatFluxes.evaporationRate > 5) {
+                environmentalImpact.push(`<p><strong>Water Loss:</strong> High evaporation may increase salinity</p>`);
+            }
+            
+            if (heatFluxes.bowenRatio > 1) {
+                environmentalImpact.push(`<p><strong>Dry Conditions:</strong> Sensible heat dominates (Bowen ratio: ${heatFluxes.bowenRatio.toFixed(2)})</p>`);
+            } else if (heatFluxes.bowenRatio < 0.5) {
+                environmentalImpact.push(`<p><strong>Humid Conditions:</strong> Latent heat dominates</p>`);
+            }
+            
+            const stratification = tempProfile.temperatures[0] - tempProfile.temperatures[tempProfile.temperatures.length - 1];
+            if (stratification > 3) {
+                environmentalImpact.push(`<p><strong>Strong Stratification:</strong> Limited vertical mixing, potential oxygen depletion</p>`);
+            }
+            
+            document.getElementById('environmentalImpact').innerHTML = environmentalImpact.join('');
+            
+            // Coastal Dynamics
+            const coastalDynamics = [];
+            
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const waveHeight = parseFloat(document.getElementById('waveHeight').value);
+            
+            if (windSpeed > 10) {
+                coastalDynamics.push(`<p><strong>Wind Mixing:</strong> Strong winds (${windSpeed} m/s) enhance heat transfer</p>`);
+            }
+            
+            if (waveHeight > 2) {
+                coastalDynamics.push(`<p><strong>Wave Action:</strong> Large waves (${waveHeight}m) increase surface area and mixing</p>`);
+            }
+            
+            if (heatFluxes.netFlux > 100) {
+                coastalDynamics.push(`<p><strong>Upwelling Potential:</strong> Surface cooling may drive vertical circulation</p>`);
+            } else if (heatFluxes.netFlux < -100) {
+                coastalDynamics.push(`<p><strong>Downwelling Potential:</strong> Surface warming may suppress vertical mixing</p>`);
+            }
+            
+            coastalDynamics.push(`<p><strong>Heat Capacity:</strong> ${tempProfile.heatCapacity.toFixed(1)} MJ/m²/K thermal buffer</p>`);
+            
+            document.getElementById('coastalDynamics').innerHTML = coastalDynamics.join('');
+            
+            // System Interpretation
+            let interpretation = '';
+            
+            if (Math.abs(heatFluxes.netFlux) < 50) {
+                interpretation = '⚖️ <strong>Balanced System:</strong> The ocean-atmosphere heat exchange is nearly balanced. ';
+            } else if (heatFluxes.netFlux > 200) {
+                interpretation = '🔥 <strong>Strong Ocean Cooling:</strong> The ocean is losing significant heat to the atmosphere. ';
+            } else if (heatFluxes.netFlux < -200) {
+                interpretation = '☀️ <strong>Strong Ocean Warming:</strong> The ocean is gaining significant heat from the atmosphere. ';
+            } else if (heatFluxes.netFlux > 0) {
+                interpretation = '🌡️ <strong>Moderate Ocean Cooling:</strong> The ocean is losing heat to the atmosphere. ';
+            } else {
+                interpretation = '🌡️ <strong>Moderate Ocean Warming:</strong> The ocean is gaining heat from the atmosphere. ';
+            }
+            
+            // Add dominant process
+            const fluxMagnitudes = [
+                { name: 'solar radiation', value: Math.abs(heatFluxes.solarFlux) },
+                { name: 'longwave radiation', value: Math.abs(heatFluxes.longwaveFlux) },
+                { name: 'evaporation', value: Math.abs(heatFluxes.latentFlux) },
+                { name: 'convection', value: Math.abs(heatFluxes.sensibleFlux) }
+            ];
+            
+            const dominantProcess = fluxMagnitudes.reduce((max, current) => 
+                current.value > max.value ? current : max
+            );
+            
+            interpretation += `The dominant heat transfer process is <strong>${dominantProcess.name}</strong> (${dominantProcess.value.toFixed(0)} W/m²). `;
+            
+            // Add temperature impact
+            if (Math.abs(tempProfile.dailyTempChange) > 0.005) {
+                interpretation += `This is causing the near-surface ocean temperature to change at ${Math.abs(tempProfile.dailyTempChange).toFixed(4)}°C per day, `;
+                interpretation += `with surface effects of ${Math.abs(tempProfile.surfaceTempChange1hr).toFixed(4)}°C per hour. `;
+                interpretation += `Heat penetrates to approximately ${tempProfile.mixedLayerDepth.toFixed(0)}m depth. `;
+            }
+            
+            // Add component analysis
+            const dominantTempEffect = [
+                { name: 'solar heating', value: Math.abs(tempProfile.solarTempEffect) },
+                { name: 'longwave cooling', value: Math.abs(tempProfile.longwaveTempEffect) },
+                { name: 'evaporative cooling', value: Math.abs(tempProfile.latentTempEffect) },
+                { name: 'convective heat transfer', value: Math.abs(tempProfile.sensibleTempEffect) }
+            ].reduce((max, current) => current.value > max.value ? current : max);
+            
+            interpretation += `The strongest temperature effect comes from <strong>${dominantTempEffect.name}</strong> (${dominantTempEffect.value.toFixed(4)}°C/day). `;
+            
+            // Add ecological implications
+            if (Math.abs(tempProfile.dailyTempChange) > 0.1) {
+                interpretation += 'Rapid temperature changes may stress marine ecosystems and alter species distribution patterns.';
+            } else if (Math.abs(tempProfile.dailyTempChange) > 0.05) {
+                interpretation += 'Moderate temperature changes may affect marine productivity and species behavior.';
+            } else if (Math.abs(tempProfile.dailyTempChange) > 0.01) {
+                interpretation += 'Small but measurable temperature changes are occurring within normal ecosystem tolerance.';
+            } else {
+                interpretation += 'Temperature changes are minimal and within natural variability ranges.';
+            }
+            
+            document.getElementById('systemInterpretation').innerHTML = interpretation;
+        }
+
+        function updateHeatBalanceAnalysis(heatFluxes) {
+            // Heat Balance Equation Display
+            const equation = `${heatFluxes.netFlux.toFixed(0)} = ${heatFluxes.solarFlux.toFixed(0)} + (${heatFluxes.longwaveFlux.toFixed(0)}) + (${heatFluxes.sensibleFlux.toFixed(0)}) + (${heatFluxes.latentFlux.toFixed(0)})`;
+            document.getElementById('heatBalanceEquation').innerHTML = equation;
+            
+            // Ocean Heat Status
+            let status = '';
+            let statusColor = '';
+            let explanation = '';
+            
+            if (Math.abs(heatFluxes.netFlux) < 25) {
+                status = '⚖️ BALANCED';
+                statusColor = 'text-green-600';
+                explanation = 'The ocean is in near-perfect thermal equilibrium with the atmosphere. Heat gains and losses are balanced.';
+            } else if (heatFluxes.netFlux > 200) {
+                status = '🔥 RAPID COOLING';
+                statusColor = 'text-red-600';
+                explanation = 'The ocean is losing heat rapidly to the atmosphere. This will cause significant surface cooling.';
+            } else if (heatFluxes.netFlux > 100) {
+                status = '❄️ COOLING';
+                statusColor = 'text-blue-600';
+                explanation = 'The ocean is losing more heat than it gains. Surface temperatures will decrease.';
+            } else if (heatFluxes.netFlux > 25) {
+                status = '🌡️ SLIGHT COOLING';
+                statusColor = 'text-blue-500';
+                explanation = 'The ocean is losing slightly more heat than it gains. Minor cooling is occurring.';
+            } else if (heatFluxes.netFlux < -200) {
+                status = '☀️ RAPID WARMING';
+                statusColor = 'text-red-500';
+                explanation = 'The ocean is gaining heat rapidly from the atmosphere. This will cause significant surface warming.';
+            } else if (heatFluxes.netFlux < -100) {
+                status = '🌡️ WARMING';
+                statusColor = 'text-orange-600';
+                explanation = 'The ocean is gaining more heat than it loses. Surface temperatures will increase.';
+            } else if (heatFluxes.netFlux < -25) {
+                status = '🔆 SLIGHT WARMING';
+                statusColor = 'text-orange-500';
+                explanation = 'The ocean is gaining slightly more heat than it loses. Minor warming is occurring.';
+            }
+            
+            document.getElementById('oceanHeatStatus').innerHTML = `<span class="${statusColor}">${status}</span>`;
+            document.getElementById('heatStatusExplanation').textContent = explanation;
+            
+            // Component Analysis
+            const components = [
+                { id: 'solar', flux: heatFluxes.solarFlux, name: 'Solar Input' },
+                { id: 'longwave', flux: heatFluxes.longwaveFlux, name: 'Longwave' },
+                { id: 'sensible', flux: heatFluxes.sensibleFlux, name: 'Sensible' },
+                { id: 'latent', flux: heatFluxes.latentFlux, name: 'Latent' }
+            ];
+            
+            components.forEach(comp => {
+                const contribution = comp.flux.toFixed(0) + ' W/m²';
+                let effect = '';
+                
+                if (comp.id === 'solar') {
+                    effect = comp.flux > 0 ? 'Heating ocean' : 'No solar input';
+                } else if (comp.id === 'longwave') {
+                    effect = comp.flux > 0 ? 'Net cooling' : 'Net warming';
+                } else if (comp.id === 'sensible') {
+                    effect = comp.flux > 0 ? 'Ocean → Air' : 'Air → Ocean';
+                } else if (comp.id === 'latent') {
+                    effect = comp.flux > 0 ? 'Evaporation' : 'Condensation';
+                }
+                
+                document.getElementById(comp.id + 'Contribution').textContent = contribution;
+                document.getElementById(comp.id + 'Effect').textContent = effect;
+            });
+            
+            // Energy Balance Interpretation
+            let interpretation = '';
+            
+            // Identify dominant heat gain and loss processes
+            const heatGains = [];
+            const heatLosses = [];
+            
+            if (heatFluxes.solarFlux < 0) heatGains.push({ name: 'solar radiation', value: Math.abs(heatFluxes.solarFlux) });
+            if (heatFluxes.longwaveFlux < 0) heatGains.push({ name: 'longwave radiation', value: Math.abs(heatFluxes.longwaveFlux) });
+            if (heatFluxes.sensibleFlux < 0) heatGains.push({ name: 'sensible heat transfer', value: Math.abs(heatFluxes.sensibleFlux) });
+            if (heatFluxes.latentFlux < 0) heatGains.push({ name: 'latent heat (condensation)', value: Math.abs(heatFluxes.latentFlux) });
+            
+            if (heatFluxes.solarFlux > 0) heatLosses.push({ name: 'solar reflection', value: heatFluxes.solarFlux });
+            if (heatFluxes.longwaveFlux > 0) heatLosses.push({ name: 'longwave radiation', value: heatFluxes.longwaveFlux });
+            if (heatFluxes.sensibleFlux > 0) heatLosses.push({ name: 'sensible heat transfer', value: heatFluxes.sensibleFlux });
+            if (heatFluxes.latentFlux > 0) heatLosses.push({ name: 'evaporation', value: heatFluxes.latentFlux });
+            
+            // Sort by magnitude
+            heatGains.sort((a, b) => b.value - a.value);
+            heatLosses.sort((a, b) => b.value - a.value);
+            
+            interpretation += '<strong>Heat Balance Breakdown:</strong><br>';
+            
+            if (heatGains.length > 0) {
+                interpretation += `<strong>🔥 Heat Gains:</strong> Primary source is ${heatGains[0].name} (${heatGains[0].value.toFixed(0)} W/m²)`;
+                if (heatGains.length > 1) {
+                    interpretation += `, followed by ${heatGains[1].name} (${heatGains[1].value.toFixed(0)} W/m²)`;
+                }
+                interpretation += '.<br>';
+            }
+            
+            if (heatLosses.length > 0) {
+                interpretation += `<strong>❄️ Heat Losses:</strong> Primary loss is through ${heatLosses[0].name} (${heatLosses[0].value.toFixed(0)} W/m²)`;
+                if (heatLosses.length > 1) {
+                    interpretation += `, followed by ${heatLosses[1].name} (${heatLosses[1].value.toFixed(0)} W/m²)`;
+                }
+                interpretation += '.<br>';
+            }
+            
+            // Net result explanation
+            const netMagnitude = Math.abs(heatFluxes.netFlux);
+            if (heatFluxes.netFlux > 0) {
+                interpretation += `<strong>📉 Net Result:</strong> Heat losses exceed gains by ${netMagnitude.toFixed(0)} W/m², causing ocean cooling. `;
+                interpretation += `This represents ${((netMagnitude / (Math.abs(heatFluxes.solarFlux) + Math.abs(heatFluxes.longwaveFlux) + Math.abs(heatFluxes.sensibleFlux) + Math.abs(heatFluxes.latentFlux))) * 100).toFixed(1)}% imbalance in the total heat exchange.`;
+            } else if (heatFluxes.netFlux < 0) {
+                interpretation += `<strong>📈 Net Result:</strong> Heat gains exceed losses by ${netMagnitude.toFixed(0)} W/m², causing ocean warming. `;
+                interpretation += `This represents ${((netMagnitude / (Math.abs(heatFluxes.solarFlux) + Math.abs(heatFluxes.longwaveFlux) + Math.abs(heatFluxes.sensibleFlux) + Math.abs(heatFluxes.latentFlux))) * 100).toFixed(1)}% imbalance in the total heat exchange.`;
+            } else {
+                interpretation += '<strong>⚖️ Net Result:</strong> Heat gains and losses are perfectly balanced, maintaining stable ocean temperature.';
+            }
+            
+            // Add physical significance
+            interpretation += '<br><br><strong>Physical Significance:</strong> ';
+            if (netMagnitude > 150) {
+                interpretation += 'This large heat imbalance will drive significant changes in ocean temperature, potentially affecting local weather patterns, marine ecosystems, and coastal climate conditions.';
+            } else if (netMagnitude > 75) {
+                interpretation += 'This moderate heat imbalance will cause measurable temperature changes that may influence local marine conditions and weather patterns.';
+            } else if (netMagnitude > 25) {
+                interpretation += 'This small heat imbalance represents normal daily variations in ocean-atmosphere heat exchange.';
+            } else {
+                interpretation += 'This balanced state represents ideal conditions for stable ocean temperatures and minimal thermal stress on marine ecosystems.';
+            }
+            
+            document.getElementById('energyBalanceInterpretation').innerHTML = interpretation;
+        }
+
+        function setScenario(scenario) {
+            isUpdating = true;
+            
+            const scenarios = {
+                tropical: {
+                    airTemp: 28, seaTemp: 26, windSpeed: 4, humidity: 80,
+                    solarIrradiance: 1200, cloudCover: 30, solarZenith: 20
+                },
+                temperate: {
+                    airTemp: 18, seaTemp: 16, windSpeed: 8, humidity: 70,
+                    solarIrradiance: 800, cloudCover: 50, solarZenith: 45
+                },
+                polar: {
+                    airTemp: -2, seaTemp: 2, windSpeed: 12, humidity: 85,
+                    solarIrradiance: 200, cloudCover: 80, solarZenith: 70
+                },
+                storm: {
+                    airTemp: 15, seaTemp: 18, windSpeed: 20, humidity: 95,
+                    solarIrradiance: 100, cloudCover: 95, waveHeight: 6
+                },
+                upwelling: {
+                    airTemp: 22, seaTemp: 14, windSpeed: 15, humidity: 90,
+                    solarIrradiance: 900, cloudCover: 20, currentSpeed: 1.5
+                },
+                heatwave: {
+                    airTemp: 38, seaTemp: 28, windSpeed: 2, humidity: 40,
+                    solarIrradiance: 1300, cloudCover: 5, solarZenith: 15
+                }
+            };
+            
+            const config = scenarios[scenario];
+            if (config) {
+                Object.keys(config).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = config[key];
+                        updateValueDisplay(key, config[key]);
+                    }
+                });
+            }
+            
+            isUpdating = false;
+            updateHeatFluxAnalysis();
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeControls();
+            updateHeatFluxAnalysis();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c8b551f48c88a6',t:'MTc1NDc1Nzc2My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
