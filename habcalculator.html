@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAB Analysis - Concepción Continental Shelf</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #06b6d4 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .equation {
+            background: #f8fafc;
+            border-left: 4px solid #3b82f6;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-6">
+            <h1 class="text-4xl font-bold mb-2">Harmful Algal Bloom Analysis</h1>
+            <p class="text-xl opacity-90">Continental Shelf of Concepción, Chile (100m depth)</p>
+            <p class="text-lg opacity-80">Central-South Chilean Coastal Ocean Evaluation System by Claudio Iturra</p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6">
+            <div class="flex space-x-8 py-4">
+                <button onclick="showSection('parameters')" class="nav-btn bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">Parameters</button>
+                <button onclick="showSection('equations')" class="nav-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">Equations</button>
+                <button onclick="showSection('analysis')" class="nav-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">Analysis</button>
+                <button onclick="showSection('calculator')" class="nav-btn bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors">Calculator</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Parameters Section -->
+        <div id="parameters" class="section">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">Oceanographic Parameters for HAB Evaluation</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Physical Parameters -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-4 text-blue-600">Physical Parameters</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>Temperature (°C):</span>
+                            <input type="number" id="temperature" class="w-20 px-2 py-1 border rounded" value="12.5" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Salinity (PSU):</span>
+                            <input type="number" id="salinity" class="w-20 px-2 py-1 border rounded" value="34.2" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Density (kg/m³):</span>
+                            <input type="number" id="density" class="w-20 px-2 py-1 border rounded" value="1025.8" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Current Speed (m/s):</span>
+                            <input type="number" id="current" class="w-20 px-2 py-1 border rounded" value="0.15" step="0.01">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chemical Parameters -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-4 text-green-600">Chemical Parameters</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>Nitrate (μM):</span>
+                            <input type="number" id="nitrate" class="w-20 px-2 py-1 border rounded" value="15.2" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Phosphate (μM):</span>
+                            <input type="number" id="phosphate" class="w-20 px-2 py-1 border rounded" value="1.8" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Silicate (μM):</span>
+                            <input type="number" id="silicate" class="w-20 px-2 py-1 border rounded" value="8.5" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Dissolved O₂ (mg/L):</span>
+                            <input type="number" id="oxygen" class="w-20 px-2 py-1 border rounded" value="6.8" step="0.1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biological Parameters -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-4 text-purple-600">Biological Parameters</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span>Chlorophyll-a (mg/m³):</span>
+                            <input type="number" id="chlorophyll" class="w-20 px-2 py-1 border rounded" value="2.4" step="0.1">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Cell Count (cells/L):</span>
+                            <input type="number" id="cellcount" class="w-24 px-2 py-1 border rounded" value="50000" step="1000">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Primary Prod. (mgC/m³/d):</span>
+                            <input type="number" id="primaryprod" class="w-20 px-2 py-1 border rounded" value="180" step="10">
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Turbidity (NTU):</span>
+                            <input type="number" id="turbidity" class="w-20 px-2 py-1 border rounded" value="1.2" step="0.1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Environmental Factors -->
+            <div class="bg-white p-6 rounded-lg card-shadow mb-6">
+                <h3 class="text-xl font-semibold mb-4 text-orange-600">Environmental Factors</h3>
+                <div class="grid md:grid-cols-4 gap-4">
+                    <div class="flex justify-between">
+                        <span>Wind Speed (m/s):</span>
+                        <input type="number" id="windspeed" class="w-20 px-2 py-1 border rounded" value="8.5" step="0.1">
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Solar Irradiance (W/m²):</span>
+                        <input type="number" id="irradiance" class="w-20 px-2 py-1 border rounded" value="450" step="10">
+                    </div>
+                    <div class="flex justify-between">
+                        <span>pH:</span>
+                        <input type="number" id="ph" class="w-20 px-2 py-1 border rounded" value="8.1" step="0.1">
+                    </div>
+                    <div class="flex justify-between">
+                        <span>Upwelling Index:</span>
+                        <input type="number" id="upwelling" class="w-20 px-2 py-1 border rounded" value="125" step="5">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equations Section -->
+        <div id="equations" class="section hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">HAB Evaluation Equations</h2>
+            
+            <div class="space-y-6">
+                <!-- Stratification Index -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-3 text-blue-600">1. Stratification Index (SI)</h3>
+                    <div class="equation p-4 rounded mb-3">
+                        SI = (ρ₁₀₀ - ρ₁₀) / 90
+                    </div>
+                    <p class="text-gray-700">Where ρ₁₀₀ and ρ₁₀ are densities at 100m and 10m depth respectively. Higher values indicate stronger stratification favorable for HAB development.</p>
+                </div>
+
+                <!-- N:P Ratio -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-3 text-green-600">2. Redfield N:P Ratio</h3>
+                    <div class="equation p-4 rounded mb-3">
+                        N:P = [NO₃⁻] / [PO₄³⁻]
+                    </div>
+                    <p class="text-gray-700">Optimal ratio is ~16:1. Deviations indicate nutrient limitation that can favor specific algal species and trigger HAB events.</p>
+                </div>
+
+                <!-- HAB Risk Index -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-3 text-red-600">3. HAB Risk Index (HRI)</h3>
+                    <div class="equation p-4 rounded mb-3">
+                        HRI = (Chl-a × Cell_Count × SI) / (Current_Speed × Wind_Speed) × (N:P_deviation)
+                    </div>
+                    <p class="text-gray-700">Composite index combining biological, physical, and chemical factors. Values > 100 indicate high HAB risk.</p>
+                </div>
+
+                <!-- Growth Rate -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-3 text-purple-600">4. Algal Growth Rate (μ)</h3>
+                    <div class="equation p-4 rounded mb-3">
+                        μ = μₘₐₓ × (I/Iₖ) × e^(-I/Iₖ) × f(N) × f(T)
+                    </div>
+                    <p class="text-gray-700">Where f(N) = N/(Kₙ + N) and f(T) = e^(-((T-Tₒₚₜ)/σ)²). Describes temperature and light-limited growth.</p>
+                </div>
+
+                <!-- Upwelling Intensity -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-3 text-cyan-600">5. Upwelling Intensity (UI)</h3>
+                    <div class="equation p-4 rounded mb-3">
+                        UI = (τₓ × ρₐᵢᵣ × Cᴅ × U²) / (f × ρₛₑₐ)
+                    </div>
+                    <p class="text-gray-700">Where τₓ is wind stress, f is Coriolis parameter. Positive values indicate upwelling conditions that bring nutrients to surface.</p>
+                </div>
+
+                <!-- Stability Parameter -->
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-3 text-indigo-600">6. Water Column Stability (E)</h3>
+                    <div class="equation p-4 rounded mb-3">
+                        E = ∫₀ʰ (ρ(z) - ρₘₑₐₙ) × g × z × dz
+                    </div>
+                    <p class="text-gray-700">Potential energy anomaly indicating water column stability. Higher values suggest stratified conditions favorable for HAB retention.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div id="analysis" class="section hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">HAB Risk Analysis Dashboard</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-4">Risk Assessment</h3>
+                    <canvas id="riskChart" width="400" height="200"></canvas>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg card-shadow">
+                    <h3 class="text-xl font-semibold mb-4">Parameter Correlation</h3>
+                    <canvas id="correlationChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg card-shadow mb-6">
+                <h3 class="text-xl font-semibold mb-4">Current Conditions Assessment</h3>
+                <div id="assessmentResults" class="grid md:grid-cols-3 gap-4">
+                    <!-- Results will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg card-shadow">
+                <h3 class="text-xl font-semibold mb-4">Recommendations</h3>
+                <div id="recommendations" class="space-y-3">
+                    <!-- Recommendations will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculator Section -->
+        <div id="calculator" class="section hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-800">HAB Parameter Calculator</h2>
+            
+            <div class="bg-white p-6 rounded-lg card-shadow mb-6">
+                <h3 class="text-xl font-semibold mb-4">Calculate HAB Indices</h3>
+                <button onclick="calculateAll()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors mb-4">Calculate All Parameters</button>
+                
+                <div id="calculationResults" class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Results will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg card-shadow">
+                <h3 class="text-xl font-semibold mb-4">Time Series Analysis</h3>
+                <canvas id="timeSeriesChart" width="800" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Navigation functionality
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            event.target.classList.remove('bg-gray-200', 'text-gray-700');
+            event.target.classList.add('bg-blue-600', 'text-white');
+        }
+
+        // Calculation functions
+        function calculateStratificationIndex() {
+            const density = parseFloat(document.getElementById('density').value);
+            const surfaceDensity = density - 2.5; // Approximate surface density
+            return (density - surfaceDensity) / 90;
+        }
+
+        function calculateNPRatio() {
+            const nitrate = parseFloat(document.getElementById('nitrate').value);
+            const phosphate = parseFloat(document.getElementById('phosphate').value);
+            return nitrate / phosphate;
+        }
+
+        function calculateHABRisk() {
+            const chlorophyll = parseFloat(document.getElementById('chlorophyll').value);
+            const cellCount = parseFloat(document.getElementById('cellcount').value);
+            const si = calculateStratificationIndex();
+            const current = parseFloat(document.getElementById('current').value);
+            const wind = parseFloat(document.getElementById('windspeed').value);
+            const npRatio = calculateNPRatio();
+            const npDeviation = Math.abs(npRatio - 16) / 16;
+            
+            return (chlorophyll * cellCount * si * npDeviation) / (current * wind * 1000);
+        }
+
+        function calculateGrowthRate() {
+            const temp = parseFloat(document.getElementById('temperature').value);
+            const irradiance = parseFloat(document.getElementById('irradiance').value);
+            const nitrate = parseFloat(document.getElementById('nitrate').value);
+            
+            const muMax = 1.5; // Maximum growth rate
+            const Ik = 200; // Light saturation parameter
+            const Kn = 2.0; // Half-saturation constant for nitrogen
+            const Topt = 15; // Optimal temperature
+            const sigma = 8; // Temperature tolerance
+            
+            const lightLimitation = (irradiance / Ik) * Math.exp(-irradiance / Ik);
+            const nutrientLimitation = nitrate / (Kn + nitrate);
+            const tempLimitation = Math.exp(-Math.pow((temp - Topt) / sigma, 2));
+            
+            return muMax * lightLimitation * nutrientLimitation * tempLimitation;
+        }
+
+        function calculateUpwellingIntensity() {
+            const windSpeed = parseFloat(document.getElementById('windspeed').value);
+            const upwellingIndex = parseFloat(document.getElementById('upwelling').value);
+            
+            // Simplified calculation based on wind stress
+            const rhoAir = 1.225; // Air density
+            const Cd = 0.0013; // Drag coefficient
+            const f = 1e-4; // Coriolis parameter (approximate for 36°S)
+            const rhoSea = 1025; // Seawater density
+            
+            const windStress = rhoAir * Cd * Math.pow(windSpeed, 2);
+            return (windStress * upwellingIndex) / (f * rhoSea);
+        }
+
+        function calculateAll() {
+            const si = calculateStratificationIndex();
+            const npRatio = calculateNPRatio();
+            const habRisk = calculateHABRisk();
+            const growthRate = calculateGrowthRate();
+            const upwellingIntensity = calculateUpwellingIntensity();
+            
+            const results = [
+                { name: 'Stratification Index', value: si.toFixed(4), unit: 'kg/m³/m', status: si > 0.02 ? 'High' : 'Low' },
+                { name: 'N:P Ratio', value: npRatio.toFixed(2), unit: '', status: Math.abs(npRatio - 16) < 3 ? 'Optimal' : 'Imbalanced' },
+                { name: 'HAB Risk Index', value: habRisk.toFixed(2), unit: '', status: habRisk > 100 ? 'High Risk' : habRisk > 50 ? 'Moderate Risk' : 'Low Risk' },
+                { name: 'Growth Rate', value: growthRate.toFixed(3), unit: 'day⁻¹', status: growthRate > 0.5 ? 'Favorable' : 'Limited' },
+                { name: 'Upwelling Intensity', value: upwellingIntensity.toFixed(2), unit: 'm³/s/m', status: upwellingIntensity > 50 ? 'Strong' : 'Weak' }
+            ];
+            
+            const resultsDiv = document.getElementById('calculationResults');
+            resultsDiv.innerHTML = results.map(result => `
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-gray-800">${result.name}</h4>
+                    <p class="text-2xl font-bold text-blue-600">${result.value} ${result.unit}</p>
+                    <p class="text-sm ${result.status.includes('High') || result.status.includes('Risk') ? 'text-red-600' : 'text-green-600'}">${result.status}</p>
+                </div>
+            `).join('');
+            
+            updateAnalysis(results);
+            createCharts();
+        }
+
+        function updateAnalysis(results) {
+            const assessmentDiv = document.getElementById('assessmentResults');
+            const recommendationsDiv = document.getElementById('recommendations');
+            
+            // Assessment
+            const habRisk = results.find(r => r.name === 'HAB Risk Index');
+            const npRatio = results.find(r => r.name === 'N:P Ratio');
+            const stratification = results.find(r => r.name === 'Stratification Index');
+            
+            assessmentDiv.innerHTML = `
+                <div class="text-center p-4 rounded-lg ${habRisk.status.includes('High') ? 'bg-red-100' : habRisk.status.includes('Moderate') ? 'bg-yellow-100' : 'bg-green-100'}">
+                    <h4 class="font-semibold">Overall Risk</h4>
+                    <p class="text-xl font-bold">${habRisk.status}</p>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-blue-100">
+                    <h4 class="font-semibold">Nutrient Status</h4>
+                    <p class="text-xl font-bold">${npRatio.status}</p>
+                </div>
+                <div class="text-center p-4 rounded-lg bg-purple-100">
+                    <h4 class="font-semibold">Water Column</h4>
+                    <p class="text-xl font-bold">${stratification.status} Stratification</p>
+                </div>
+            `;
+            
+            // Recommendations
+            let recommendations = [];
+            if (habRisk.status.includes('High')) {
+                recommendations.push('🚨 Implement enhanced monitoring protocols');
+                recommendations.push('🔬 Increase sampling frequency to daily intervals');
+                recommendations.push('📊 Deploy real-time monitoring buoys');
+            }
+            if (npRatio.status === 'Imbalanced') {
+                recommendations.push('🧪 Monitor nutrient loading from terrestrial sources');
+                recommendations.push('🌊 Assess upwelling patterns and intensity');
+            }
+            if (stratification.status === 'High') {
+                recommendations.push('💨 Monitor wind patterns for mixing events');
+                recommendations.push('🌡️ Track temperature gradients closely');
+            }
+            
+            recommendationsDiv.innerHTML = recommendations.map(rec => `
+                <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                    <span class="text-2xl">${rec.split(' ')[0]}</span>
+                    <span>${rec.substring(rec.indexOf(' ') + 1)}</span>
+                </div>
+            `).join('');
+        }
+
+        function createCharts() {
+            // Risk Assessment Chart
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+            new Chart(riskCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Temperature', 'Nutrients', 'Stratification', 'Light', 'Turbulence'],
+                    datasets: [{
+                        label: 'Current Conditions',
+                        data: [75, 85, 60, 70, 40],
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+
+            // Time Series Chart
+            const timeCtx = document.getElementById('timeSeriesChart').getContext('2d');
+            const timeLabels = Array.from({length: 30}, (_, i) => `Day ${i + 1}`);
+            const habRiskData = Array.from({length: 30}, () => Math.random() * 150 + 20);
+            
+            new Chart(timeCtx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: 'HAB Risk Index',
+                        data: habRiskData,
+                        borderColor: 'rgb(239, 68, 68)',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Risk Threshold',
+                        data: Array(30).fill(100),
+                        borderColor: 'rgb(255, 159, 64)',
+                        borderDash: [5, 5],
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Risk Index'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize with default calculations
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateAll();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c99ae9669488ac',t:'MTc1NDc2NzE2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
