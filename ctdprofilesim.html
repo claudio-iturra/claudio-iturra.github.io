@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTD Ocean Profiling Simulation</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes wave {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+        .wave-animation {
+            animation: wave 2s ease-in-out infinite;
+        }
+        @keyframes ctd-descent {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(300px); }
+        }
+        .ctd-descending {
+            animation: ctd-descent 20s linear infinite;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-b from-sky-200 to-blue-900 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-white mb-2">🌊 CTD Ocean Profiling Simulation</h1>
+            <p class="text-blue-100">Real-time oceanographic data collection in coastal waters by Claudio Iturra</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Ocean Simulation Panel -->
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h2 class="text-xl font-semibold text-white mb-4">🚢 Deployment Simulation</h2>
+                
+                <!-- Ocean Scene -->
+                <div class="relative bg-gradient-to-b from-blue-300 to-blue-800 rounded-lg h-80 overflow-hidden border-2 border-blue-400">
+                    <!-- Research Vessel -->
+                    <div class="absolute top-2 left-1/2 transform -translate-x-1/2 wave-animation">
+                        <div class="bg-gray-700 rounded-lg px-4 py-2 text-white text-sm font-bold">
+                            🚢 R/V OCEANUS
+                        </div>
+                    </div>
+                    
+                    <!-- Water Surface -->
+                    <div class="absolute top-12 left-0 right-0 h-1 bg-blue-200 opacity-60"></div>
+                    
+                    <!-- CTD Instrument -->
+                    <div id="ctd-instrument" class="absolute top-16 left-1/2 transform -translate-x-1/2 ctd-descending">
+                        <div class="bg-yellow-400 w-3 h-8 rounded-sm shadow-lg"></div>
+                        <div class="w-0.5 h-4 bg-gray-600 mx-auto"></div>
+                    </div>
+                    
+                    <!-- Mixed Layer Indicator -->
+                    <div id="mixedLayerIndicator" class="absolute left-0 right-0 bg-cyan-400/30 border-t-2 border-cyan-400" style="top: 76px; height: 60px;">
+                        <div class="absolute right-2 top-1 text-cyan-200 text-xs font-semibold">Mixed Layer</div>
+                    </div>
+                    
+                    <!-- Depth Markers -->
+                    <div class="absolute right-2 top-16 text-white text-xs space-y-8">
+                        <div>0m</div>
+                        <div>25m</div>
+                        <div>50m</div>
+                        <div>75m</div>
+                        <div>100m</div>
+                    </div>
+                    
+                    <!-- Marine Life -->
+                    <div class="absolute bottom-20 left-4 text-2xl">🐟</div>
+                    <div class="absolute bottom-32 right-8 text-xl">🦀</div>
+                    <div class="absolute bottom-8 left-1/3 text-lg">🌿</div>
+                </div>
+                
+                <!-- Environmental Controls -->
+                <div class="mt-4 bg-white/20 rounded-lg p-4">
+                    <h3 class="text-white font-semibold mb-3">🌊 Environmental Conditions</h3>
+                    <div class="grid grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="text-white text-sm block mb-2">Wind Speed (m/s)</label>
+                            <input id="windSpeed" type="range" min="0" max="20" value="8" class="w-full">
+                            <div class="text-center text-white text-xs mt-1">
+                                <span id="windSpeedValue">8</span> m/s - <span id="windCondition">Moderate</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-white text-sm block mb-2">Mixed Layer Depth (m)</label>
+                            <input id="mixedLayerSlider" type="range" min="5" max="40" value="15" class="w-full">
+                            <div class="text-center text-white text-xs mt-1">
+                                <span id="mixedLayerValue">15</span> m
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-white text-sm block mb-2">Sea State</label>
+                            <div id="seaState" class="text-center text-white text-sm bg-blue-600/30 rounded p-2">
+                                🌊 Moderate waves
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Controls -->
+                <div class="mt-4 flex gap-3">
+                    <button id="startBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        ▶️ Start Deployment
+                    </button>
+                    <button id="pauseBtn" class="bg-yellow-600 hover:bg-yellow-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        ⏸️ Pause
+                    </button>
+                    <button id="resetBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">
+                        🔄 Reset
+                    </button>
+                </div>
+            </div>
+
+            <!-- Real-time Data Panel -->
+            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                <h2 class="text-xl font-semibold text-white mb-4">📊 Real-time CTD Data</h2>
+                
+                <!-- Current Readings -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-600/30 rounded-lg p-4 text-center">
+                        <div class="text-blue-200 text-sm">Depth</div>
+                        <div id="currentDepth" class="text-2xl font-bold text-white">0.0 m</div>
+                    </div>
+                    <div class="bg-red-600/30 rounded-lg p-4 text-center">
+                        <div class="text-red-200 text-sm">Temperature</div>
+                        <div id="currentTemp" class="text-2xl font-bold text-white">18.5°C</div>
+                    </div>
+                    <div class="bg-green-600/30 rounded-lg p-4 text-center">
+                        <div class="text-green-200 text-sm">Salinity</div>
+                        <div id="currentSalinity" class="text-2xl font-bold text-white">35.0 PSU</div>
+                    </div>
+                    <div class="bg-purple-600/30 rounded-lg p-4 text-center">
+                        <div class="text-purple-200 text-sm">Oxygen</div>
+                        <div id="currentOxygen" class="text-2xl font-bold text-white">8.2 mg/L</div>
+                    </div>
+                </div>
+
+                <!-- Mixing Layer Information -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-cyan-600/30 rounded-lg p-4 text-center">
+                        <div class="text-cyan-200 text-sm">Mixed Layer Depth</div>
+                        <div id="mixedLayerDepth" class="text-2xl font-bold text-white">15.0 m</div>
+                    </div>
+                    <div class="bg-orange-600/30 rounded-lg p-4 text-center">
+                        <div class="text-orange-200 text-sm">Wind Stress</div>
+                        <div id="windStress" class="text-2xl font-bold text-white">0.08 N/m²</div>
+                    </div>
+                </div>
+
+                <!-- Data Profile Chart -->
+                <div class="bg-white/20 rounded-lg p-4">
+                    <h3 class="text-white font-semibold mb-3">Vertical Profile</h3>
+                    <div class="grid grid-cols-3 gap-2 text-xs">
+                        <!-- Temperature Profile -->
+                        <div>
+                            <div class="text-red-300 font-semibold mb-2">Temperature (°C)</div>
+                            <div id="tempProfile" class="space-y-1">
+                                <!-- Data points will be added here -->
+                            </div>
+                        </div>
+                        <!-- Salinity Profile -->
+                        <div>
+                            <div class="text-green-300 font-semibold mb-2">Salinity (PSU)</div>
+                            <div id="salinityProfile" class="space-y-1">
+                                <!-- Data points will be added here -->
+                            </div>
+                        </div>
+                        <!-- Oxygen Profile -->
+                        <div>
+                            <div class="text-purple-300 font-semibold mb-2">Oxygen (mg/L)</div>
+                            <div id="oxygenProfile" class="space-y-1">
+                                <!-- Data points will be added here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="mt-4 p-3 bg-gray-800/50 rounded-lg">
+                    <div class="text-gray-300 text-sm">Status: <span id="status" class="text-green-400">Ready for deployment</span></div>
+                    <div class="text-gray-300 text-sm">Data points collected: <span id="dataPoints" class="text-blue-400">0</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Profile Chart -->
+        <div id="finalProfileChart" class="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hidden">
+            <h2 class="text-xl font-semibold text-white mb-4">📈 Complete CTD Profile (0-100m)</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Temperature Profile -->
+                <div class="bg-white/20 rounded-lg p-4">
+                    <h3 class="text-red-300 font-semibold mb-3 text-center">🌡️ Temperature Profile</h3>
+                    <div class="relative">
+                        <!-- Chart container -->
+                        <div id="tempChart" class="bg-gray-900/50 rounded h-80 relative overflow-hidden">
+                            <!-- Y-axis (depth) -->
+                            <div class="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-xs text-gray-300 py-2">
+                                <span>0m</span>
+                                <span>20m</span>
+                                <span>40m</span>
+                                <span>60m</span>
+                                <span>80m</span>
+                                <span>100m</span>
+                            </div>
+                            <!-- X-axis (temperature) -->
+                            <div class="absolute bottom-0 left-12 right-0 h-8 flex justify-between items-end text-xs text-gray-300 px-2">
+                                <span>10°C</span>
+                                <span>12°C</span>
+                                <span>14°C</span>
+                                <span>16°C</span>
+                                <span>18°C</span>
+                            </div>
+                            <!-- Profile line will be drawn here -->
+                            <svg id="tempSvg" class="absolute left-12 top-2 bottom-8 right-2" style="width: calc(100% - 3.5rem); height: calc(100% - 2.5rem);">
+                                <polyline id="tempLine" fill="none" stroke="#ef4444" stroke-width="3" points=""></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salinity Profile -->
+                <div class="bg-white/20 rounded-lg p-4">
+                    <h3 class="text-green-300 font-semibold mb-3 text-center">🧂 Salinity Profile</h3>
+                    <div class="relative">
+                        <!-- Chart container -->
+                        <div id="salinityChart" class="bg-gray-900/50 rounded h-80 relative overflow-hidden">
+                            <!-- Y-axis (depth) -->
+                            <div class="absolute left-0 top-0 bottom-0 w-12 flex flex-col justify-between text-xs text-gray-300 py-2">
+                                <span>0m</span>
+                                <span>20m</span>
+                                <span>40m</span>
+                                <span>60m</span>
+                                <span>80m</span>
+                                <span>100m</span>
+                            </div>
+                            <!-- X-axis (salinity) -->
+                            <div class="absolute bottom-0 left-12 right-0 h-8 flex justify-between items-end text-xs text-gray-300 px-2">
+                                <span>34.5</span>
+                                <span>34.7</span>
+                                <span>34.9</span>
+                                <span>35.1</span>
+                                <span>35.3</span>
+                            </div>
+                            <!-- Profile line will be drawn here -->
+                            <svg id="salinitySvg" class="absolute left-12 top-2 bottom-8 right-2" style="width: calc(100% - 3.5rem); height: calc(100% - 2.5rem);">
+                                <polyline id="salinityLine" fill="none" stroke="#22c55e" stroke-width="3" points=""></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Profile Summary -->
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-red-600/20 rounded-lg p-4 text-center">
+                    <div class="text-red-300 text-sm">Temperature Range</div>
+                    <div id="tempRange" class="text-lg font-bold text-white">--</div>
+                </div>
+                <div class="bg-green-600/20 rounded-lg p-4 text-center">
+                    <div class="text-green-300 text-sm">Salinity Range</div>
+                    <div id="salinityRange" class="text-lg font-bold text-white">--</div>
+                </div>
+                <div class="bg-blue-600/20 rounded-lg p-4 text-center">
+                    <div class="text-blue-300 text-sm">Thermocline Depth</div>
+                    <div id="thermoclineDepth" class="text-lg font-bold text-white">--</div>
+                </div>
+                <div class="bg-cyan-600/20 rounded-lg p-4 text-center">
+                    <div class="text-cyan-300 text-sm">Final Mixed Layer</div>
+                    <div id="finalMixedLayer" class="text-lg font-bold text-white">--</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scientific Information -->
+        <div class="mt-6 bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+            <h2 class="text-xl font-semibold text-white mb-4">🔬 About CTD Profiling</h2>
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm text-blue-100">
+                <div>
+                    <h3 class="font-semibold text-white mb-2">🌡️ Temperature</h3>
+                    <p>Measures water temperature, which affects density and marine life distribution. Typically decreases with depth in coastal waters.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-white mb-2">🧂 Salinity</h3>
+                    <p>Measures salt content (Practical Salinity Units). Coastal waters often show variation due to freshwater input from rivers.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-white mb-2">💨 Dissolved Oxygen</h3>
+                    <p>Critical for marine life. Surface waters are typically oxygen-rich, while deeper waters may have lower concentrations.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-white mb-2">🌊 Mixed Layer Depth</h3>
+                    <p>The surface layer where wind mixing creates uniform temperature and salinity. Deeper with stronger winds and wave action.</p>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-white mb-2">💨 Wind Stress</h3>
+                    <p>Force exerted by wind on the ocean surface. Higher wind speeds increase mixing and deepen the mixed layer depth.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+        let currentDepth = 0;
+        let dataPoints = 0;
+        let animationId;
+        let profileData = []; // Store all data points for final chart
+        let windSpeed = 8; // m/s
+        let mixedLayerDepth = 15; // meters
+        let windStress = 0.08; // N/m²
+        
+        const maxDepth = 100;
+        const deploymentSpeed = 0.5; // meters per update
+        
+        // DOM elements
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const ctdInstrument = document.getElementById('ctd-instrument');
+        const status = document.getElementById('status');
+        
+        // Data display elements
+        const currentDepthEl = document.getElementById('currentDepth');
+        const currentTempEl = document.getElementById('currentTemp');
+        const currentSalinityEl = document.getElementById('currentSalinity');
+        const currentOxygenEl = document.getElementById('currentOxygen');
+        const dataPointsEl = document.getElementById('dataPoints');
+        
+        // Profile display elements
+        const tempProfile = document.getElementById('tempProfile');
+        const salinityProfile = document.getElementById('salinityProfile');
+        const oxygenProfile = document.getElementById('oxygenProfile');
+        
+        // Wind and mixing elements
+        const windSpeedSlider = document.getElementById('windSpeed');
+        const windSpeedValue = document.getElementById('windSpeedValue');
+        const windCondition = document.getElementById('windCondition');
+        const seaState = document.getElementById('seaState');
+        const mixedLayerDepthEl = document.getElementById('mixedLayerDepth');
+        const windStressEl = document.getElementById('windStress');
+        const mixedLayerIndicator = document.getElementById('mixedLayerIndicator');
+        const mixedLayerSlider = document.getElementById('mixedLayerSlider');
+        const mixedLayerValue = document.getElementById('mixedLayerValue');
+        
+        // Calculate wind stress from wind speed (simplified formula)
+        function calculateWindStress(windSpeed) {
+            const airDensity = 1.225; // kg/m³
+            const dragCoefficient = 0.0013; // typical value
+            return airDensity * dragCoefficient * windSpeed * windSpeed;
+        }
+        
+        // Calculate mixed layer depth based on wind stress
+        function calculateMixedLayerDepth(windStress) {
+            // Simplified relationship: stronger winds = deeper mixing
+            const baseDepth = 8; // minimum mixed layer depth
+            const windEffect = windStress * 150; // scaling factor
+            return Math.min(35, baseDepth + windEffect); // cap at 35m
+        }
+        
+        // Update wind conditions display
+        function updateWindConditions() {
+            windSpeed = parseFloat(windSpeedSlider.value);
+            windStress = calculateWindStress(windSpeed);
+            
+            windSpeedValue.textContent = windSpeed;
+            windStressEl.textContent = `${windStress.toFixed(3)} N/m²`;
+            
+            // Update wind condition description
+            if (windSpeed < 3) {
+                windCondition.textContent = 'Light';
+                seaState.innerHTML = '😴 Calm seas';
+            } else if (windSpeed < 7) {
+                windCondition.textContent = 'Gentle';
+                seaState.innerHTML = '🌊 Light waves';
+            } else if (windSpeed < 12) {
+                windCondition.textContent = 'Moderate';
+                seaState.innerHTML = '🌊 Moderate waves';
+            } else if (windSpeed < 17) {
+                windCondition.textContent = 'Fresh';
+                seaState.innerHTML = '🌊 Rough seas';
+            } else {
+                windCondition.textContent = 'Strong';
+                seaState.innerHTML = '⛈️ Very rough';
+            }
+        }
+        
+        // Update mixed layer depth display
+        function updateMixedLayerDepth() {
+            mixedLayerDepth = parseFloat(mixedLayerSlider.value);
+            mixedLayerValue.textContent = mixedLayerDepth;
+            mixedLayerDepthEl.textContent = `${mixedLayerDepth.toFixed(1)} m`;
+            
+            // Update mixed layer indicator position and height
+            const indicatorTop = 64; // water surface position
+            const indicatorHeight = (mixedLayerDepth / maxDepth) * 300;
+            mixedLayerIndicator.style.top = `${indicatorTop}px`;
+            mixedLayerIndicator.style.height = `${indicatorHeight}px`;
+        }
+        
+        // Simulate realistic oceanographic data with mixing effects
+        function calculateOceanData(depth) {
+            const surfaceTemp = 18.5;
+            const surfaceSalinity = 35.0;
+            const surfaceOxygen = 8.2;
+            
+            let temperature, salinity, oxygen;
+            
+            if (depth <= mixedLayerDepth) {
+                // Within mixed layer: relatively uniform properties
+                temperature = surfaceTemp - (depth * 0.02) + (Math.random() - 0.5) * 0.3;
+                salinity = surfaceSalinity + (depth * 0.001) + (Math.random() - 0.5) * 0.2;
+                oxygen = surfaceOxygen - (depth * 0.01) + (Math.random() - 0.5) * 0.3;
+            } else if (depth <= 60) {
+                // Thermocline zone: rapid temperature decrease
+                const mixedLayerTemp = surfaceTemp - (mixedLayerDepth * 0.02);
+                const mixedLayerSalinity = surfaceSalinity + (mixedLayerDepth * 0.001);
+                const mixedLayerOxygen = surfaceOxygen - (mixedLayerDepth * 0.01);
+                
+                const depthBelowMixed = depth - mixedLayerDepth;
+                const thermoclineRange = 60 - mixedLayerDepth;
+                
+                // Strong temperature gradient in thermocline
+                temperature = mixedLayerTemp - (depthBelowMixed * (6 / thermoclineRange)) + (Math.random() - 0.5) * 0.4;
+                salinity = mixedLayerSalinity + (depthBelowMixed * 0.003) + (Math.random() - 0.5) * 0.3;
+                oxygen = Math.max(4.0, mixedLayerOxygen - (depthBelowMixed * 0.035) + (Math.random() - 0.5) * 0.4);
+            } else {
+                // Deep water: relatively stable temperature (around 10-12°C)
+                const deepTemp = 11.0;
+                const deepSalinity = 35.2;
+                const deepOxygen = 5.5;
+                
+                temperature = deepTemp + (Math.random() - 0.5) * 0.5;
+                salinity = deepSalinity + (Math.random() - 0.5) * 0.2;
+                oxygen = deepOxygen + (Math.random() - 0.5) * 0.3;
+            }
+            
+            return {
+                depth: Math.round(depth * 10) / 10,
+                temperature: Math.round(temperature * 10) / 10,
+                salinity: Math.round(salinity * 10) / 10,
+                oxygen: Math.round(oxygen * 10) / 10
+            };
+        }
+        
+        // Draw final profile charts
+        function drawProfileCharts() {
+            if (profileData.length < 2) return;
+            
+            // Show the final chart section
+            document.getElementById('finalProfileChart').classList.remove('hidden');
+            
+            // Calculate chart dimensions
+            const chartWidth = 300; // approximate width
+            const chartHeight = 280; // approximate height
+            
+            // Temperature chart
+            const tempLine = document.getElementById('tempLine');
+            const tempPoints = [];
+            const tempValues = profileData.map(d => d.temperature);
+            const tempMin = Math.min(...tempValues);
+            const tempMax = Math.max(...tempValues);
+            const tempRange = tempMax - tempMin || 1;
+            
+            profileData.forEach(point => {
+                const x = ((point.temperature - tempMin) / tempRange) * chartWidth;
+                const y = (point.depth / maxDepth) * chartHeight;
+                tempPoints.push(`${x},${y}`);
+            });
+            tempLine.setAttribute('points', tempPoints.join(' '));
+            
+            // Salinity chart
+            const salinityLine = document.getElementById('salinityLine');
+            const salinityPoints = [];
+            const salinityValues = profileData.map(d => d.salinity);
+            const salinityMin = Math.min(...salinityValues);
+            const salinityMax = Math.max(...salinityValues);
+            const salinityRange = salinityMax - salinityMin || 1;
+            
+            profileData.forEach(point => {
+                const x = ((point.salinity - salinityMin) / salinityRange) * chartWidth;
+                const y = (point.depth / maxDepth) * chartHeight;
+                salinityPoints.push(`${x},${y}`);
+            });
+            salinityLine.setAttribute('points', salinityPoints.join(' '));
+            
+            // Update summary statistics
+            document.getElementById('tempRange').textContent = `${tempMin.toFixed(1)}°C - ${tempMax.toFixed(1)}°C`;
+            document.getElementById('salinityRange').textContent = `${salinityMin.toFixed(1)} - ${salinityMax.toFixed(1)} PSU`;
+            document.getElementById('finalMixedLayer').textContent = `${mixedLayerDepth.toFixed(1)}m`;
+            
+            // Find thermocline depth (where temperature gradient is steepest)
+            let maxGradient = 0;
+            let thermoclineDepth = 0;
+            for (let i = 1; i < profileData.length; i++) {
+                const gradient = Math.abs(profileData[i].temperature - profileData[i-1].temperature) / 
+                               Math.abs(profileData[i].depth - profileData[i-1].depth);
+                if (gradient > maxGradient) {
+                    maxGradient = gradient;
+                    thermoclineDepth = profileData[i].depth;
+                }
+            }
+            document.getElementById('thermoclineDepth').textContent = `${thermoclineDepth.toFixed(0)}m`;
+        }
+        
+        function updateDisplay() {
+            if (!isRunning) return;
+            
+            currentDepth += deploymentSpeed;
+            
+            if (currentDepth >= maxDepth) {
+                currentDepth = maxDepth;
+                isRunning = false;
+                status.textContent = 'Profile complete - Generating final charts...';
+                startBtn.textContent = '✅ Complete';
+                
+                // Generate final profile charts
+                setTimeout(() => {
+                    drawProfileCharts();
+                    status.textContent = 'CTD profile complete - View final charts below';
+                }, 1000);
+                return;
+            }
+            
+            const data = calculateOceanData(currentDepth);
+            
+            // Store data for final chart (every 2 meters for smoother line)
+            if (currentDepth % 2 < deploymentSpeed) {
+                profileData.push(data);
+            }
+            
+            // Update current readings
+            currentDepthEl.textContent = `${currentDepth.toFixed(1)} m`;
+            currentTempEl.textContent = `${data.temperature}°C`;
+            currentSalinityEl.textContent = `${data.salinity} PSU`;
+            currentOxygenEl.textContent = `${data.oxygen} mg/L`;
+            
+            // Update CTD position
+            const position = (currentDepth / maxDepth) * 300;
+            ctdInstrument.style.transform = `translate(-50%, ${position}px)`;
+            
+            // Add to profile data every 5 meters
+            if (currentDepth % 5 < deploymentSpeed) {
+                dataPoints++;
+                dataPointsEl.textContent = dataPoints;
+                
+                // Add data point to profiles
+                const depthLabel = `${Math.round(currentDepth)}m`;
+                
+                tempProfile.innerHTML += `<div class="text-red-200">${depthLabel}: ${data.temperature}°C</div>`;
+                salinityProfile.innerHTML += `<div class="text-green-200">${depthLabel}: ${data.salinity}</div>`;
+                oxygenProfile.innerHTML += `<div class="text-purple-200">${depthLabel}: ${data.oxygen}</div>`;
+                
+                // Keep only last 10 data points visible
+                if (tempProfile.children.length > 10) {
+                    tempProfile.removeChild(tempProfile.firstChild);
+                    salinityProfile.removeChild(salinityProfile.firstChild);
+                    oxygenProfile.removeChild(oxygenProfile.firstChild);
+                }
+            }
+            
+            status.textContent = `Collecting data at ${currentDepth.toFixed(1)}m depth`;
+            
+            // Continue animation
+            setTimeout(updateDisplay, 100);
+        }
+        
+        startBtn.addEventListener('click', () => {
+            if (!isRunning && currentDepth < maxDepth) {
+                isRunning = true;
+                status.textContent = 'CTD deployment in progress...';
+                startBtn.textContent = '🔄 Running';
+                updateDisplay();
+            }
+        });
+        
+        pauseBtn.addEventListener('click', () => {
+            isRunning = false;
+            status.textContent = 'Deployment paused';
+            startBtn.textContent = '▶️ Resume';
+        });
+        
+        resetBtn.addEventListener('click', () => {
+            isRunning = false;
+            currentDepth = 0;
+            dataPoints = 0;
+            profileData = []; // Clear stored profile data
+            
+            // Reset displays
+            currentDepthEl.textContent = '0.0 m';
+            currentTempEl.textContent = '18.5°C';
+            currentSalinityEl.textContent = '35.0 PSU';
+            currentOxygenEl.textContent = '8.2 mg/L';
+            dataPointsEl.textContent = '0';
+            
+            // Reset CTD position
+            ctdInstrument.style.transform = 'translate(-50%, 0px)';
+            
+            // Clear profiles
+            tempProfile.innerHTML = '';
+            salinityProfile.innerHTML = '';
+            oxygenProfile.innerHTML = '';
+            
+            // Hide final chart
+            document.getElementById('finalProfileChart').classList.add('hidden');
+            
+            // Clear chart lines
+            document.getElementById('tempLine').setAttribute('points', '');
+            document.getElementById('salinityLine').setAttribute('points', '');
+            
+            status.textContent = 'Ready for deployment';
+            startBtn.textContent = '▶️ Start Deployment';
+        });
+        
+        // Wind speed slider event listener
+        windSpeedSlider.addEventListener('input', updateWindConditions);
+        
+        // Mixed layer depth slider event listener
+        mixedLayerSlider.addEventListener('input', updateMixedLayerDepth);
+        
+        // Initialize wind conditions, mixed layer depth, and surface data
+        updateWindConditions();
+        updateMixedLayerDepth();
+        
+        const initialData = calculateOceanData(0);
+        currentTempEl.textContent = `${initialData.temperature}°C`;
+        currentSalinityEl.textContent = `${initialData.salinity} PSU`;
+        currentOxygenEl.textContent = `${initialData.oxygen} mg/L`;
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c9de49558188a6',t:'MTc1NDc2OTkyNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
