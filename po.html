@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Physical Oceanography - 100m Depth Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 50%, #bbe1fa 100%);
+            color: white;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #87CEEB;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.3rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .nav-tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(135, 206, 235, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.2);
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .process-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .process-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .process-card h3 {
+            color: #87CEEB;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .equation-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95rem;
+            border-left: 4px solid #87CEEB;
+            overflow-x: auto;
+        }
+        
+        .explanation {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .param-input {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .param-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #B0E0E6;
+            font-size: 0.9rem;
+        }
+        
+        .param-input input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            margin: 15px 10px 15px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .results-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+            display: none;
+        }
+        
+        .results-box h4 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            color: #333;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .theory-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .theory-section h4 {
+            color: #FFD700;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        @media (max-width: 768px) {
+            .process-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Physical Oceanography</h1>
+            <p>Comprehensive analysis of physical processes in shallow coastal waters (100m depth) including upwelling, stratification, mixing, waves, and circulation dynamics by Claudio Iturra</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('dynamics')">Coastal Dynamics</button>
+            <button class="nav-tab" onclick="showSection('stratification')">Stratification & Mixing</button>
+            <button class="nav-tab" onclick="showSection('waves')">Waves & Oscillations</button>
+            <button class="nav-tab" onclick="showSection('circulation')">Circulation & Transport</button>
+            <button class="nav-tab" onclick="showSection('analysis')">Integrated Analysis</button>
+        </div>
+
+        <!-- Coastal Dynamics Section -->
+        <div id="dynamics" class="content-section active">
+            <div class="process-grid">
+                <div class="process-card">
+                    <h3>🌬️ Wind Stress & Ekman Transport</h3>
+                    <div class="equation-box">
+                        Wind Stress:<br>
+                        τ = ρₐ × Cᴅ × |U₁₀| × U₁₀<br><br>
+                        
+                        Ekman Transport:<br>
+                        Mₑ = τ / (ρ × f)<br><br>
+                        
+                        Ekman Depth:<br>
+                        Dₑ = π × √(2Aᵥ / f)<br><br>
+                        
+                        Where:<br>
+                        • τ = Wind stress (N/m²)<br>
+                        • ρₐ = Air density (1.225 kg/m³)<br>
+                        • Cᴅ = Drag coefficient<br>
+                        • U₁₀ = Wind speed at 10m<br>
+                        • f = Coriolis parameter<br>
+                        • Aᵥ = Vertical eddy viscosity
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Wind stress drives surface currents and Ekman transport. In coastal regions, this creates upwelling (offshore transport) or downwelling (onshore transport) depending on wind direction relative to the coast.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Wind Speed U₁₀ (m/s)</label>
+                            <input type="number" id="windSpeed" value="8" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Latitude (degrees)</label>
+                            <input type="number" id="latitude" value="40" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Drag Coefficient Cᴅ</label>
+                            <input type="number" id="dragCoeff" value="0.0015" step="0.0001">
+                        </div>
+                        <div class="param-input">
+                            <label>Eddy Viscosity Aᵥ (m²/s)</label>
+                            <input type="number" id="eddyVisc" value="0.01" step="0.001">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateWindStress()">Calculate Wind Effects</button>
+                    <div id="windResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>⬆️ Upwelling & Downwelling</h3>
+                    <div class="equation-box">
+                        Upwelling Velocity:<br>
+                        w = (τᵧ / ρf) × (∂/∂x) - (τₓ / ρf) × (∂/∂y)<br><br>
+                        
+                        Coastal Upwelling Index:<br>
+                        UI = -τᵧ / (ρf) × 1000<br><br>
+                        
+                        Upwelling Transport:<br>
+                        Qᵤ = ∫₀ᴴ w(z) dz<br><br>
+                        
+                        Relaxation Time:<br>
+                        T_relax = H² / (π² × Kᵥ)<br><br>
+                        
+                        Where:<br>
+                        • w = Vertical velocity<br>
+                        • τₓ, τᵧ = Wind stress components<br>
+                        • UI = Upwelling index (m³/s/100m)<br>
+                        • H = Water depth<br>
+                        • Kᵥ = Vertical diffusivity
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Coastal upwelling occurs when alongshore winds drive offshore Ekman transport, causing deep, cold, nutrient-rich water to rise to the surface. Downwelling is the opposite process. The relaxation time indicates how quickly the system responds to wind changes.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Alongshore Wind (m/s)</label>
+                            <input type="number" id="alongshoreWind" value="6" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Cross-shore Wind (m/s)</label>
+                            <input type="number" id="crossshoreWind" value="2" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Water Depth H (m)</label>
+                            <input type="number" id="waterDepth" value="100" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Vertical Diffusivity Kᵥ (m²/s)</label>
+                            <input type="number" id="vertDiff" value="0.001" step="0.0001">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateUpwelling()">Calculate Upwelling</button>
+                    <div id="upwellingResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🌀 Rossby Deformation Radius</h3>
+                    <div class="equation-box">
+                        Internal Rossby Radius:<br>
+                        Rᵢ = NH / f<br><br>
+                        
+                        Barotropic Rossby Radius:<br>
+                        R₀ = √(gH) / f<br><br>
+                        
+                        Burger Number:<br>
+                        Bu = (Rᵢ / L)²<br><br>
+                        
+                        Brunt-Väisälä Frequency:<br>
+                        N² = -(g/ρ₀) × (∂ρ/∂z)<br><br>
+                        
+                        Where:<br>
+                        • N = Brunt-Väisälä frequency<br>
+                        • H = Water depth<br>
+                        • f = Coriolis parameter<br>
+                        • g = Gravitational acceleration<br>
+                        • L = Horizontal length scale<br>
+                        • ρ = Density
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> The Rossby deformation radius determines the horizontal scale over which geostrophic adjustment occurs. It's crucial for understanding coastal jet formation, eddy scales, and the transition between geostrophic and ageostrophic dynamics in shallow water.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Stratification N (s⁻¹)</label>
+                            <input type="number" id="stratification" value="0.01" step="0.001">
+                        </div>
+                        <div class="param-input">
+                            <label>Horizontal Scale L (km)</label>
+                            <input type="number" id="horizScale" value="50" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Surface Density (kg/m³)</label>
+                            <input type="number" id="surfDensity" value="1025" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Bottom Density (kg/m³)</label>
+                            <input type="number" id="bottomDensity" value="1027" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateRossby()">Calculate Rossby Parameters</button>
+                    <div id="rossbyResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>💨 Geostrophic & Ageostrophic Flow</h3>
+                    <div class="equation-box">
+                        Geostrophic Velocity:<br>
+                        uₘ = -(g/f) × (∂η/∂y)<br>
+                        vₘ = (g/f) × (∂η/∂x)<br><br>
+                        
+                        Rossby Number:<br>
+                        Ro = U / (fL)<br><br>
+                        
+                        Ageostrophic Velocity:<br>
+                        uₐ = u - uₘ<br>
+                        vₐ = v - vₘ<br><br>
+                        
+                        Gradient Wind Balance:<br>
+                        v²/R + fv = (g/ρ) × (∂p/∂r)<br><br>
+                        
+                        Where:<br>
+                        • uₘ, vₘ = Geostrophic velocities<br>
+                        • η = Sea surface height<br>
+                        • U = Characteristic velocity<br>
+                        • R = Radius of curvature<br>
+                        • p = Pressure
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Geostrophic balance dominates large-scale coastal flows, but ageostrophic effects become important in shallow water, near boundaries, and during rapid acceleration. The Rossby number indicates the relative importance of inertial vs. Coriolis forces.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Sea Level Gradient (m/km)</label>
+                            <input type="number" id="sealevelGrad" value="0.001" step="0.0001">
+                        </div>
+                        <div class="param-input">
+                            <label>Characteristic Velocity (m/s)</label>
+                            <input type="number" id="charVel" value="0.5" step="0.01">
+                        </div>
+                        <div class="param-input">
+                            <label>Curvature Radius (km)</label>
+                            <input type="number" id="curvRadius" value="20" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Pressure Gradient (Pa/m)</label>
+                            <input type="number" id="pressGrad" value="10" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateGeostrophic()">Calculate Flow Dynamics</button>
+                    <div id="geoResults" class="results-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stratification & Mixing Section -->
+        <div id="stratification" class="content-section">
+            <div class="process-grid">
+                <div class="process-card">
+                    <h3>🌡️ Density Stratification</h3>
+                    <div class="equation-box">
+                        Density Equation of State:<br>
+                        ρ = ρ₀[1 - α(T-T₀) + β(S-S₀)]<br><br>
+                        
+                        Brunt-Väisälä Frequency:<br>
+                        N² = -(g/ρ₀) × (∂ρ/∂z)<br><br>
+                        
+                        Richardson Number:<br>
+                        Ri = N² / (∂u/∂z)²<br><br>
+                        
+                        Potential Density:<br>
+                        σₜ = ρ(S,T,0) - 1000<br><br>
+                        
+                        Where:<br>
+                        • ρ₀ = Reference density<br>
+                        • α = Thermal expansion coefficient<br>
+                        • β = Haline contraction coefficient<br>
+                        • T, S = Temperature, Salinity<br>
+                        • Ri = Richardson number
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Density stratification controls vertical mixing and stability. Strong stratification (high N²) suppresses vertical mixing, while weak stratification allows turbulent mixing. The Richardson number determines mixing stability - Ri < 0.25 indicates unstable, turbulent conditions.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Surface Temperature (°C)</label>
+                            <input type="number" id="surfTemp" value="18" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Bottom Temperature (°C)</label>
+                            <input type="number" id="bottomTemp" value="12" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Surface Salinity (PSU)</label>
+                            <input type="number" id="surfSal" value="34.5" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Bottom Salinity (PSU)</label>
+                            <input type="number" id="bottomSal" value="35.2" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Velocity Shear (s⁻¹)</label>
+                            <input type="number" id="velShear" value="0.01" step="0.001">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateStratification()">Calculate Stratification</button>
+                    <div id="stratResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🌊 Turbulent Mixing</h3>
+                    <div class="equation-box">
+                        Turbulent Kinetic Energy:<br>
+                        TKE = ½(u'² + v'² + w'²)<br><br>
+                        
+                        Mixing Length:<br>
+                        l = κz / (1 + κz/l₀)<br><br>
+                        
+                        Eddy Viscosity:<br>
+                        Aᵥ = l × √TKE<br><br>
+                        
+                        Energy Dissipation:<br>
+                        ε = u*³ / (κz)<br><br>
+                        
+                        Ozmidov Scale:<br>
+                        L₀ = √(ε/N³)<br><br>
+                        
+                        Where:<br>
+                        • u', v', w' = Turbulent velocity components<br>
+                        • κ = von Karman constant (0.4)<br>
+                        • z = Height above bottom<br>
+                        • u* = Friction velocity<br>
+                        • ε = Dissipation rate
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Turbulent mixing is driven by wind stress, bottom friction, and shear instabilities. The mixing length determines the size of turbulent eddies, while the Ozmidov scale represents the largest overturning eddies that can exist in stratified flow.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Friction Velocity u* (m/s)</label>
+                            <input type="number" id="frictionVel" value="0.02" step="0.001">
+                        </div>
+                        <div class="param-input">
+                            <label>Height Above Bottom (m)</label>
+                            <input type="number" id="heightBottom" value="10" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Mixing Length Scale l₀ (m)</label>
+                            <input type="number" id="mixingLength" value="5" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>TKE (m²/s²)</label>
+                            <input type="number" id="tke" value="0.001" step="0.0001">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateMixing()">Calculate Mixing Parameters</button>
+                    <div id="mixingResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🏔️ Bottom Boundary Layer</h3>
+                    <div class="equation-box">
+                        Bottom Stress:<br>
+                        τᵦ = ρ × Cᴅ × |u| × u<br><br>
+                        
+                        Log Layer Velocity:<br>
+                        u(z) = (u*/κ) × ln(z/z₀)<br><br>
+                        
+                        Boundary Layer Height:<br>
+                        δ = 0.4 × u* / f<br><br>
+                        
+                        Drag Coefficient:<br>
+                        Cᴅ = κ² / [ln(z/z₀)]²<br><br>
+                        
+                        Roughness Length:<br>
+                        z₀ = kₛ / 30<br><br>
+                        
+                        Where:<br>
+                        • τᵦ = Bottom stress<br>
+                        • Cᴅ = Drag coefficient<br>
+                        • z₀ = Roughness length<br>
+                        • δ = Boundary layer height<br>
+                        • kₛ = Roughness height
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> The bottom boundary layer is where bottom friction significantly affects the flow. The logarithmic velocity profile develops near the bottom, and the boundary layer height scales with the friction velocity and Coriolis parameter. Bottom roughness elements enhance mixing and energy dissipation.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Bottom Velocity (m/s)</label>
+                            <input type="number" id="bottomVel" value="0.3" step="0.01">
+                        </div>
+                        <div class="param-input">
+                            <label>Roughness Height kₛ (m)</label>
+                            <input type="number" id="roughHeight" value="0.01" step="0.001">
+                        </div>
+                        <div class="param-input">
+                            <label>Reference Height (m)</label>
+                            <input type="number" id="refHeight" value="1" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Sediment Type</label>
+                            <select id="sedimentType" style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+                                <option value="sand">Fine Sand</option>
+                                <option value="gravel">Gravel</option>
+                                <option value="mud">Mud</option>
+                                <option value="rock">Rocky</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateBottomLayer()">Calculate Bottom Layer</button>
+                    <div id="bottomResults" class="results-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Waves & Oscillations Section -->
+        <div id="waves" class="content-section">
+            <div class="process-grid">
+                <div class="process-card">
+                    <h3>🌊 Surface Gravity Waves</h3>
+                    <div class="equation-box">
+                        Dispersion Relation:<br>
+                        ω² = gk × tanh(kh)<br><br>
+                        
+                        Phase Speed:<br>
+                        c = ω/k = √(g/k × tanh(kh))<br><br>
+                        
+                        Group Velocity:<br>
+                        cₘ = ½c × [1 + 2kh/sinh(2kh)]<br><br>
+                        
+                        Wave Energy:<br>
+                        E = ½ρg × H²<br><br>
+                        
+                        Energy Flux:<br>
+                        F = E × cₘ<br><br>
+                        
+                        Where:<br>
+                        • ω = Angular frequency<br>
+                        • k = Wavenumber<br>
+                        • h = Water depth<br>
+                        • H = Wave height<br>
+                        • c = Phase speed<br>
+                        • cₘ = Group velocity
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Surface gravity waves are the most visible ocean waves. In shallow water (kh < π/10), waves become non-dispersive with c = √(gh). Wave energy propagates at the group velocity, which differs from phase speed in dispersive waves. Wave breaking occurs when H/h > 0.78.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Wave Period T (s)</label>
+                            <input type="number" id="wavePeriod" value="8" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Wave Height H (m)</label>
+                            <input type="number" id="waveHeight" value="2" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Water Depth h (m)</label>
+                            <input type="number" id="waveDepth" value="50" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Wave Direction (degrees)</label>
+                            <input type="number" id="waveDir" value="270" step="1">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateSurfaceWaves()">Calculate Wave Properties</button>
+                    <div id="waveResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🌀 Internal Waves</h3>
+                    <div class="equation-box">
+                        Internal Wave Dispersion:<br>
+                        ω² = N² × k²/(k² + m²)<br><br>
+                        
+                        Vertical Wavenumber:<br>
+                        m² = (N² - ω²)k²/(ω² - f²)<br><br>
+                        
+                        Internal Wave Speed:<br>
+                        c = ω/k<br><br>
+                        
+                        Tidal Internal Wave:<br>
+                        c = NH/π<br><br>
+                        
+                        Critical Slope:<br>
+                        γc = (ω² - f²)/(N² - ω²)<br><br>
+                        
+                        Where:<br>
+                        • N = Brunt-Väisälä frequency<br>
+                        • m = Vertical wavenumber<br>
+                        • γc = Critical slope<br>
+                        • ω = Wave frequency<br>
+                        • f = Coriolis frequency
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Internal waves propagate along density interfaces and are crucial for vertical mixing in stratified waters. They can be generated by tidal flow over topography, wind stress, or flow instabilities. The critical slope determines where internal waves can propagate vs. reflect.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Wave Frequency ω (rad/s)</label>
+                            <input type="number" id="intWaveFreq" value="0.0001" step="0.00001">
+                        </div>
+                        <div class="param-input">
+                            <label>Horizontal Wavenumber k (rad/m)</label>
+                            <input type="number" id="horizWavenum" value="0.001" step="0.0001">
+                        </div>
+                        <div class="param-input">
+                            <label>Bottom Slope (degrees)</label>
+                            <input type="number" id="bottomSlope" value="2" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Tidal Amplitude (m)</label>
+                            <input type="number" id="tidalAmp" value="1" step="0.1">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateInternalWaves()">Calculate Internal Waves</button>
+                    <div id="intWaveResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🌙 Tidal Dynamics</h3>
+                    <div class="equation-box">
+                        Shallow Water Equations:<br>
+                        ∂u/∂t - fv = -g∂η/∂x - ru/h<br>
+                        ∂v/∂t + fu = -g∂η/∂y - rv/h<br>
+                        ∂η/∂t + ∂(hu)/∂x + ∂(hv)/∂y = 0<br><br>
+                        
+                        Tidal Wave Speed:<br>
+                        c = √(gh)<br><br>
+                        
+                        Tidal Excursion:<br>
+                        A = U₀/ω<br><br>
+                        
+                        Bottom Friction:<br>
+                        r = Cᴅ|u|<br><br>
+                        
+                        Where:<br>
+                        • u, v = Velocity components<br>
+                        • η = Surface elevation<br>
+                        • r = Bottom friction coefficient<br>
+                        • A = Tidal excursion<br>
+                        • U₀ = Tidal velocity amplitude
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Tidal dynamics in shallow water are governed by the shallow water equations, which include Coriolis effects, pressure gradients, and bottom friction. The tidal excursion length determines how far water parcels move during a tidal cycle, important for transport processes.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Tidal Range (m)</label>
+                            <input type="number" id="tidalRange" value="3" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Tidal Period (hours)</label>
+                            <input type="number" id="tidalPeriod" value="12.42" step="0.01">
+                        </div>
+                        <div class="param-input">
+                            <label>Max Tidal Velocity (m/s)</label>
+                            <input type="number" id="maxTidalVel" value="1.2" step="0.1">
+                        </div>
+                        <div class="param-input">
+                            <label>Bottom Drag Coeff Cᴅ</label>
+                            <input type="number" id="tidalDrag" value="0.003" step="0.0001">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateTides()">Calculate Tidal Parameters</button>
+                    <div id="tidalResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>⚡ Inertial Oscillations</h3>
+                    <div class="equation-box">
+                        Inertial Frequency:<br>
+                        f = 2Ω sin(φ)<br><br>
+                        
+                        Inertial Period:<br>
+                        Tᵢ = 2π/f<br><br>
+                        
+                        Inertial Circle Radius:<br>
+                        R = U/f<br><br>
+                        
+                        Mixed Layer Response:<br>
+                        u(t) = U₀ cos(ft + φ₀)<br>
+                        v(t) = U₀ sin(ft + φ₀)<br><br>
+                        
+                        Damping Time Scale:<br>
+                        τ = H²/(π²Kᵥ)<br><br>
+                        
+                        Where:<br>
+                        • Ω = Earth's rotation rate<br>
+                        • φ = Latitude<br>
+                        • U = Initial velocity<br>
+                        • R = Inertial radius<br>
+                        • τ = Damping time
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Inertial oscillations occur when water parcels are displaced from geostrophic equilibrium, causing them to move in circular or elliptical paths at the local inertial frequency. These are common after storm events and contribute to upper ocean mixing through shear-induced turbulence.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Initial Velocity U₀ (m/s)</label>
+                            <input type="number" id="initialVel" value="0.5" step="0.01">
+                        </div>
+                        <div class="param-input">
+                            <label>Mixed Layer Depth (m)</label>
+                            <input type="number" id="mixedLayerDepth" value="25" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Vertical Diffusivity (m²/s)</label>
+                            <input type="number" id="inertialDiff" value="0.01" step="0.001">
+                        </div>
+                        <div class="param-input">
+                            <label>Time Since Event (hours)</label>
+                            <input type="number" id="timeEvent" value="24" step="1">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateInertial()">Calculate Inertial Motion</button>
+                    <div id="inertialResults" class="results-box"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Circulation & Transport Section -->
+        <div id="circulation" class="content-section">
+            <div class="process-grid">
+                <div class="process-card">
+                    <h3>🔄 Coastal Circulation</h3>
+                    <div class="equation-box">
+                        Alongshore Momentum Balance:<br>
+                        ∂v/∂t = -g∂η/∂y + τˢʸ/ρh - τᵇʸ/ρh<br><br>
+                        
+                        Cross-shore Transport:<br>
+                        Q = ∫₀ʰ u dz<br><br>
+                        
+                        Coastal Jet Velocity:<br>
+                        v = (τˢʸ/ρf) × [1 - exp(-fh/Aᵥ)]<br><br>
+                        
+                        Thermal Wind Relation:<br>
+                        ∂v/∂z = -(g/ρ₀f) × ∂ρ/∂x<br><br>
+                        
+                        Sverdrup Transport:<br>
+                        Qₛ = (1/βρ) × curl(τ/f)<br><br>
+                        
+                        Where:<br>
+                        • τˢ, τᵇ = Surface and bottom stress<br>
+                        • Q = Transport<br>
+                        • β = Planetary vorticity gradient<br>
+                        • curl(τ) = Wind stress curl
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Coastal circulation is driven by wind stress, density gradients, and topographic effects. Alongshore winds create coastal jets, while cross-shore density gradients drive thermal wind shear. The interplay between these forces determines the complex three-dimensional circulation patterns.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Alongshore Wind Stress (N/m²)</label>
+                            <input type="number" id="alongStress" value="0.1" step="0.01">
+                        </div>
+                        <div class="param-input">
+                            <label>Cross-shore Density Grad (kg/m⁴)</label>
+                            <input type="number" id="densityGrad" value="0.001" step="0.0001">
+                        </div>
+                        <div class="param-input">
+                            <label>Shelf Width (km)</label>
+                            <input type="number" id="shelfWidth" value="30" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Wind Stress Curl (N/m³)</label>
+                            <input type="number" id="stressCurl" value="1e-7" step="1e-8">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateCirculation()">Calculate Circulation</button>
+                    <div id="circResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🌊 Cross-shelf Exchange</h3>
+                    <div class="equation-box">
+                        Ekman Pumping:<br>
+                        wₑ = (1/ρf) × curl(τ)<br><br>
+                        
+                        Bottom Ekman Transport:<br>
+                        Mᵦ = τᵦ/(ρf)<br><br>
+                        
+                        Ramp Relaxation:<br>
+                        u(t) = u∞[1 - exp(-t/T)]<br><br>
+                        
+                        Exchange Time Scale:<br>
+                        T = L²/(2Kₕ)<br><br>
+                        
+                        Flushing Time:<br>
+                        Tf = V/Q<br><br>
+                        
+                        Where:<br>
+                        • wₑ = Ekman pumping velocity<br>
+                        • Mᵦ = Bottom Ekman transport<br>
+                        • T = Adjustment time scale<br>
+                        • L = Cross-shelf scale<br>
+                        • Kₕ = Horizontal diffusivity<br>
+                        • V = Volume, Q = Exchange rate
+                    </div>
+                    
+                    <div class="explanation">
+                        <strong>Physical Explanation:</strong> Cross-shelf exchange transports water, nutrients, and organisms between coastal and offshore waters. It's driven by Ekman transport, density-driven flows, and tidal mixing. The exchange time scale determines how quickly coastal waters are renewed.
+                    </div>
+                    
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Cross-shelf Distance (km)</label>
+                            <input type="number" id="crossDistance" value="20" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Horizontal Diffusivity (m²/s)</label>
+                            <input type="number" id="horizDiff" value="100" step="10">
+                        </div>
+                        <div class="param-input">
+                            <label>Coastal Volume (km³)</label>
+                            <input type="number" id="coastalVol" value="50" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Exchange Rate (m³/s)</label>
+                            <input type="number" id="exchangeRate" value="1000" step="100">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateExchange()">Calculate Exchange</button>
+                    <div id="exchangeResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card full-width">
+                    <h3>📊 Integrated Coastal Analysis</h3>
+                    <div class="chart-container">
+                        <canvas id="coastalChart" width="400" height="300"></canvas>
+                    </div>
+                    <button class="calculate-btn" onclick="generateCoastalProfile()">Generate Coastal Profiles</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Integrated Analysis Section -->
+        <div id="analysis" class="content-section">
+            <div class="theory-section">
+                <h4>🎯 Coastal Ocean Dynamics Summary</h4>
+                <p>Coastal physical oceanography involves the complex interaction of multiple processes operating on different spatial and temporal scales. The 100m depth represents a transition zone where both shallow water and deep water dynamics can be important.</p>
+                
+                <h4>Key Dimensionless Parameters:</h4>
+                <div class="equation-box">
+                    Rossby Number: Ro = U/(fL) - Inertial vs. Coriolis forces<br>
+                    Richardson Number: Ri = N²/(∂u/∂z)² - Stratification vs. shear<br>
+                    Burger Number: Bu = (NH/fL)² - Stratification vs. rotation<br>
+                    Froude Number: Fr = U/√(gh) - Inertial vs. gravitational forces<br>
+                    Reynolds Number: Re = UL/ν - Inertial vs. viscous forces
+                </div>
+            </div>
+            
+            <div class="process-grid">
+                <div class="process-card">
+                    <h3>⚖️ Scale Analysis</h3>
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Characteristic Velocity (m/s)</label>
+                            <input type="number" id="scaleVel" value="0.5" step="0.01">
+                        </div>
+                        <div class="param-input">
+                            <label>Length Scale (km)</label>
+                            <input type="number" id="scaleLength" value="10" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Time Scale (hours)</label>
+                            <input type="number" id="scaleTime" value="12" step="1">
+                        </div>
+                        <div class="param-input">
+                            <label>Kinematic Viscosity (m²/s)</label>
+                            <input type="number" id="kinVisc" value="1e-6" step="1e-7">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateScales()">Calculate Dimensionless Numbers</button>
+                    <div id="scaleResults" class="results-box"></div>
+                </div>
+
+                <div class="process-card">
+                    <h3>🌡️ Environmental Conditions</h3>
+                    <div class="parameters-grid">
+                        <div class="param-input">
+                            <label>Season</label>
+                            <select id="season" style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+                                <option value="spring">Spring</option>
+                                <option value="summer">Summer</option>
+                                <option value="fall">Fall</option>
+                                <option value="winter">Winter</option>
+                            </select>
+                        </div>
+                        <div class="param-input">
+                            <label>Weather Condition</label>
+                            <select id="weather" style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+                                <option value="calm">Calm</option>
+                                <option value="moderate">Moderate</option>
+                                <option value="storm">Storm</option>
+                                <option value="post-storm">Post-Storm</option>
+                            </select>
+                        </div>
+                        <div class="param-input">
+                            <label>Tidal Phase</label>
+                            <select id="tidalPhase" style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+                                <option value="spring">Spring Tide</option>
+                                <option value="neap">Neap Tide</option>
+                            </select>
+                        </div>
+                        <div class="param-input">
+                            <label>Coastal Orientation</label>
+                            <select id="coastalOrient" style="width: 100%; padding: 10px; border-radius: 5px; border: none;">
+                                <option value="ns">North-South</option>
+                                <option value="ew">East-West</option>
+                                <option value="ne-sw">NE-SW</option>
+                                <option value="nw-se">NW-SE</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="analyzeConditions()">Analyze Environmental Impact</button>
+                    <div id="conditionResults" class="results-box"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let coastalChart;
+
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.content-section');
+            sections.forEach(section => section.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected section and activate tab
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function calculateWindStress() {
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const dragCoeff = parseFloat(document.getElementById('dragCoeff').value);
+            const eddyVisc = parseFloat(document.getElementById('eddyVisc').value);
+            
+            const rho_air = 1.225; // kg/m³
+            const rho_water = 1025; // kg/m³
+            const omega = 7.27e-5; // Earth's rotation rate
+            
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            const windStress = rho_air * dragCoeff * windSpeed * windSpeed;
+            const ekmanTransport = windStress / (rho_water * Math.abs(f));
+            const ekmanDepth = Math.PI * Math.sqrt(2 * eddyVisc / Math.abs(f));
+            const frictionVel = Math.sqrt(windStress / rho_water);
+            
+            document.getElementById('windResults').innerHTML = `
+                <h4>Wind Stress & Ekman Transport Results:</h4>
+                <p><strong>Coriolis Parameter f:</strong> ${f.toExponential(2)} s⁻¹</p>
+                <p><strong>Wind Stress τ:</strong> ${windStress.toFixed(3)} N/m²</p>
+                <p><strong>Ekman Transport:</strong> ${ekmanTransport.toFixed(2)} m²/s</p>
+                <p><strong>Ekman Depth:</strong> ${ekmanDepth.toFixed(1)} m</p>
+                <p><strong>Friction Velocity u*:</strong> ${frictionVel.toFixed(4)} m/s</p>
+                <p><strong>Transport Direction:</strong> ${f > 0 ? '90° right of wind' : '90° left of wind'}</p>
+            `;
+            document.getElementById('windResults').style.display = 'block';
+        }
+
+        function calculateUpwelling() {
+            const alongshoreWind = parseFloat(document.getElementById('alongshoreWind').value);
+            const crossshoreWind = parseFloat(document.getElementById('crossshoreWind').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            const vertDiff = parseFloat(document.getElementById('vertDiff').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            
+            const omega = 7.27e-5;
+            const rho_air = 1.225;
+            const rho_water = 1025;
+            const dragCoeff = 0.0015;
+            
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            const tau_along = rho_air * dragCoeff * alongshoreWind * Math.abs(alongshoreWind);
+            const tau_cross = rho_air * dragCoeff * crossshoreWind * Math.abs(crossshoreWind);
+            
+            // Upwelling velocity (simplified)
+            const upwellingVel = tau_along / (rho_water * Math.abs(f)) / 1000; // m/s
+            const upwellingIndex = -tau_along / (rho_water * Math.abs(f)) * 1000; // m³/s/100m
+            const relaxationTime = waterDepth * waterDepth / (Math.PI * Math.PI * vertDiff) / 86400; // days
+            
+            const upwellingType = upwellingIndex > 0 ? 'Upwelling' : 'Downwelling';
+            
+            document.getElementById('upwellingResults').innerHTML = `
+                <h4>Upwelling/Downwelling Results:</h4>
+                <p><strong>Process Type:</strong> ${upwellingType}</p>
+                <p><strong>Vertical Velocity:</strong> ${Math.abs(upwellingVel * 1000).toFixed(2)} mm/s</p>
+                <p><strong>Upwelling Index:</strong> ${Math.abs(upwellingIndex).toFixed(1)} m³/s/100m</p>
+                <p><strong>Relaxation Time:</strong> ${relaxationTime.toFixed(1)} days</p>
+                <p><strong>Alongshore Stress:</strong> ${tau_along.toFixed(3)} N/m²</p>
+                <p><strong>Cross-shore Stress:</strong> ${tau_cross.toFixed(3)} N/m²</p>
+            `;
+            document.getElementById('upwellingResults').style.display = 'block';
+        }
+
+        function calculateRossby() {
+            const stratification = parseFloat(document.getElementById('stratification').value);
+            const horizScale = parseFloat(document.getElementById('horizScale').value) * 1000; // Convert to m
+            const surfDensity = parseFloat(document.getElementById('surfDensity').value);
+            const bottomDensity = parseFloat(document.getElementById('bottomDensity').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            
+            const omega = 7.27e-5;
+            const g = 9.81;
+            
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            const internalRossby = stratification * waterDepth / Math.abs(f);
+            const barotropicRossby = Math.sqrt(g * waterDepth) / Math.abs(f);
+            const burgerNumber = Math.pow(internalRossby / horizScale, 2);
+            
+            // Calculate N from density profile
+            const densityDiff = bottomDensity - surfDensity;
+            const N_calculated = Math.sqrt(g * densityDiff / (surfDensity * waterDepth));
+            
+            document.getElementById('rossbyResults').innerHTML = `
+                <h4>Rossby Deformation Radius Results:</h4>
+                <p><strong>Internal Rossby Radius:</strong> ${(internalRossby/1000).toFixed(1)} km</p>
+                <p><strong>Barotropic Rossby Radius:</strong> ${(barotropicRossby/1000).toFixed(0)} km</p>
+                <p><strong>Burger Number:</strong> ${burgerNumber.toFixed(3)}</p>
+                <p><strong>Calculated N:</strong> ${N_calculated.toFixed(4)} s⁻¹</p>
+                <p><strong>Dynamics:</strong> ${burgerNumber > 1 ? 'Stratification dominates' : 'Rotation dominates'}</p>
+                <p><strong>Geostrophic Adjustment:</strong> ${internalRossby < horizScale ? 'Fast' : 'Slow'}</p>
+            `;
+            document.getElementById('rossbyResults').style.display = 'block';
+        }
+
+        function calculateGeostrophic() {
+            const sealevelGrad = parseFloat(document.getElementById('sealevelGrad').value) / 1000; // Convert to m/m
+            const charVel = parseFloat(document.getElementById('charVel').value);
+            const curvRadius = parseFloat(document.getElementById('curvRadius').value) * 1000; // Convert to m
+            const pressGrad = parseFloat(document.getElementById('pressGrad').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const horizScale = parseFloat(document.getElementById('horizScale').value) * 1000;
+            
+            const omega = 7.27e-5;
+            const g = 9.81;
+            const rho = 1025;
+            
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            const geostrophicVel = g * sealevelGrad / Math.abs(f);
+            const rossbyNumber = charVel / (Math.abs(f) * horizScale);
+            const gradientWind = charVel * charVel / curvRadius + Math.abs(f) * charVel;
+            const pressureForce = pressGrad / rho;
+            
+            document.getElementById('geoResults').innerHTML = `
+                <h4>Geostrophic & Ageostrophic Flow Results:</h4>
+                <p><strong>Geostrophic Velocity:</strong> ${geostrophicVel.toFixed(3)} m/s</p>
+                <p><strong>Rossby Number:</strong> ${rossbyNumber.toFixed(3)}</p>
+                <p><strong>Flow Regime:</strong> ${rossbyNumber < 0.1 ? 'Geostrophic' : rossbyNumber < 1 ? 'Quasi-geostrophic' : 'Ageostrophic'}</p>
+                <p><strong>Gradient Wind Term:</strong> ${gradientWind.toFixed(4)} m/s²</p>
+                <p><strong>Pressure Force:</strong> ${pressureForce.toFixed(4)} m/s²</p>
+                <p><strong>Curvature Effect:</strong> ${charVel*charVel/curvRadius > Math.abs(f)*charVel ? 'Significant' : 'Negligible'}</p>
+            `;
+            document.getElementById('geoResults').style.display = 'block';
+        }
+
+        function calculateStratification() {
+            const surfTemp = parseFloat(document.getElementById('surfTemp').value);
+            const bottomTemp = parseFloat(document.getElementById('bottomTemp').value);
+            const surfSal = parseFloat(document.getElementById('surfSal').value);
+            const bottomSal = parseFloat(document.getElementById('bottomSal').value);
+            const velShear = parseFloat(document.getElementById('velShear').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            
+            const g = 9.81;
+            const alpha = 2e-4; // Thermal expansion coefficient
+            const beta = 7.6e-4; // Haline contraction coefficient
+            const rho0 = 1025;
+            
+            // Calculate density difference
+            const tempEffect = -alpha * (bottomTemp - surfTemp);
+            const salEffect = beta * (bottomSal - surfSal);
+            const densityDiff = rho0 * (tempEffect + salEffect);
+            
+            // Brunt-Väisälä frequency
+            const N2 = g * densityDiff / (rho0 * waterDepth);
+            const N = Math.sqrt(Math.abs(N2));
+            
+            // Richardson number
+            const Ri = N2 / (velShear * velShear);
+            
+            // Potential density
+            const surfSigma = rho0 * (1 - alpha * (surfTemp - 20) + beta * (surfSal - 35)) - 1000;
+            const bottomSigma = rho0 * (1 - alpha * (bottomTemp - 20) + beta * (bottomSal - 35)) - 1000;
+            
+            document.getElementById('stratResults').innerHTML = `
+                <h4>Density Stratification Results:</h4>
+                <p><strong>N² (Brunt-Väisälä):</strong> ${N2.toExponential(2)} s⁻²</p>
+                <p><strong>N frequency:</strong> ${N.toFixed(4)} s⁻¹</p>
+                <p><strong>Richardson Number:</strong> ${Ri.toFixed(2)}</p>
+                <p><strong>Stability:</strong> ${Ri > 0.25 ? 'Stable (no mixing)' : 'Unstable (turbulent mixing)'}</p>
+                <p><strong>Surface σₜ:</strong> ${surfSigma.toFixed(2)} kg/m³</p>
+                <p><strong>Bottom σₜ:</strong> ${bottomSigma.toFixed(2)} kg/m³</p>
+                <p><strong>Density Gradient:</strong> ${(densityDiff/waterDepth).toFixed(4)} kg/m⁴</p>
+            `;
+            document.getElementById('stratResults').style.display = 'block';
+        }
+
+        function calculateMixing() {
+            const frictionVel = parseFloat(document.getElementById('frictionVel').value);
+            const heightBottom = parseFloat(document.getElementById('heightBottom').value);
+            const mixingLength = parseFloat(document.getElementById('mixingLength').value);
+            const tke = parseFloat(document.getElementById('tke').value);
+            const stratification = parseFloat(document.getElementById('stratification').value);
+            
+            const kappa = 0.4; // von Karman constant
+            const g = 9.81;
+            
+            // Mixing length
+            const l = kappa * heightBottom / (1 + kappa * heightBottom / mixingLength);
+            
+            // Eddy viscosity
+            const eddyVisc = l * Math.sqrt(tke);
+            
+            // Energy dissipation
+            const epsilon = Math.pow(frictionVel, 3) / (kappa * heightBottom);
+            
+            // Ozmidov scale
+            const ozmidov = Math.sqrt(epsilon / Math.pow(stratification, 3));
+            
+            // Turbulent Reynolds number
+            const Re_turb = Math.sqrt(tke) * l / 1e-6;
+            
+            document.getElementById('mixingResults').innerHTML = `
+                <h4>Turbulent Mixing Results:</h4>
+                <p><strong>Mixing Length:</strong> ${l.toFixed(2)} m</p>
+                <p><strong>Eddy Viscosity:</strong> ${eddyVisc.toFixed(4)} m²/s</p>
+                <p><strong>Energy Dissipation:</strong> ${epsilon.toExponential(2)} m²/s³</p>
+                <p><strong>Ozmidov Scale:</strong> ${ozmidov.toFixed(2)} m</p>
+                <p><strong>Turbulent Re:</strong> ${Re_turb.toExponential(2)}</p>
+                <p><strong>Mixing Regime:</strong> ${ozmidov > l ? 'Buoyancy limited' : 'Shear dominated'}</p>
+            `;
+            document.getElementById('mixingResults').style.display = 'block';
+        }
+
+        function calculateBottomLayer() {
+            const bottomVel = parseFloat(document.getElementById('bottomVel').value);
+            const roughHeight = parseFloat(document.getElementById('roughHeight').value);
+            const refHeight = parseFloat(document.getElementById('refHeight').value);
+            const sedimentType = document.getElementById('sedimentType').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            
+            const kappa = 0.4;
+            const omega = 7.27e-5;
+            const rho = 1025;
+            
+            // Adjust roughness based on sediment type
+            let ks = roughHeight;
+            switch(sedimentType) {
+                case 'sand': ks = 0.006; break;
+                case 'gravel': ks = 0.05; break;
+                case 'mud': ks = 0.001; break;
+                case 'rock': ks = 0.1; break;
+            }
+            
+            const z0 = ks / 30;
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            
+            // Drag coefficient
+            const Cd = Math.pow(kappa / Math.log(refHeight / z0), 2);
+            
+            // Bottom stress
+            const bottomStress = rho * Cd * bottomVel * bottomVel;
+            
+            // Friction velocity
+            const uStar = Math.sqrt(bottomStress / rho);
+            
+            // Boundary layer height
+            const boundaryHeight = 0.4 * uStar / Math.abs(f);
+            
+            // Log layer velocity at reference height
+            const logVel = (uStar / kappa) * Math.log(refHeight / z0);
+            
+            document.getElementById('bottomResults').innerHTML = `
+                <h4>Bottom Boundary Layer Results:</h4>
+                <p><strong>Roughness Length z₀:</strong> ${(z0*1000).toFixed(2)} mm</p>
+                <p><strong>Drag Coefficient Cᴅ:</strong> ${Cd.toFixed(4)}</p>
+                <p><strong>Bottom Stress:</strong> ${bottomStress.toFixed(3)} N/m²</p>
+                <p><strong>Friction Velocity u*:</strong> ${uStar.toFixed(4)} m/s</p>
+                <p><strong>Boundary Layer Height:</strong> ${boundaryHeight.toFixed(1)} m</p>
+                <p><strong>Log Layer Velocity:</strong> ${logVel.toFixed(3)} m/s</p>
+                <p><strong>Flow Regime:</strong> ${boundaryHeight < 100 ? 'Thin boundary layer' : 'Thick boundary layer'}</p>
+            `;
+            document.getElementById('bottomResults').style.display = 'block';
+        }
+
+        function calculateSurfaceWaves() {
+            const wavePeriod = parseFloat(document.getElementById('wavePeriod').value);
+            const waveHeight = parseFloat(document.getElementById('waveHeight').value);
+            const waveDepth = parseFloat(document.getElementById('waveDepth').value);
+            const waveDir = parseFloat(document.getElementById('waveDir').value);
+            
+            const g = 9.81;
+            const rho = 1025;
+            
+            const omega = 2 * Math.PI / wavePeriod;
+            const k = omega * omega / g; // Deep water approximation initially
+            
+            // Iterative solution for dispersion relation
+            let k_new = k;
+            for (let i = 0; i < 10; i++) {
+                k_new = omega * omega / (g * Math.tanh(k_new * waveDepth));
+            }
+            k = k_new;
+            
+            const wavelength = 2 * Math.PI / k;
+            const phaseSpeed = omega / k;
+            const groupVel = 0.5 * phaseSpeed * (1 + 2 * k * waveDepth / Math.sinh(2 * k * waveDepth));
+            
+            // Wave energy and power
+            const waveEnergy = 0.5 * rho * g * waveHeight * waveHeight;
+            const wavePower = waveEnergy * groupVel;
+            
+            // Shallow water parameter
+            const kh = k * waveDepth;
+            let waterType;
+            if (kh < Math.PI/10) waterType = 'Shallow water';
+            else if (kh > Math.PI) waterType = 'Deep water';
+            else waterType = 'Intermediate depth';
+            
+            // Breaking criterion
+            const breakingRatio = waveHeight / waveDepth;
+            const willBreak = breakingRatio > 0.78;
+            
+            document.getElementById('waveResults').innerHTML = `
+                <h4>Surface Wave Results:</h4>
+                <p><strong>Wavelength:</strong> ${wavelength.toFixed(1)} m</p>
+                <p><strong>Wave Number k:</strong> ${k.toFixed(4)} rad/m</p>
+                <p><strong>Phase Speed:</strong> ${phaseSpeed.toFixed(2)} m/s</p>
+                <p><strong>Group Velocity:</strong> ${groupVel.toFixed(2)} m/s</p>
+                <p><strong>Wave Energy:</strong> ${(waveEnergy/1000).toFixed(1)} kJ/m²</p>
+                <p><strong>Wave Power:</strong> ${(wavePower/1000).toFixed(1)} kW/m</p>
+                <p><strong>Water Type:</strong> ${waterType} (kh = ${kh.toFixed(2)})</p>
+                <p><strong>Breaking:</strong> ${willBreak ? 'Will break (H/h > 0.78)' : 'Stable'}</p>
+            `;
+            document.getElementById('waveResults').style.display = 'block';
+        }
+
+        function calculateInternalWaves() {
+            const intWaveFreq = parseFloat(document.getElementById('intWaveFreq').value);
+            const horizWavenum = parseFloat(document.getElementById('horizWavenum').value);
+            const bottomSlope = parseFloat(document.getElementById('bottomSlope').value) * Math.PI / 180; // Convert to radians
+            const tidalAmp = parseFloat(document.getElementById('tidalAmp').value);
+            const stratification = parseFloat(document.getElementById('stratification').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            
+            const omega_earth = 7.27e-5;
+            const f = 2 * omega_earth * Math.sin(latitude * Math.PI / 180);
+            
+            // Vertical wavenumber
+            const m2 = (stratification*stratification - intWaveFreq*intWaveFreq) * horizWavenum*horizWavenum / 
+                      (intWaveFreq*intWaveFreq - f*f);
+            const m = Math.sqrt(Math.abs(m2));
+            
+            // Internal wave speed
+            const intWaveSpeed = intWaveFreq / horizWavenum;
+            
+            // Tidal internal wave speed
+            const tidalIntSpeed = stratification * waterDepth / Math.PI;
+            
+            // Critical slope
+            const criticalSlope = Math.sqrt((intWaveFreq*intWaveFreq - f*f) / 
+                                          (stratification*stratification - intWaveFreq*intWaveFreq));
+            
+            // Wave steepness
+            const steepness = tidalAmp * horizWavenum;
+            
+            document.getElementById('intWaveResults').innerHTML = `
+                <h4>Internal Wave Results:</h4>
+                <p><strong>Vertical Wavenumber m:</strong> ${m.toFixed(4)} rad/m</p>
+                <p><strong>Internal Wave Speed:</strong> ${intWaveSpeed.toFixed(4)} m/s</p>
+                <p><strong>Tidal Internal Speed:</strong> ${tidalIntSpeed.toFixed(3)} m/s</p>
+                <p><strong>Critical Slope:</strong> ${criticalSlope.toFixed(3)} (${(criticalSlope*180/Math.PI).toFixed(1)}°)</p>
+                <p><strong>Bottom Slope:</strong> ${(bottomSlope*180/Math.PI).toFixed(1)}°</p>
+                <p><strong>Wave Steepness:</strong> ${steepness.toFixed(3)}</p>
+                <p><strong>Propagation:</strong> ${bottomSlope < criticalSlope ? 'Propagating' : 'Reflecting'}</p>
+                <p><strong>Frequency Range:</strong> ${intWaveFreq > Math.abs(f) && intWaveFreq < stratification ? 'Valid' : 'Invalid'}</p>
+            `;
+            document.getElementById('intWaveResults').style.display = 'block';
+        }
+
+        function calculateTides() {
+            const tidalRange = parseFloat(document.getElementById('tidalRange').value);
+            const tidalPeriod = parseFloat(document.getElementById('tidalPeriod').value) * 3600; // Convert to seconds
+            const maxTidalVel = parseFloat(document.getElementById('maxTidalVel').value);
+            const tidalDrag = parseFloat(document.getElementById('tidalDrag').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            
+            const g = 9.81;
+            const rho = 1025;
+            
+            // Tidal wave speed
+            const tidalWaveSpeed = Math.sqrt(g * waterDepth);
+            
+            // Tidal frequency
+            const tidalFreq = 2 * Math.PI / tidalPeriod;
+            
+            // Tidal excursion
+            const tidalExcursion = maxTidalVel / tidalFreq;
+            
+            // Bottom friction coefficient
+            const frictionCoeff = tidalDrag * maxTidalVel;
+            
+            // Tidal energy
+            const tidalEnergy = 0.5 * rho * g * Math.pow(tidalRange/2, 2);
+            
+            // Tidal wavelength
+            const tidalWavelength = tidalWaveSpeed * tidalPeriod;
+            
+            // Tidal Froude number
+            const tidalFroude = maxTidalVel / tidalWaveSpeed;
+            
+            document.getElementById('tidalResults').innerHTML = `
+                <h4>Tidal Dynamics Results:</h4>
+                <p><strong>Tidal Wave Speed:</strong> ${tidalWaveSpeed.toFixed(1)} m/s</p>
+                <p><strong>Tidal Frequency:</strong> ${(tidalFreq*1e6).toFixed(2)} μrad/s</p>
+                <p><strong>Tidal Excursion:</strong> ${(tidalExcursion/1000).toFixed(2)} km</p>
+                <p><strong>Friction Coefficient:</strong> ${frictionCoeff.toFixed(4)} m/s</p>
+                <p><strong>Tidal Energy:</strong> ${(tidalEnergy/1000).toFixed(1)} kJ/m²</p>
+                <p><strong>Tidal Wavelength:</strong> ${(tidalWavelength/1000).toFixed(0)} km</p>
+                <p><strong>Tidal Froude Number:</strong> ${tidalFroude.toFixed(3)}</p>
+                <p><strong>Flow Regime:</strong> ${tidalFroude < 0.3 ? 'Subcritical' : tidalFroude < 1 ? 'Transitional' : 'Supercritical'}</p>
+            `;
+            document.getElementById('tidalResults').style.display = 'block';
+        }
+
+        function calculateInertial() {
+            const initialVel = parseFloat(document.getElementById('initialVel').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixedLayerDepth').value);
+            const inertialDiff = parseFloat(document.getElementById('inertialDiff').value);
+            const timeEvent = parseFloat(document.getElementById('timeEvent').value) * 3600; // Convert to seconds
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            
+            const omega = 7.27e-5;
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            
+            // Inertial period
+            const inertialPeriod = 2 * Math.PI / Math.abs(f) / 3600; // hours
+            
+            // Inertial circle radius
+            const inertialRadius = initialVel / Math.abs(f);
+            
+            // Damping time scale
+            const dampingTime = mixedLayerDepth * mixedLayerDepth / (Math.PI * Math.PI * inertialDiff) / 86400; // days
+            
+            // Current velocity after time t
+            const dampingFactor = Math.exp(-timeEvent / (dampingTime * 86400));
+            const currentVel = initialVel * dampingFactor;
+            
+            // Inertial kinetic energy
+            const inertialKE = 0.5 * initialVel * initialVel;
+            const currentKE = 0.5 * currentVel * currentVel;
+            
+            document.getElementById('inertialResults').innerHTML = `
+                <h4>Inertial Oscillation Results:</h4>
+                <p><strong>Inertial Period:</strong> ${inertialPeriod.toFixed(1)} hours</p>
+                <p><strong>Inertial Radius:</strong> ${(inertialRadius/1000).toFixed(2)} km</p>
+                <p><strong>Damping Time:</strong> ${dampingTime.toFixed(1)} days</p>
+                <p><strong>Current Velocity:</strong> ${currentVel.toFixed(3)} m/s</p>
+                <p><strong>Velocity Reduction:</strong> ${((1-dampingFactor)*100).toFixed(1)}%</p>
+                <p><strong>Initial KE:</strong> ${inertialKE.toFixed(4)} m²/s²</p>
+                <p><strong>Current KE:</strong> ${currentKE.toFixed(4)} m²/s²</p>
+                <p><strong>Energy Lost:</strong> ${((inertialKE-currentKE)/inertialKE*100).toFixed(1)}%</p>
+            `;
+            document.getElementById('inertialResults').style.display = 'block';
+        }
+
+        function calculateCirculation() {
+            const alongStress = parseFloat(document.getElementById('alongStress').value);
+            const densityGrad = parseFloat(document.getElementById('densityGrad').value);
+            const shelfWidth = parseFloat(document.getElementById('shelfWidth').value) * 1000; // Convert to m
+            const stressCurl = parseFloat(document.getElementById('stressCurl').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            
+            const omega = 7.27e-5;
+            const rho = 1025;
+            const g = 9.81;
+            const beta = 2e-11; // Planetary vorticity gradient
+            
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            
+            // Coastal jet velocity
+            const eddyVisc = 0.01; // m²/s
+            const coastalJetVel = (alongStress / (rho * Math.abs(f))) * 
+                                 (1 - Math.exp(-Math.abs(f) * waterDepth / eddyVisc));
+            
+            // Thermal wind velocity
+            const thermalWindShear = -(g / (rho * Math.abs(f))) * densityGrad;
+            const thermalWindVel = thermalWindShear * waterDepth;
+            
+            // Sverdrup transport
+            const sverdrupTransport = stressCurl / (beta * rho);
+            
+            // Cross-shore transport
+            const crossShoreTransport = alongStress / (rho * Math.abs(f));
+            
+            document.getElementById('circResults').innerHTML = `
+                <h4>Coastal Circulation Results:</h4>
+                <p><strong>Coastal Jet Velocity:</strong> ${coastalJetVel.toFixed(3)} m/s</p>
+                <p><strong>Thermal Wind Shear:</strong> ${thermalWindShear.toExponential(2)} s⁻¹</p>
+                <p><strong>Thermal Wind Velocity:</strong> ${thermalWindVel.toFixed(3)} m/s</p>
+                <p><strong>Sverdrup Transport:</strong> ${sverdrupTransport.toFixed(2)} m²/s</p>
+                <p><strong>Cross-shore Transport:</strong> ${crossShoreTransport.toFixed(3)} m²/s</p>
+                <p><strong>Transport Direction:</strong> ${crossShoreTransport > 0 ? 'Offshore' : 'Onshore'}</p>
+                <p><strong>Circulation Type:</strong> ${Math.abs(thermalWindVel) > Math.abs(coastalJetVel) ? 'Density-driven' : 'Wind-driven'}</p>
+            `;
+            document.getElementById('circResults').style.display = 'block';
+        }
+
+        function calculateExchange() {
+            const crossDistance = parseFloat(document.getElementById('crossDistance').value) * 1000; // Convert to m
+            const horizDiff = parseFloat(document.getElementById('horizDiff').value);
+            const coastalVol = parseFloat(document.getElementById('coastalVol').value) * 1e9; // Convert to m³
+            const exchangeRate = parseFloat(document.getElementById('exchangeRate').value);
+            
+            // Exchange time scale
+            const exchangeTime = crossDistance * crossDistance / (2 * horizDiff) / 86400; // days
+            
+            // Flushing time
+            const flushingTime = coastalVol / exchangeRate / 86400; // days
+            
+            // Diffusive velocity
+            const diffusiveVel = horizDiff / crossDistance;
+            
+            // Peclet number
+            const pecletNumber = 0.1 * crossDistance / horizDiff; // Assuming 0.1 m/s advective velocity
+            
+            // Residence time
+            const residenceTime = Math.min(exchangeTime, flushingTime);
+            
+            document.getElementById('exchangeResults').innerHTML = `
+                <h4>Cross-shelf Exchange Results:</h4>
+                <p><strong>Exchange Time Scale:</strong> ${exchangeTime.toFixed(1)} days</p>
+                <p><strong>Flushing Time:</strong> ${flushingTime.toFixed(1)} days</p>
+                <p><strong>Residence Time:</strong> ${residenceTime.toFixed(1)} days</p>
+                <p><strong>Diffusive Velocity:</strong> ${(diffusiveVel*1000).toFixed(2)} mm/s</p>
+                <p><strong>Peclet Number:</strong> ${pecletNumber.toFixed(1)}</p>
+                <p><strong>Transport Regime:</strong> ${pecletNumber > 10 ? 'Advection dominated' : pecletNumber > 1 ? 'Mixed' : 'Diffusion dominated'}</p>
+                <p><strong>Exchange Efficiency:</strong> ${exchangeTime < flushingTime ? 'Diffusion limited' : 'Flow limited'}</p>
+            `;
+            document.getElementById('exchangeResults').style.display = 'block';
+        }
+
+        function calculateScales() {
+            const scaleVel = parseFloat(document.getElementById('scaleVel').value);
+            const scaleLength = parseFloat(document.getElementById('scaleLength').value) * 1000; // Convert to m
+            const scaleTime = parseFloat(document.getElementById('scaleTime').value) * 3600; // Convert to s
+            const kinVisc = parseFloat(document.getElementById('kinVisc').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const stratification = parseFloat(document.getElementById('stratification').value);
+            const waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            
+            const omega = 7.27e-5;
+            const g = 9.81;
+            
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            
+            // Dimensionless numbers
+            const rossbyNumber = scaleVel / (Math.abs(f) * scaleLength);
+            const richardsonNumber = stratification * stratification / Math.pow(scaleVel / waterDepth, 2);
+            const burgerNumber = Math.pow(stratification * waterDepth / (Math.abs(f) * scaleLength), 2);
+            const froudeNumber = scaleVel / Math.sqrt(g * waterDepth);
+            const reynoldsNumber = scaleVel * scaleLength / kinVisc;
+            
+            // Additional scales
+            const strouhalNumber = scaleLength / (scaleVel * scaleTime);
+            const ekmanNumber = kinVisc / (Math.abs(f) * waterDepth * waterDepth);
+            
+            document.getElementById('scaleResults').innerHTML = `
+                <h4>Dimensionless Scale Analysis:</h4>
+                <p><strong>Rossby Number:</strong> ${rossbyNumber.toFixed(3)} (${rossbyNumber < 0.1 ? 'Geostrophic' : rossbyNumber < 1 ? 'Quasi-geostrophic' : 'Ageostrophic'})</p>
+                <p><strong>Richardson Number:</strong> ${richardsonNumber.toFixed(2)} (${richardsonNumber > 0.25 ? 'Stable' : 'Unstable'})</p>
+                <p><strong>Burger Number:</strong> ${burgerNumber.toFixed(3)} (${burgerNumber > 1 ? 'Stratified' : 'Rotational'})</p>
+                <p><strong>Froude Number:</strong> ${froudeNumber.toFixed(3)} (${froudeNumber < 1 ? 'Subcritical' : 'Supercritical'})</p>
+                <p><strong>Reynolds Number:</strong> ${reynoldsNumber.toExponential(2)} (${reynoldsNumber > 2000 ? 'Turbulent' : 'Laminar'})</p>
+                <p><strong>Strouhal Number:</strong> ${strouhalNumber.toFixed(3)}</p>
+                <p><strong>Ekman Number:</strong> ${ekmanNumber.toExponential(2)}</p>
+            `;
+            document.getElementById('scaleResults').style.display = 'block';
+        }
+
+        function analyzeConditions() {
+            const season = document.getElementById('season').value;
+            const weather = document.getElementById('weather').value;
+            const tidalPhase = document.getElementById('tidalPhase').value;
+            const coastalOrient = document.getElementById('coastalOrient').value;
+            
+            let analysis = '<h4>Environmental Impact Analysis:</h4>';
+            
+            // Seasonal effects
+            switch(season) {
+                case 'spring':
+                    analysis += '<p><strong>Spring Conditions:</strong> Increasing stratification, moderate winds, spring bloom period</p>';
+                    break;
+                case 'summer':
+                    analysis += '<p><strong>Summer Conditions:</strong> Strong stratification, weak winds, thermocline development</p>';
+                    break;
+                case 'fall':
+                    analysis += '<p><strong>Fall Conditions:</strong> Weakening stratification, increasing storms, mixing events</p>';
+                    break;
+                case 'winter':
+                    analysis += '<p><strong>Winter Conditions:</strong> Weak stratification, strong winds, deep mixing</p>';
+                    break;
+            }
+            
+            // Weather effects
+            switch(weather) {
+                case 'calm':
+                    analysis += '<p><strong>Calm Weather:</strong> Minimal wind stress, weak mixing, stratification preserved</p>';
+                    break;
+                case 'moderate':
+                    analysis += '<p><strong>Moderate Weather:</strong> Moderate upwelling/downwelling, balanced mixing</p>';
+                    break;
+                case 'storm':
+                    analysis += '<p><strong>Storm Conditions:</strong> Strong wind stress, intense mixing, stratification breakdown</p>';
+                    break;
+                case 'post-storm':
+                    analysis += '<p><strong>Post-Storm:</strong> Inertial oscillations, restratification, adjustment period</p>';
+                    break;
+            }
+            
+            // Tidal effects
+            if (tidalPhase === 'spring') {
+                analysis += '<p><strong>Spring Tides:</strong> Maximum tidal range, strong tidal mixing, enhanced transport</p>';
+            } else {
+                analysis += '<p><strong>Neap Tides:</strong> Minimum tidal range, reduced mixing, stratification enhanced</p>';
+            }
+            
+            // Coastal orientation effects
+            switch(coastalOrient) {
+                case 'ns':
+                    analysis += '<p><strong>N-S Coast:</strong> East-west winds drive upwelling/downwelling</p>';
+                    break;
+                case 'ew':
+                    analysis += '<p><strong>E-W Coast:</strong> North-south winds drive upwelling/downwelling</p>';
+                    break;
+                case 'ne-sw':
+                    analysis += '<p><strong>NE-SW Coast:</strong> NW-SE winds most effective for upwelling</p>';
+                    break;
+                case 'nw-se':
+                    analysis += '<p><strong>NW-SE Coast:</strong> NE-SW winds most effective for upwelling</p>';
+                    break;
+            }
+            
+            document.getElementById('conditionResults').innerHTML = analysis;
+            document.getElementById('conditionResults').style.display = 'block';
+        }
+
+        function generateCoastalProfile() {
+            const ctx = document.getElementById('coastalChart').getContext('2d');
+            
+            // Generate profile data
+            const depths = [];
+            const temperature = [];
+            const velocity = [];
+            const density = [];
+            const mixing = [];
+            
+            for (let d = 0; d <= 100; d += 5) {
+                depths.push(-d);
+                
+                // Temperature profile (seasonal thermocline)
+                const surfTemp = 18;
+                const thermoclineDepth = 30;
+                const thermoclineStrength = 8;
+                if (d <= thermoclineDepth) {
+                    temperature.push(surfTemp - d * 0.1);
+                } else {
+                    temperature.push(surfTemp - thermoclineDepth * 0.1 - 
+                                   thermoclineStrength * (1 - Math.exp(-(d - thermoclineDepth) / 20)));
+                }
+                
+                // Velocity profile (surface intensified)
+                const surfVel = 0.5;
+                velocity.push(surfVel * Math.exp(-d / 25));
+                
+                // Density profile
+                const surfDens = 1025;
+                density.push(surfDens + d * 0.02);
+                
+                // Mixing coefficient profile
+                const surfMix = 0.01;
+                const bottomMix = 0.001;
+                mixing.push(bottomMix + (surfMix - bottomMix) * Math.exp(-d / 20));
+            }
+            
+            if (coastalChart) {
+                coastalChart.destroy();
+            }
+            
+            coastalChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: temperature,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Velocity (m/s)',
+                        data: velocity,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Density (kg/m³)',
+                        data: density.map(d => d - 1025), // Anomaly
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        yAxisID: 'y2'
+                    }, {
+                        label: 'Mixing (m²/s × 1000)',
+                        data: mixing.map(m => m * 1000),
+                        borderColor: 'rgb(153, 102, 255)',
+                        backgroundColor: 'rgba(153, 102, 255, 0.1)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Velocity (m/s) / Mixing (×1000)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Coastal Ocean Physical Profiles (0-100m depth)'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize with default chart
+        window.onload = function() {
+            generateCoastalProfile();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c8df60c21788a6',t:'MTc1NDc1OTQ4NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
