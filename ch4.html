@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Methane (CH4) Analyzer - Complete Oceanographic Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-900 via-green-800 to-teal-700 min-h-screen">
+    <div class="container mx-auto px-4 py-6">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-5xl font-bold text-white mb-4">🌊 Coastal Ocean Methane (CH₄) Analyzer</h1>
+            <p class="text-blue-100 text-xl">Complete oceanographic assessment of methane concentration and fluctuation in shallow coastal waters</p>
+            <div class="mt-4 bg-white/10 backdrop-blur-sm rounded-lg p-4 inline-block">
+                <p class="text-white text-sm">Real-time analysis of CH₄ distribution, production, consumption, and transport in 100m water column by Claudio Iturra</p>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 mb-8">
+            <!-- Environmental Parameters -->
+            <div class="xl:col-span-1 bg-white rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    🌡️ Environmental Parameters
+                </h2>
+                
+                <!-- Physical Oceanography -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-4">🌊 Physical Oceanography</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Water Temperature (°C)</label>
+                            <input type="range" id="waterTemp" min="2" max="30" value="15" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>2°C</span>
+                                <span id="waterTempValue" class="font-semibold">15°C</span>
+                                <span>30°C</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Salinity (PSU)</label>
+                            <input type="range" id="salinity" min="25" max="40" value="34" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>25</span>
+                                <span id="salinityValue" class="font-semibold">34 PSU</span>
+                                <span>40</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Pressure (dbar)</label>
+                            <input type="range" id="pressure" min="1" max="11" value="6" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>1</span>
+                                <span id="pressureValue" class="font-semibold">6 dbar</span>
+                                <span>11</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Current Speed (m/s)</label>
+                            <input type="range" id="currentSpeed" min="0" max="2" value="0.3" step="0.05" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="currentSpeedValue" class="font-semibold">0.3 m/s</span>
+                                <span>2</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Turbulence Intensity</label>
+                            <input type="range" id="turbulence" min="0.1" max="10" value="2" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Low</span>
+                                <span id="turbulenceValue" class="font-semibold">2.0</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mixed Layer Depth (m)</label>
+                            <input type="range" id="mixedLayerDepth" min="5" max="80" value="25" step="1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>5m</span>
+                                <span id="mixedLayerDepthValue" class="font-semibold">25m</span>
+                                <span>80m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chemical Parameters -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-green-700 mb-4">🧪 Chemical Parameters</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Dissolved Oxygen (mg/L)</label>
+                            <input type="range" id="dissolvedOxygen" min="0" max="15" value="8" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="dissolvedOxygenValue" class="font-semibold">8 mg/L</span>
+                                <span>15</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">pH</label>
+                            <input type="range" id="pH" min="7.0" max="8.5" value="8.1" step="0.01" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>7.0</span>
+                                <span id="pHValue" class="font-semibold">8.1</span>
+                                <span>8.5</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Total Organic Carbon (mg/L)</label>
+                            <input type="range" id="organicCarbon" min="0.5" max="20" value="3" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0.5</span>
+                                <span id="organicCarbonValue" class="font-semibold">3 mg/L</span>
+                                <span>20</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sulfate Concentration (mM)</label>
+                            <input type="range" id="sulfate" min="15" max="35" value="28" step="0.5" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>15</span>
+                                <span id="sulfateValue" class="font-semibold">28 mM</span>
+                                <span>35</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Nitrate (μM)</label>
+                            <input type="range" id="nitrate" min="0" max="50" value="10" step="0.5" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="nitrateValue" class="font-semibold">10 μM</span>
+                                <span>50</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Phosphate (μM)</label>
+                            <input type="range" id="phosphate" min="0" max="5" value="1" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0</span>
+                                <span id="phosphateValue" class="font-semibold">1 μM</span>
+                                <span>5</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biological Parameters -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-purple-700 mb-4">🦠 Biological Parameters</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Chlorophyll-a (μg/L)</label>
+                            <input type="range" id="chlorophyll" min="0.1" max="50" value="5" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0.1</span>
+                                <span id="chlorophyllValue" class="font-semibold">5 μg/L</span>
+                                <span>50</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bacterial Abundance (cells/mL)</label>
+                            <input type="range" id="bacteria" min="1" max="10" value="5" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>10⁵</span>
+                                <span id="bacteriaValue" class="font-semibold">5×10⁵</span>
+                                <span>10⁶</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Methanogen Activity</label>
+                            <input type="range" id="methanogenActivity" min="0.1" max="10" value="2" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Low</span>
+                                <span id="methanogenActivityValue" class="font-semibold">2.0</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Methanotroph Activity</label>
+                            <input type="range" id="methanotrophActivity" min="0.1" max="10" value="3" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Low</span>
+                                <span id="methanotrophActivityValue" class="font-semibold">3.0</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sediment Parameters -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-yellow-700 mb-4">🏖️ Sediment Parameters</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Sediment Type</label>
+                            <select id="sedimentType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500">
+                                <option value="sand">Sand</option>
+                                <option value="mud" selected>Mud</option>
+                                <option value="clay">Clay</option>
+                                <option value="mixed">Mixed</option>
+                                <option value="organic">Organic-rich</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Organic Matter Content (%)</label>
+                            <input type="range" id="organicMatter" min="0.5" max="15" value="5" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>0.5%</span>
+                                <span id="organicMatterValue" class="font-semibold">5%</span>
+                                <span>15%</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Bioturbation Intensity</label>
+                            <input type="range" id="bioturbation" min="0.1" max="5" value="2" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>Low</span>
+                                <span id="bioturbationValue" class="font-semibold">2.0</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Gas Seepage Rate</label>
+                            <input type="range" id="gasSeepage" min="0" max="10" value="1" step="0.1" class="w-full">
+                            <div class="flex justify-between text-xs text-gray-500">
+                                <span>None</span>
+                                <span id="gasSeepageValue" class="font-semibold">1.0</span>
+                                <span>High</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Scenarios -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">⚡ Quick Scenarios</h3>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setScenario('pristine')" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded text-sm">🌊 Pristine</button>
+                        <button onclick="setScenario('eutrophic')" class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded text-sm">🌿 Eutrophic</button>
+                        <button onclick="setScenario('hypoxic')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm">⚠️ Hypoxic</button>
+                        <button onclick="setScenario('seepage')" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-2 rounded text-sm">💨 Gas Seepage</button>
+                        <button onclick="setScenario('upwelling')" class="bg-teal-500 hover:bg-teal-600 text-white px-3 py-2 rounded text-sm">⬆️ Upwelling</button>
+                        <button onclick="setScenario('stratified')" class="bg-purple-500 hover:bg-purple-600 text-white px-3 py-2 rounded text-sm">📊 Stratified</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Methane Analysis Results -->
+            <div class="xl:col-span-2 bg-white rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    📊 Methane (CH₄) Analysis & Distribution
+                </h2>
+                
+                <!-- Real-time Methane Concentrations -->
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <h4 class="font-bold text-blue-700 text-sm mb-1">🌊 Surface CH₄</h4>
+                        <p id="surfaceCH4" class="text-2xl font-bold text-blue-600">0 nM</p>
+                        <p id="surfaceSaturation" class="text-xs text-blue-500">0% saturation</p>
+                    </div>
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <h4 class="font-bold text-green-700 text-sm mb-1">🌿 Mixed Layer CH₄</h4>
+                        <p id="mixedLayerCH4" class="text-2xl font-bold text-green-600">0 nM</p>
+                        <p id="mixedLayerGradient" class="text-xs text-green-500">0 nM/m</p>
+                    </div>
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <h4 class="font-bold text-purple-700 text-sm mb-1">🔬 Deep CH₄</h4>
+                        <p id="deepCH4" class="text-2xl font-bold text-purple-600">0 nM</p>
+                        <p id="deepEnrichment" class="text-xs text-purple-500">0x enrichment</p>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <h4 class="font-bold text-red-700 text-sm mb-1">💨 Sea-Air Flux</h4>
+                        <p id="seaAirFlux" class="text-2xl font-bold text-red-600">0 μmol/m²/d</p>
+                        <p id="fluxDirection" class="text-xs text-red-500">Ocean → Atmosphere</p>
+                    </div>
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <h4 class="font-bold text-yellow-700 text-sm mb-1">⚖️ Net Production</h4>
+                        <p id="netProduction" class="text-2xl font-bold text-yellow-600">0 nM/d</p>
+                        <p id="productionBalance" class="text-xs text-yellow-500">Production vs Consumption</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+                        <h4 class="font-bold text-indigo-700 text-sm mb-1">📈 Fluctuation Index</h4>
+                        <p id="fluctuationIndex" class="text-2xl font-bold text-indigo-600">0</p>
+                        <p id="fluctuationLevel" class="text-xs text-indigo-500">Stability Level</p>
+                    </div>
+                </div>
+
+                <!-- Methane Concentration Profile Chart -->
+                <div class="relative mb-6" style="height: 350px;">
+                    <canvas id="methaneProfileChart"></canvas>
+                </div>
+
+                <!-- Process Rates Analysis -->
+                <div class="bg-gray-50 p-4 rounded-lg mb-6">
+                    <h4 class="font-bold text-gray-700 mb-3">⚗️ Methane Process Rates</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                            <span class="font-semibold">Methanogenesis:</span>
+                            <span id="methanogenesisRate" class="ml-2 text-green-600">-- nM/d</span>
+                            <div id="methanogenesisZone" class="text-xs text-gray-500">Zone: --</div>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Methanotrophy:</span>
+                            <span id="methanotrophyRate" class="ml-2 text-red-600">-- nM/d</span>
+                            <div id="methanotrophyZone" class="text-xs text-gray-500">Zone: --</div>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Anaerobic Oxidation:</span>
+                            <span id="anaerobicOxidation" class="ml-2 text-blue-600">-- nM/d</span>
+                            <div id="anaerobicZone" class="text-xs text-gray-500">Zone: --</div>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Bubble Transport:</span>
+                            <span id="bubbleTransport" class="ml-2 text-purple-600">-- nM/d</span>
+                            <div id="bubbleEfficiency" class="text-xs text-gray-500">Efficiency: --%</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Methane Sources and Sinks -->
+                <div class="bg-blue-50 p-4 rounded-lg mb-4 border border-blue-200">
+                    <h4 class="font-bold text-blue-700 mb-3">🔄 Methane Sources & Sinks Balance</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <h5 class="font-semibold text-green-700 mb-2">📈 Sources (Production)</h5>
+                            <div id="methaneSources" class="space-y-1">
+                                <!-- Dynamic content will be populated here -->
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="font-semibold text-red-700 mb-2">📉 Sinks (Consumption)</h5>
+                            <div id="methaneSinks" class="space-y-1">
+                                <!-- Dynamic content will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Controls -->
+                <div class="bg-green-50 p-4 rounded-lg mb-4 border border-green-200">
+                    <h4 class="font-bold text-green-700 mb-3">🌍 Environmental Controls on CH₄</h4>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                        <div>
+                            <span class="font-semibold">Temperature Effect:</span>
+                            <span id="temperatureEffect" class="ml-2 text-green-600">--</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Oxygen Control:</span>
+                            <span id="oxygenControl" class="ml-2 text-red-600">--</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Salinity Impact:</span>
+                            <span id="salinityImpact" class="ml-2 text-blue-600">--</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">pH Influence:</span>
+                            <span id="pHInfluence" class="ml-2 text-purple-600">--</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Pressure Effect:</span>
+                            <span id="pressureEffect" class="ml-2 text-indigo-600">--</span>
+                        </div>
+                        <div>
+                            <span class="font-semibold">Mixing Control:</span>
+                            <span id="mixingControl" class="ml-2 text-teal-600">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Time Series Analysis -->
+                <div class="relative mb-4" style="height: 250px;">
+                    <canvas id="methaneTimeSeriesChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Depth Profile & Analysis -->
+            <div class="xl:col-span-1 bg-white rounded-2xl shadow-2xl p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+                    📈 Depth Profile Analysis
+                </h2>
+                
+                <!-- Methane vs Depth Chart -->
+                <div class="relative mb-4" style="height: 400px;">
+                    <canvas id="depthProfileChart"></canvas>
+                </div>
+                
+                <!-- Depth Zone Analysis -->
+                <div class="space-y-3 text-sm">
+                    <div class="bg-blue-50 p-3 rounded border border-blue-200">
+                        <h5 class="font-bold text-blue-700 mb-1">Surface Layer (0-5m)</h5>
+                        <p>CH₄: <span id="surfaceLayerCH4" class="font-semibold">-- nM</span></p>
+                        <p>Process: <span id="surfaceProcess" class="font-semibold">--</span></p>
+                        <p>Flux: <span id="surfaceFlux" class="font-semibold">-- μmol/m²/d</span></p>
+                    </div>
+                    <div class="bg-green-50 p-3 rounded border border-green-200">
+                        <h5 class="font-bold text-green-700 mb-1">Mixed Layer</h5>
+                        <p>Depth: <span id="mixedLayerRange" class="font-semibold">-- m</span></p>
+                        <p>CH₄: <span id="mixedLayerCH4Range" class="font-semibold">-- nM</span></p>
+                        <p>Gradient: <span id="mixedLayerGradientValue" class="font-semibold">-- nM/m</span></p>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded border border-purple-200">
+                        <h5 class="font-bold text-purple-700 mb-1">Thermocline</h5>
+                        <p>Depth: <span id="thermoclineRange" class="font-semibold">-- m</span></p>
+                        <p>CH₄ Change: <span id="thermoclineCH4Change" class="font-semibold">-- nM</span></p>
+                        <p>Stability: <span id="thermoclineStability" class="font-semibold">--</span></p>
+                    </div>
+                    <div class="bg-yellow-50 p-3 rounded border border-yellow-200">
+                        <h5 class="font-bold text-yellow-700 mb-1">Deep Layer (50-100m)</h5>
+                        <p>CH₄: <span id="deepLayerCH4" class="font-semibold">-- nM</span></p>
+                        <p>Source: <span id="deepSource" class="font-semibold">--</span></p>
+                        <p>Transport: <span id="deepTransport" class="font-semibold">--</span></p>
+                    </div>
+                    <div class="bg-red-50 p-3 rounded border border-red-200">
+                        <h5 class="font-bold text-red-700 mb-1">Benthic Interface</h5>
+                        <p>CH₄ Flux: <span id="benthicFlux" class="font-semibold">-- nmol/cm²/d</span></p>
+                        <p>Seepage: <span id="seepageRate" class="font-semibold">--</span></p>
+                        <p>Oxidation: <span id="benthicOxidation" class="font-semibold">--%</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Comprehensive Analysis Panel -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8 mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">🧮 Methane Biogeochemical Processes</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Methanogenesis Pathways -->
+                <div class="bg-green-50 p-6 rounded-lg border border-green-200">
+                    <h3 class="font-bold text-green-700 mb-4 text-xl">🦠 Methanogenesis Pathways</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        <div class="mb-2"><strong>Acetoclastic:</strong> CH₃COOH → CH₄ + CO₂</div>
+                        <div class="mb-2"><strong>Hydrogenotrophic:</strong> CO₂ + 4H₂ → CH₄ + 2H₂O</div>
+                        <div><strong>Methylotrophic:</strong> CH₃OH → CH₄ + ½O₂</div>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>Rate Factors:</strong> Temperature (Q₁₀ = 2-4), pH (optimal 6.8-7.2), substrate availability</p>
+                        <p><strong>Inhibitors:</strong> O₂, NO₃⁻, SO₄²⁻, high salinity</p>
+                        <p><strong>Depth Distribution:</strong> Mainly in anoxic sediments and deep waters</p>
+                    </div>
+                    <div class="bg-green-100 p-3 rounded text-xs">
+                        <p><strong>Current Rate:</strong> <span id="currentMethanogenesis">-- nM/d</span></p>
+                        <p><strong>Dominant Pathway:</strong> <span id="dominantPathway">--</span></p>
+                        <p><strong>Efficiency:</strong> <span id="methanogenesisEfficiency">--%</span></p>
+                    </div>
+                </div>
+                
+                <!-- Methane Oxidation -->
+                <div class="bg-red-50 p-6 rounded-lg border border-red-200">
+                    <h3 class="font-bold text-red-700 mb-4 text-xl">🔥 Methane Oxidation</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        <div class="mb-2"><strong>Aerobic:</strong> CH₄ + 2O₂ → CO₂ + 2H₂O</div>
+                        <div class="mb-2"><strong>Anaerobic (AOM):</strong> CH₄ + SO₄²⁻ → HCO₃⁻ + HS⁻ + H₂O</div>
+                        <div><strong>Nitrite-dependent:</strong> CH₄ + 4NO₂⁻ → CO₂ + 2N₂ + 2H₂O</div>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>Aerobic Zone:</strong> Oxic waters, high efficiency (>95%)</p>
+                        <p><strong>AOM Zone:</strong> Sulfate-methane transition zone (SMTZ)</p>
+                        <p><strong>Rate Control:</strong> O₂ availability, temperature, microbial biomass</p>
+                    </div>
+                    <div class="bg-red-100 p-3 rounded text-xs">
+                        <p><strong>Aerobic Rate:</strong> <span id="aerobicOxidationRate">-- nM/d</span></p>
+                        <p><strong>AOM Rate:</strong> <span id="aomRate">-- nM/d</span></p>
+                        <p><strong>Total Oxidation:</strong> <span id="totalOxidation">-- nM/d</span></p>
+                    </div>
+                </div>
+                
+                <!-- Physical Transport -->
+                <div class="bg-blue-50 p-6 rounded-lg border border-blue-200">
+                    <h3 class="font-bold text-blue-700 mb-4 text-xl">🌊 Physical Transport</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        <div class="mb-2"><strong>Molecular Diffusion:</strong> J = -D × (∂C/∂z)</div>
+                        <div class="mb-2"><strong>Turbulent Mixing:</strong> J = -K_z × (∂C/∂z)</div>
+                        <div><strong>Bubble Transport:</strong> J = v_b × C_b × φ</div>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>D:</strong> Molecular diffusivity (~1.5×10⁻⁹ m²/s at 15°C)</p>
+                        <p><strong>K_z:</strong> Vertical eddy diffusivity (10⁻⁶ to 10⁻² m²/s)</p>
+                        <p><strong>Bubble flux:</strong> Depends on gas seepage and dissolution</p>
+                    </div>
+                    <div class="bg-blue-100 p-3 rounded text-xs">
+                        <p><strong>Diffusive Flux:</strong> <span id="diffusiveFlux">-- nmol/m²/s</span></p>
+                        <p><strong>Advective Flux:</strong> <span id="advectiveFlux">-- nmol/m²/s</span></p>
+                        <p><strong>Bubble Flux:</strong> <span id="bubbleFluxRate">-- nmol/m²/s</span></p>
+                    </div>
+                </div>
+                
+                <!-- Solubility and Partitioning -->
+                <div class="bg-purple-50 p-6 rounded-lg border border-purple-200">
+                    <h3 class="font-bold text-purple-700 mb-4 text-xl">⚗️ Solubility & Partitioning</h3>
+                    <div class="bg-white p-4 rounded border font-mono text-sm mb-4">
+                        <div class="mb-2"><strong>Henry's Law:</strong> C_aq = K_H × P_gas</div>
+                        <div class="mb-2"><strong>Temperature:</strong> K_H = K_H° × exp(d ln H/d(1/T) × (1/T - 1/T°))</div>
+                        <div><strong>Salinity:</strong> K_H = K_H° × exp(k_s × S)</div>
+                    </div>
+                    <div class="text-xs text-gray-600 space-y-1 mb-4">
+                        <p><strong>K_H° (25°C):</strong> 1.4×10⁻³ mol/L/atm</p>
+                        <p><strong>Salinity effect:</strong> k_s = -0.0157 L/mol</p>
+                        <p><strong>Saturation:</strong> C_sat = K_H × P_atm × X_CH4</p>
+                    </div>
+                    <div class="bg-purple-100 p-3 rounded text-xs">
+                        <p><strong>Solubility:</strong> <span id="methaneSolubility">-- nM</span></p>
+                        <p><strong>Saturation Level:</strong> <span id="saturationLevel">--%</span></p>
+                        <p><strong>Supersaturation:</strong> <span id="supersaturation">--x</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Advanced Analysis Panel -->
+        <div class="bg-white rounded-2xl shadow-2xl p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">📋 Advanced Methane Analysis</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Biogeochemical Zones -->
+                <div class="bg-blue-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-blue-700 mb-4 text-xl">🌊 Biogeochemical Zones</h3>
+                    <div id="biogeochemicalZones" class="space-y-3 text-sm">
+                        <!-- Dynamic content will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Microbial Ecology -->
+                <div class="bg-green-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-green-700 mb-4 text-xl">🦠 Microbial Ecology</h3>
+                    <div id="microbialEcology" class="space-y-3 text-sm">
+                        <!-- Dynamic content will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Environmental Impact -->
+                <div class="bg-purple-50 p-6 rounded-lg">
+                    <h3 class="font-bold text-purple-700 mb-4 text-xl">🌍 Environmental Impact</h3>
+                    <div id="environmentalImpact" class="space-y-3 text-sm">
+                        <!-- Dynamic content will be populated here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Interpretation -->
+            <div class="mt-8 bg-gray-50 p-6 rounded-lg">
+                <h3 class="font-bold text-gray-700 mb-4 text-xl">💡 System Interpretation</h3>
+                <div id="systemInterpretation" class="text-sm text-gray-700 leading-relaxed">
+                    <!-- Dynamic interpretation will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let methaneProfileChart = null;
+        let depthProfileChart = null;
+        let timeSeriesChart = null;
+        let isUpdating = false;
+
+        // Physical and chemical constants
+        const CONSTANTS = {
+            HENRY_CONSTANT_25C: 1.4e-3, // mol/L/atm at 25°C
+            HENRY_TEMP_COEFF: 1700, // K
+            SALINITY_COEFF: -0.0157, // L/mol
+            DIFFUSIVITY_25C: 1.5e-9, // m²/s
+            GAS_CONSTANT: 8.314, // J/mol/K
+            ATMOSPHERIC_CH4: 1.9e-6, // atm (1.9 ppm)
+            Q10_METHANOGENESIS: 3.0,
+            Q10_METHANOTROPHY: 2.5,
+            MAX_DEPTH: 100 // meters
+        };
+
+        // Initialize all controls
+        function initializeControls() {
+            const controls = [
+                'waterTemp', 'salinity', 'pressure', 'currentSpeed', 'turbulence', 'mixedLayerDepth',
+                'dissolvedOxygen', 'pH', 'organicCarbon', 'sulfate', 'nitrate', 'phosphate',
+                'chlorophyll', 'bacteria', 'methanogenActivity', 'methanotrophActivity',
+                'organicMatter', 'bioturbation', 'gasSeepage'
+            ];
+            
+            controls.forEach(id => {
+                const element = document.getElementById(id);
+                const valueElement = document.getElementById(id + 'Value');
+                
+                element.addEventListener('input', function() {
+                    updateValueDisplay(id, this.value);
+                    if (!isUpdating) {
+                        updateMethaneAnalysis();
+                    }
+                });
+            });
+            
+            // Add listeners for select elements
+            ['sedimentType'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateMethaneAnalysis);
+            });
+        }
+
+        function updateValueDisplay(id, value) {
+            const valueElement = document.getElementById(id + 'Value');
+            let unit = '';
+            let displayValue = value;
+            
+            switch(id) {
+                case 'waterTemp':
+                    unit = '°C';
+                    break;
+                case 'salinity':
+                    unit = ' PSU';
+                    break;
+                case 'pressure':
+                    unit = ' dbar';
+                    break;
+                case 'currentSpeed':
+                    unit = ' m/s';
+                    break;
+                case 'mixedLayerDepth':
+                    unit = 'm';
+                    break;
+                case 'dissolvedOxygen':
+                    unit = ' mg/L';
+                    break;
+                case 'organicCarbon':
+                    unit = ' mg/L';
+                    break;
+                case 'sulfate':
+                    unit = ' mM';
+                    break;
+                case 'nitrate':
+                case 'phosphate':
+                    unit = ' μM';
+                    break;
+                case 'chlorophyll':
+                    unit = ' μg/L';
+                    break;
+                case 'bacteria':
+                    displayValue = parseFloat(value).toFixed(1) + '×10⁵';
+                    unit = '';
+                    break;
+                case 'organicMatter':
+                    unit = '%';
+                    break;
+                default:
+                    displayValue = parseFloat(value).toFixed(1);
+            }
+            
+            valueElement.textContent = displayValue + unit;
+        }
+
+        function calculateMethaneDistribution() {
+            // Get all parameter values
+            const waterTemp = parseFloat(document.getElementById('waterTemp').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const currentSpeed = parseFloat(document.getElementById('currentSpeed').value);
+            const turbulence = parseFloat(document.getElementById('turbulence').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixedLayerDepth').value);
+            const dissolvedOxygen = parseFloat(document.getElementById('dissolvedOxygen').value);
+            const pH = parseFloat(document.getElementById('pH').value);
+            const organicCarbon = parseFloat(document.getElementById('organicCarbon').value);
+            const sulfate = parseFloat(document.getElementById('sulfate').value);
+            const nitrate = parseFloat(document.getElementById('nitrate').value);
+            const chlorophyll = parseFloat(document.getElementById('chlorophyll').value);
+            const bacteria = parseFloat(document.getElementById('bacteria').value);
+            const methanogenActivity = parseFloat(document.getElementById('methanogenActivity').value);
+            const methanotrophActivity = parseFloat(document.getElementById('methanotrophActivity').value);
+            const organicMatter = parseFloat(document.getElementById('organicMatter').value);
+            const bioturbation = parseFloat(document.getElementById('bioturbation').value);
+            const gasSeepage = parseFloat(document.getElementById('gasSeepage').value);
+            const sedimentType = document.getElementById('sedimentType').value;
+
+            // Calculate methane solubility (Henry's Law with temperature and salinity corrections)
+            const tempK = waterTemp + 273.15;
+            const henryConstant = CONSTANTS.HENRY_CONSTANT_25C * 
+                Math.exp(CONSTANTS.HENRY_TEMP_COEFF * (1/tempK - 1/298.15)) *
+                Math.exp(CONSTANTS.SALINITY_COEFF * salinity);
+            
+            const equilibriumCH4 = henryConstant * CONSTANTS.ATMOSPHERIC_CH4 * 1e9; // Convert to nM
+
+            // Calculate depth-dependent parameters
+            const depths = [];
+            const temperatures = [];
+            const oxygenLevels = [];
+            const methaneConcentrations = [];
+            const productionRates = [];
+            const consumptionRates = [];
+
+            for (let depth = 0; depth <= CONSTANTS.MAX_DEPTH; depth += 1) {
+                depths.push(depth);
+                
+                // Temperature profile (thermocline effect)
+                let temp = waterTemp;
+                if (depth > mixedLayerDepth) {
+                    const thermoclineDepth = depth - mixedLayerDepth;
+                    const tempGradient = Math.max(0.02, 0.1 - currentSpeed * 0.01);
+                    temp = waterTemp - thermoclineDepth * tempGradient;
+                }
+                temperatures.push(temp);
+                
+                // Oxygen profile
+                let oxygen = dissolvedOxygen;
+                if (depth > mixedLayerDepth) {
+                    const oxygenDecay = Math.exp(-(depth - mixedLayerDepth) / 30);
+                    oxygen = dissolvedOxygen * oxygenDecay;
+                }
+                // Add consumption by organic matter
+                oxygen = Math.max(0, oxygen - organicCarbon * 0.5 * (depth / 50));
+                oxygenLevels.push(oxygen);
+                
+                // Methanogenesis rate (temperature and substrate dependent)
+                const tempFactor = Math.pow(CONSTANTS.Q10_METHANOGENESIS, (temp - 15) / 10);
+                const substrateFactor = organicCarbon / 5; // Normalized to typical value
+                const oxygenInhibition = Math.exp(-oxygen / 2); // Strong O2 inhibition
+                const pHFactor = Math.exp(-Math.pow((pH - 7.0) / 0.5, 2)); // Optimal around pH 7
+                const depthFactor = depth > 20 ? 1 + (depth - 20) / 50 : 0.2; // Increases with depth
+                
+                let methanogenesisRate = methanogenActivity * tempFactor * substrateFactor * 
+                                       oxygenInhibition * pHFactor * depthFactor;
+                
+                // Add sediment contribution near bottom
+                if (depth > 80) {
+                    const sedimentFactor = getSedimentFactor(sedimentType) * organicMatter / 5;
+                    const seepageFactor = gasSeepage * (depth - 80) / 20;
+                    methanogenesisRate += sedimentFactor + seepageFactor;
+                }
+                
+                productionRates.push(methanogenesisRate);
+                
+                // Methanotrophy rate (oxygen dependent)
+                const methanotrophTempFactor = Math.pow(CONSTANTS.Q10_METHANOTROPHY, (temp - 15) / 10);
+                const oxygenDependence = oxygen / (oxygen + 2); // Michaelis-Menten kinetics
+                const anaerobicOxidation = sulfate > 10 ? 0.1 * methanotrophActivity : 0; // AOM
+                
+                const methanotrophyRate = methanotrophActivity * methanotrophTempFactor * 
+                                        oxygenDependence + anaerobicOxidation;
+                
+                consumptionRates.push(methanotrophyRate);
+                
+                // Calculate steady-state methane concentration
+                const netProduction = methanogenesisRate - methanotrophyRate;
+                const baseConcentration = equilibriumCH4 * (1 + netProduction / 10);
+                
+                // Add transport effects
+                const mixingFactor = depth < mixedLayerDepth ? 1 : Math.exp(-(depth - mixedLayerDepth) / 20);
+                const turbulentMixing = turbulence * mixingFactor;
+                const transportEffect = 1 + currentSpeed * 0.1;
+                
+                let methaneConc = Math.max(0, baseConcentration * transportEffect / (1 + turbulentMixing * 0.1));
+                
+                // Add bubble transport near seepage areas
+                if (gasSeepage > 5 && depth > 70) {
+                    const bubbleContribution = gasSeepage * 50 * Math.exp(-(100 - depth) / 10);
+                    methaneConc += bubbleContribution;
+                }
+                
+                methaneConcentrations.push(methaneConc);
+            }
+
+            // Calculate derived parameters
+            const surfaceCH4 = methaneConcentrations[0];
+            const deepCH4 = methaneConcentrations[CONSTANTS.MAX_DEPTH];
+            const mixedLayerCH4 = methaneConcentrations[Math.min(mixedLayerDepth, CONSTANTS.MAX_DEPTH - 1)];
+            
+            // Sea-air flux calculation (Wanninkhof relationship)
+            const windSpeed = currentSpeed * 2 + turbulence; // Approximate wind from current and turbulence
+            const gasTransferVelocity = 0.31 * Math.pow(windSpeed, 2) * Math.sqrt(600 / 16); // cm/hr
+            const supersaturation = surfaceCH4 / equilibriumCH4;
+            const seaAirFlux = gasTransferVelocity * (surfaceCH4 - equilibriumCH4) * 24 / 100; // μmol/m²/d
+            
+            // Net production calculation
+            const totalProduction = productionRates.reduce((sum, rate) => sum + rate, 0) / productionRates.length;
+            const totalConsumption = consumptionRates.reduce((sum, rate) => sum + rate, 0) / consumptionRates.length;
+            const netProduction = totalProduction - totalConsumption;
+            
+            // Fluctuation index (coefficient of variation)
+            const meanCH4 = methaneConcentrations.reduce((sum, conc) => sum + conc, 0) / methaneConcentrations.length;
+            const variance = methaneConcentrations.reduce((sum, conc) => sum + Math.pow(conc - meanCH4, 2), 0) / methaneConcentrations.length;
+            const fluctuationIndex = Math.sqrt(variance) / meanCH4;
+
+            return {
+                depths,
+                temperatures,
+                oxygenLevels,
+                methaneConcentrations,
+                productionRates,
+                consumptionRates,
+                surfaceCH4,
+                deepCH4,
+                mixedLayerCH4,
+                equilibriumCH4,
+                supersaturation,
+                seaAirFlux,
+                netProduction,
+                totalProduction,
+                totalConsumption,
+                fluctuationIndex,
+                gasTransferVelocity,
+                henryConstant
+            };
+        }
+
+        function getSedimentFactor(sedimentType) {
+            const factors = {
+                'sand': 0.5,
+                'mud': 2.0,
+                'clay': 1.5,
+                'mixed': 1.2,
+                'organic': 3.0
+            };
+            return factors[sedimentType] || 1.0;
+        }
+
+        function updateMethaneAnalysis() {
+            const results = calculateMethaneDistribution();
+            
+            // Update main displays
+            document.getElementById('surfaceCH4').textContent = results.surfaceCH4.toFixed(1) + ' nM';
+            document.getElementById('surfaceSaturation').textContent = (results.supersaturation * 100).toFixed(0) + '% saturation';
+            
+            document.getElementById('mixedLayerCH4').textContent = results.mixedLayerCH4.toFixed(1) + ' nM';
+            const gradient = (results.mixedLayerCH4 - results.surfaceCH4) / parseFloat(document.getElementById('mixedLayerDepth').value);
+            document.getElementById('mixedLayerGradient').textContent = gradient.toFixed(3) + ' nM/m';
+            
+            document.getElementById('deepCH4').textContent = results.deepCH4.toFixed(1) + ' nM';
+            const enrichment = results.deepCH4 / results.surfaceCH4;
+            document.getElementById('deepEnrichment').textContent = enrichment.toFixed(1) + 'x enrichment';
+            
+            document.getElementById('seaAirFlux').textContent = results.seaAirFlux.toFixed(1) + ' μmol/m²/d';
+            document.getElementById('fluxDirection').textContent = results.seaAirFlux > 0 ? 'Ocean → Atmosphere' : 'Atmosphere → Ocean';
+            
+            document.getElementById('netProduction').textContent = results.netProduction.toFixed(2) + ' nM/d';
+            document.getElementById('productionBalance').textContent = results.netProduction > 0 ? 'Net Production' : 'Net Consumption';
+            
+            document.getElementById('fluctuationIndex').textContent = results.fluctuationIndex.toFixed(2);
+            const fluctuationLevel = results.fluctuationIndex > 0.5 ? 'High Variability' : 
+                                   results.fluctuationIndex > 0.2 ? 'Moderate Variability' : 'Low Variability';
+            document.getElementById('fluctuationLevel').textContent = fluctuationLevel;
+
+            // Update process rates
+            updateProcessRates(results);
+            
+            // Update environmental controls
+            updateEnvironmentalControls(results);
+            
+            // Update depth zone analysis
+            updateDepthZoneAnalysis(results);
+            
+            // Update charts
+            updateMethaneProfileChart(results);
+            updateDepthProfileChart(results);
+            updateTimeSeriesChart(results);
+            
+            // Update advanced analysis
+            updateAdvancedAnalysis(results);
+        }
+
+        function updateProcessRates(results) {
+            // Process rates
+            document.getElementById('methanogenesisRate').textContent = results.totalProduction.toFixed(2) + ' nM/d';
+            document.getElementById('methanogenesisZone').textContent = 'Sediment + Deep Water';
+            
+            document.getElementById('methanotrophyRate').textContent = results.totalConsumption.toFixed(2) + ' nM/d';
+            document.getElementById('methanotrophyZone').textContent = 'Oxic Waters';
+            
+            const aomRate = results.totalConsumption * 0.2; // Approximate AOM contribution
+            document.getElementById('anaerobicOxidation').textContent = aomRate.toFixed(2) + ' nM/d';
+            document.getElementById('anaerobicZone').textContent = 'SMTZ';
+            
+            const gasSeepage = parseFloat(document.getElementById('gasSeepage').value);
+            const bubbleTransport = gasSeepage * 10;
+            document.getElementById('bubbleTransport').textContent = bubbleTransport.toFixed(1) + ' nM/d';
+            const bubbleEfficiency = Math.min(95, gasSeepage * 10);
+            document.getElementById('bubbleEfficiency').textContent = bubbleEfficiency.toFixed(0) + '%';
+
+            // Sources and sinks
+            updateSourcesSinks(results);
+        }
+
+        function updateSourcesSinks(results) {
+            const gasSeepage = parseFloat(document.getElementById('gasSeepage').value);
+            const organicMatter = parseFloat(document.getElementById('organicMatter').value);
+            
+            // Sources
+            const sources = [
+                `Sediment methanogenesis: ${(results.totalProduction * 0.6).toFixed(1)} nM/d`,
+                `Water column production: ${(results.totalProduction * 0.4).toFixed(1)} nM/d`,
+                gasSeepage > 1 ? `Gas seepage: ${(gasSeepage * 5).toFixed(1)} nM/d` : null,
+                organicMatter > 8 ? `Organic matter decomposition: ${(organicMatter * 0.5).toFixed(1)} nM/d` : null
+            ].filter(Boolean);
+            
+            document.getElementById('methaneSources').innerHTML = sources.map(s => `<div>• ${s}</div>`).join('');
+            
+            // Sinks
+            const sinks = [
+                `Aerobic oxidation: ${(results.totalConsumption * 0.8).toFixed(1)} nM/d`,
+                `Anaerobic oxidation: ${(results.totalConsumption * 0.2).toFixed(1)} nM/d`,
+                `Sea-air flux: ${Math.abs(results.seaAirFlux).toFixed(1)} μmol/m²/d`,
+                `Lateral transport: ${(results.netProduction * 0.1).toFixed(1)} nM/d`
+            ];
+            
+            document.getElementById('methaneSinks').innerHTML = sinks.map(s => `<div>• ${s}</div>`).join('');
+        }
+
+        function updateEnvironmentalControls(results) {
+            const waterTemp = parseFloat(document.getElementById('waterTemp').value);
+            const dissolvedOxygen = parseFloat(document.getElementById('dissolvedOxygen').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            const pH = parseFloat(document.getElementById('pH').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const turbulence = parseFloat(document.getElementById('turbulence').value);
+            
+            // Temperature effect
+            const tempEffect = waterTemp > 20 ? 'Enhances production' : 
+                              waterTemp > 10 ? 'Moderate effect' : 'Reduces production';
+            document.getElementById('temperatureEffect').textContent = tempEffect;
+            
+            // Oxygen control
+            const oxygenControl = dissolvedOxygen < 2 ? 'Anoxic - High production' :
+                                 dissolvedOxygen < 6 ? 'Hypoxic - Moderate production' : 'Oxic - High consumption';
+            document.getElementById('oxygenControl').textContent = oxygenControl;
+            
+            // Salinity impact
+            const salinityImpact = salinity > 35 ? 'Reduces solubility' : 'Normal solubility';
+            document.getElementById('salinityImpact').textContent = salinityImpact;
+            
+            // pH influence
+            const pHInfluence = pH < 7.5 ? 'Favors methanogenesis' : 'Neutral to inhibitory';
+            document.getElementById('pHInfluence').textContent = pHInfluence;
+            
+            // Pressure effect
+            const pressureEffect = pressure > 8 ? 'Increases solubility' : 'Normal solubility';
+            document.getElementById('pressureEffect').textContent = pressureEffect;
+            
+            // Mixing control
+            const mixingControl = turbulence > 5 ? 'High mixing - Low accumulation' :
+                                 turbulence > 2 ? 'Moderate mixing' : 'Low mixing - High accumulation';
+            document.getElementById('mixingControl').textContent = mixingControl;
+        }
+
+        function updateDepthZoneAnalysis(results) {
+            const mixedLayerDepth = parseFloat(document.getElementById('mixedLayerDepth').value);
+            
+            // Surface layer (0-5m)
+            const surfaceLayerCH4 = results.methaneConcentrations.slice(0, 6).reduce((sum, c) => sum + c, 0) / 6;
+            document.getElementById('surfaceLayerCH4').textContent = surfaceLayerCH4.toFixed(1) + ' nM';
+            document.getElementById('surfaceProcess').textContent = 'Gas exchange + mixing';
+            document.getElementById('surfaceFlux').textContent = results.seaAirFlux.toFixed(1) + ' μmol/m²/d';
+            
+            // Mixed layer
+            document.getElementById('mixedLayerRange').textContent = `0-${mixedLayerDepth} m`;
+            const mixedLayerMin = Math.min(...results.methaneConcentrations.slice(0, mixedLayerDepth));
+            const mixedLayerMax = Math.max(...results.methaneConcentrations.slice(0, mixedLayerDepth));
+            document.getElementById('mixedLayerCH4Range').textContent = `${mixedLayerMin.toFixed(1)}-${mixedLayerMax.toFixed(1)} nM`;
+            const mlGradient = (mixedLayerMax - mixedLayerMin) / mixedLayerDepth;
+            document.getElementById('mixedLayerGradientValue').textContent = mlGradient.toFixed(3) + ' nM/m';
+            
+            // Thermocline
+            const thermoclineStart = mixedLayerDepth;
+            const thermoclineEnd = Math.min(mixedLayerDepth + 30, 100);
+            document.getElementById('thermoclineRange').textContent = `${thermoclineStart}-${thermoclineEnd} m`;
+            const thermoclineCH4Change = results.methaneConcentrations[thermoclineEnd] - results.methaneConcentrations[thermoclineStart];
+            document.getElementById('thermoclineCH4Change').textContent = thermoclineCH4Change.toFixed(1) + ' nM';
+            document.getElementById('thermoclineStability').textContent = Math.abs(thermoclineCH4Change) > 10 ? 'Unstable' : 'Stable';
+            
+            // Deep layer
+            const deepLayerCH4 = results.methaneConcentrations.slice(50).reduce((sum, c) => sum + c, 0) / 50;
+            document.getElementById('deepLayerCH4').textContent = deepLayerCH4.toFixed(1) + ' nM';
+            document.getElementById('deepSource').textContent = 'Sediment + seepage';
+            document.getElementById('deepTransport').textContent = 'Diffusion + bubbles';
+            
+            // Benthic interface
+            const benthicFlux = results.totalProduction * 0.1; // nmol/cm²/d
+            document.getElementById('benthicFlux').textContent = benthicFlux.toFixed(2) + ' nmol/cm²/d';
+            const gasSeepage = parseFloat(document.getElementById('gasSeepage').value);
+            document.getElementById('seepageRate').textContent = gasSeepage > 3 ? 'Active' : gasSeepage > 1 ? 'Moderate' : 'Low';
+            const benthicOxidation = Math.min(95, results.totalConsumption / results.totalProduction * 100);
+            document.getElementById('benthicOxidation').textContent = benthicOxidation.toFixed(0) + '%';
+        }
+
+        function updateMethaneProfileChart(results) {
+            const ctx = document.getElementById('methaneProfileChart').getContext('2d');
+            
+            if (methaneProfileChart) {
+                methaneProfileChart.destroy();
+            }
+            
+            methaneProfileChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: results.depths,
+                    datasets: [
+                        {
+                            label: 'CH₄ Concentration (nM)',
+                            data: results.methaneConcentrations,
+                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Production Rate (nM/d)',
+                            data: results.productionRates,
+                            borderColor: 'rgba(34, 197, 94, 0.8)',
+                            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        },
+                        {
+                            label: 'Consumption Rate (nM/d)',
+                            data: results.consumptionRates,
+                            borderColor: 'rgba(239, 68, 68, 0.8)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Methane Concentration and Process Rates vs Depth',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { weight: 'bold' }
+                            },
+                            reverse: false
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'CH₄ Concentration (nM)',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Process Rate (nM/d)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateDepthProfileChart(results) {
+            const ctx = document.getElementById('depthProfileChart').getContext('2d');
+            
+            if (depthProfileChart) {
+                depthProfileChart.destroy();
+            }
+            
+            // Create dataset for depth profile
+            const profileData = [];
+            for (let i = 0; i < results.depths.length; i++) {
+                profileData.push({
+                    x: results.methaneConcentrations[i],
+                    y: results.depths[i]
+                });
+            }
+            
+            depthProfileChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    datasets: [{
+                        label: 'CH₄ vs Depth',
+                        data: profileData,
+                        borderColor: 'rgba(147, 51, 234, 0.8)',
+                        backgroundColor: 'rgba(147, 51, 234, 0.2)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.3,
+                        pointRadius: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'CH₄ Concentration Profile',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        legend: { display: false }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'top',
+                            title: {
+                                display: true,
+                                text: 'CH₄ Concentration (nM)',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            reverse: true,
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                font: { weight: 'bold' }
+                            },
+                            min: 0,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTimeSeriesChart(results) {
+            const ctx = document.getElementById('methaneTimeSeriesChart').getContext('2d');
+            
+            if (timeSeriesChart) {
+                timeSeriesChart.destroy();
+            }
+            
+            // Generate synthetic time series data (24 hours)
+            const timeLabels = [];
+            const surfaceData = [];
+            const deepData = [];
+            const fluxData = [];
+            
+            for (let hour = 0; hour < 24; hour++) {
+                timeLabels.push(hour + ':00');
+                
+                // Add diurnal variation
+                const diurnalFactor = 1 + 0.2 * Math.sin(2 * Math.PI * hour / 24);
+                const tidalFactor = 1 + 0.1 * Math.sin(2 * Math.PI * hour / 12.4); // Semi-diurnal tide
+                
+                surfaceData.push(results.surfaceCH4 * diurnalFactor * tidalFactor);
+                deepData.push(results.deepCH4 * (1 + 0.05 * Math.sin(2 * Math.PI * hour / 24)));
+                fluxData.push(results.seaAirFlux * diurnalFactor);
+            }
+            
+            timeSeriesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [
+                        {
+                            label: 'Surface CH₄ (nM)',
+                            data: surfaceData,
+                            borderColor: 'rgba(59, 130, 246, 0.8)',
+                            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Deep CH₄ (nM)',
+                            data: deepData,
+                            borderColor: 'rgba(147, 51, 234, 0.8)',
+                            backgroundColor: 'rgba(147, 51, 234, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Sea-Air Flux (μmol/m²/d)',
+                            data: fluxData,
+                            borderColor: 'rgba(239, 68, 68, 0.8)',
+                            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                            borderWidth: 2,
+                            fill: false,
+                            tension: 0.3,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Methane Diurnal Variation (24-hour cycle)',
+                            font: { size: 14, weight: 'bold' }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'top'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time (hours)',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'CH₄ Concentration (nM)',
+                                font: { weight: 'bold' }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Sea-Air Flux (μmol/m²/d)',
+                                font: { weight: 'bold' }
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateAdvancedAnalysis(results) {
+            const dissolvedOxygen = parseFloat(document.getElementById('dissolvedOxygen').value);
+            const sulfate = parseFloat(document.getElementById('sulfate').value);
+            const organicCarbon = parseFloat(document.getElementById('organicCarbon').value);
+            const gasSeepage = parseFloat(document.getElementById('gasSeepage').value);
+            const mixedLayerDepth = parseFloat(document.getElementById('mixedLayerDepth').value);
+            
+            // Biogeochemical Zones
+            const zones = [];
+            zones.push(`<p><strong>Oxic Zone (0-${Math.min(20, mixedLayerDepth)}m):</strong> High O₂, active methanotrophy</p>`);
+            if (dissolvedOxygen < 4) {
+                zones.push(`<p><strong>Hypoxic Zone (${mixedLayerDepth}-50m):</strong> Low O₂, reduced oxidation</p>`);
+            }
+            if (sulfate > 15) {
+                zones.push(`<p><strong>SMTZ (60-80m):</strong> Sulfate-methane transition, AOM active</p>`);
+            }
+            zones.push(`<p><strong>Methanogenic Zone (>80m):</strong> Anoxic sediments, CH₄ production</p>`);
+            if (gasSeepage > 3) {
+                zones.push(`<p><strong>Seepage Zone (90-100m):</strong> Active gas migration, bubble transport</p>`);
+            }
+            document.getElementById('biogeochemicalZones').innerHTML = zones.join('');
+            
+            // Microbial Ecology
+            const microbial = [];
+            microbial.push(`<p><strong>Methanogenic Archaea:</strong> ${results.totalProduction > 5 ? 'High' : 'Moderate'} activity in sediments</p>`);
+            microbial.push(`<p><strong>Methanotrophic Bacteria:</strong> ${dissolvedOxygen > 6 ? 'High' : 'Low'} abundance in oxic waters</p>`);
+            if (sulfate > 20) {
+                microbial.push(`<p><strong>ANME Archaea:</strong> Active in sulfate-rich zones</p>`);
+            }
+            microbial.push(`<p><strong>Sulfate Reducers:</strong> ${organicCarbon > 5 ? 'Abundant' : 'Limited'} in organic-rich sediments</p>`);
+            microbial.push(`<p><strong>Community Structure:</strong> ${results.fluctuationIndex > 0.3 ? 'Dynamic' : 'Stable'} microbial populations</p>`);
+            document.getElementById('microbialEcology').innerHTML = microbial.join('');
+            
+            // Environmental Impact
+            const impact = [];
+            if (results.seaAirFlux > 50) {
+                impact.push(`<p><strong>Atmospheric Impact:</strong> Significant CH₄ emissions to atmosphere</p>`);
+            }
+            if (results.supersaturation > 2) {
+                impact.push(`<p><strong>Supersaturation:</strong> High potential for bubble formation</p>`);
+            }
+            impact.push(`<p><strong>Carbon Cycling:</strong> ${results.netProduction > 0 ? 'Net source' : 'Net sink'} of methane carbon</p>`);
+            if (dissolvedOxygen < 2) {
+                impact.push(`<p><strong>Ecosystem Stress:</strong> Hypoxic conditions may affect marine life</p>`);
+            }
+            impact.push(`<p><strong>Climate Relevance:</strong> ${results.seaAirFlux > 100 ? 'High' : 'Moderate'} contribution to greenhouse gas budget</p>`);
+            document.getElementById('environmentalImpact').innerHTML = impact.join('');
+            
+            // System Interpretation
+            let interpretation = '';
+            
+            if (results.netProduction > 5) {
+                interpretation = '🔥 <strong>High Methane Production System:</strong> This coastal environment is a significant methane source. ';
+            } else if (results.netProduction > 0) {
+                interpretation = '⚖️ <strong>Moderate Methane Production:</strong> The system shows net methane production with balanced processes. ';
+            } else {
+                interpretation = '🌊 <strong>Methane Consumption System:</strong> The system is efficiently consuming methane through oxidation processes. ';
+            }
+            
+            // Add dominant process
+            if (results.totalProduction > results.totalConsumption * 2) {
+                interpretation += 'Methanogenesis strongly dominates over oxidation processes. ';
+            } else if (results.totalConsumption > results.totalProduction * 2) {
+                interpretation += 'Methane oxidation processes strongly dominate over production. ';
+            } else {
+                interpretation += 'Production and consumption processes are relatively balanced. ';
+            }
+            
+            // Add environmental controls
+            if (dissolvedOxygen < 2) {
+                interpretation += 'Low oxygen levels create favorable conditions for methanogenesis and limit aerobic oxidation. ';
+            } else if (dissolvedOxygen > 8) {
+                interpretation += 'High oxygen levels promote efficient aerobic methane oxidation. ';
+            }
+            
+            if (gasSeepage > 5) {
+                interpretation += 'Active gas seepage significantly contributes to methane concentrations through bubble transport. ';
+            }
+            
+            // Add flux significance
+            if (Math.abs(results.seaAirFlux) > 100) {
+                interpretation += `The sea-air flux of ${results.seaAirFlux.toFixed(0)} μmol/m²/d represents a significant exchange with the atmosphere. `;
+            }
+            
+            // Add variability assessment
+            if (results.fluctuationIndex > 0.5) {
+                interpretation += 'High spatial variability indicates dynamic biogeochemical processes and heterogeneous conditions. ';
+            } else if (results.fluctuationIndex < 0.2) {
+                interpretation += 'Low variability suggests stable, well-mixed conditions throughout the water column. ';
+            }
+            
+            // Add ecological implications
+            if (results.supersaturation > 3) {
+                interpretation += 'High supersaturation levels may lead to bubble formation and rapid degassing, potentially affecting local marine ecosystems through physical disturbance and altered chemical conditions.';
+            } else if (results.supersaturation < 0.5) {
+                interpretation += 'Undersaturated conditions indicate the ocean is acting as a sink for atmospheric methane, contributing to natural methane removal processes.';
+            } else {
+                interpretation += 'Near-equilibrium conditions suggest a balanced system with moderate environmental impact on local marine ecosystems.';
+            }
+            
+            document.getElementById('systemInterpretation').innerHTML = interpretation;
+            
+            // Update biogeochemical process details
+            updateBiogeochemicalProcesses(results);
+        }
+
+        function updateBiogeochemicalProcesses(results) {
+            const waterTemp = parseFloat(document.getElementById('waterTemp').value);
+            const dissolvedOxygen = parseFloat(document.getElementById('dissolvedOxygen').value);
+            const organicCarbon = parseFloat(document.getElementById('organicCarbon').value);
+            
+            // Current methanogenesis details
+            document.getElementById('currentMethanogenesis').textContent = results.totalProduction.toFixed(2) + ' nM/d';
+            
+            // Determine dominant pathway
+            let dominantPathway = 'Acetoclastic';
+            if (organicCarbon > 10) {
+                dominantPathway = 'Acetoclastic';
+            } else if (dissolvedOxygen < 1) {
+                dominantPathway = 'Hydrogenotrophic';
+            } else {
+                dominantPathway = 'Mixed pathways';
+            }
+            document.getElementById('dominantPathway').textContent = dominantPathway;
+            
+            // Methanogenesis efficiency
+            const efficiency = Math.min(95, (waterTemp - 5) * 3 + organicCarbon * 2);
+            document.getElementById('methanogenesisEfficiency').textContent = Math.max(0, efficiency).toFixed(0) + '%';
+            
+            // Oxidation rates
+            const aerobicRate = results.totalConsumption * (dissolvedOxygen / (dissolvedOxygen + 2));
+            const aomRate = results.totalConsumption - aerobicRate;
+            
+            document.getElementById('aerobicOxidationRate').textContent = aerobicRate.toFixed(2) + ' nM/d';
+            document.getElementById('aomRate').textContent = aomRate.toFixed(2) + ' nM/d';
+            document.getElementById('totalOxidation').textContent = results.totalConsumption.toFixed(2) + ' nM/d';
+            
+            // Transport fluxes
+            const diffusiveFlux = results.seaAirFlux * 0.1; // Approximate molecular diffusion
+            const advectiveFlux = results.seaAirFlux * 0.7; // Turbulent transport
+            const bubbleFlux = results.seaAirFlux * 0.2; // Bubble-mediated
+            
+            document.getElementById('diffusiveFlux').textContent = diffusiveFlux.toFixed(1) + ' nmol/m²/s';
+            document.getElementById('advectiveFlux').textContent = advectiveFlux.toFixed(1) + ' nmol/m²/s';
+            document.getElementById('bubbleFluxRate').textContent = bubbleFlux.toFixed(1) + ' nmol/m²/s';
+            
+            // Solubility parameters
+            document.getElementById('methaneSolubility').textContent = results.equilibriumCH4.toFixed(1) + ' nM';
+            document.getElementById('saturationLevel').textContent = (results.supersaturation * 100).toFixed(0) + '%';
+            document.getElementById('supersaturation').textContent = results.supersaturation.toFixed(1) + 'x';
+        }
+
+        function setScenario(scenario) {
+            isUpdating = true;
+            
+            const scenarios = {
+                pristine: {
+                    waterTemp: 15, salinity: 34, dissolvedOxygen: 8, pH: 8.1,
+                    organicCarbon: 1, chlorophyll: 2, gasSeepage: 0.5,
+                    methanogenActivity: 1, methanotrophActivity: 3
+                },
+                eutrophic: {
+                    waterTemp: 18, salinity: 32, dissolvedOxygen: 6, pH: 8.3,
+                    organicCarbon: 8, chlorophyll: 15, nitrate: 25,
+                    methanogenActivity: 4, methanotrophActivity: 2
+                },
+                hypoxic: {
+                    waterTemp: 22, salinity: 35, dissolvedOxygen: 1, pH: 7.8,
+                    organicCarbon: 12, gasSeepage: 3, organicMatter: 10,
+                    methanogenActivity: 8, methanotrophActivity: 1
+                },
+                seepage: {
+                    waterTemp: 16, salinity: 34, dissolvedOxygen: 5, pH: 7.9,
+                    gasSeepage: 8, organicMatter: 8, bioturbation: 4,
+                    methanogenActivity: 6, methanotrophActivity: 4
+                },
+                upwelling: {
+                    waterTemp: 12, salinity: 34.5, dissolvedOxygen: 9, pH: 7.9,
+                    currentSpeed: 1.2, turbulence: 6, mixedLayerDepth: 15,
+                    methanogenActivity: 2, methanotrophActivity: 5
+                },
+                stratified: {
+                    waterTemp: 20, salinity: 33, dissolvedOxygen: 7, pH: 8.2,
+                    mixedLayerDepth: 40, turbulence: 1, currentSpeed: 0.1,
+                    methanogenActivity: 3, methanotrophActivity: 3
+                }
+            };
+            
+            const config = scenarios[scenario];
+            if (config) {
+                Object.keys(config).forEach(key => {
+                    const element = document.getElementById(key);
+                    if (element) {
+                        element.value = config[key];
+                        updateValueDisplay(key, config[key]);
+                    }
+                });
+            }
+            
+            isUpdating = false;
+            updateMethaneAnalysis();
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeControls();
+            updateMethaneAnalysis();
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c8c512811988ac',t:'MTc1NDc1ODQwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
