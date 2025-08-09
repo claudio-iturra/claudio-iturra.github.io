@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Carbon Pump - Comprehensive Analysis System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c4a6e 0%, #075985 25%, #0369a1 50%, #0284c7 75%, #0ea5e9 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 2200px;
+            margin: 0 auto;
+            background: white;
+            min-height: 100vh;
+            box-shadow: 0 0 50px rgba(0,0,0,0.3);
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 25%, #2563eb 50%, #3b82f6 75%, #60a5fa 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><circle cx="15" cy="5" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="35" cy="12" r="1.5" fill="rgba(255,255,255,0.08)"/><circle cx="55" cy="8" r="0.8" fill="rgba(255,255,255,0.06)"/><circle cx="75" cy="15" r="1.2" fill="rgba(255,255,255,0.1)"/><circle cx="85" cy="3" r="0.6" fill="rgba(255,255,255,0.07)"/></svg>') repeat;
+            background-size: 100px 20px;
+            animation: carbonFloat 20s linear infinite;
+        }
+        
+        @keyframes carbonFloat {
+            0% { transform: translateX(0) translateY(0); }
+            50% { transform: translateX(-50px) translateY(-10px); }
+            100% { transform: translateX(-100px) translateY(0); }
+        }
+        
+        .header h1 {
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 30px;
+            padding: 30px;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .control-panel {
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            height: fit-content;
+            position: sticky;
+            top: 30px;
+        }
+        
+        .section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: white;
+            border-radius: 15px;
+            border-left: 5px solid #3b82f6;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+        
+        .section h3 {
+            color: #1e293b;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+        }
+        
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin: 5px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59,130,246,0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .analysis-panel {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #3b82f6;
+            text-align: center;
+            position: relative;
+        }
+        
+        .metric-value {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .metric-unit {
+            font-size: 0.8em;
+            color: #6b7280;
+        }
+        
+        .carbon-pump-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .pump-component {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #bae6fd;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pump-component::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60px;
+            height: 60px;
+            background: rgba(59,130,246,0.1);
+            border-radius: 50%;
+            transform: translate(20px, -20px);
+        }
+        
+        .pump-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .pump-description {
+            color: #374151;
+            font-size: 0.9em;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .pump-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .pump-metric {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            border: 1px solid #bae6fd;
+        }
+        
+        .pump-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #0369a1;
+        }
+        
+        .pump-label {
+            font-size: 0.8em;
+            color: #6b7280;
+        }
+        
+        .depth-profile {
+            background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #8b5cf6;
+        }
+        
+        .profile-title {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #6b21a8;
+            margin-bottom: 15px;
+        }
+        
+        .depth-layers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .depth-layer {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #c4b5fd;
+            position: relative;
+        }
+        
+        .layer-name {
+            font-weight: 600;
+            color: #7c3aed;
+            margin-bottom: 5px;
+        }
+        
+        .layer-depth {
+            font-size: 0.9em;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        .layer-carbon {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .carbon-bar {
+            flex: 1;
+            height: 8px;
+            background: #e9d5ff;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .carbon-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8b5cf6, #7c3aed);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .carbon-value {
+            font-size: 0.8em;
+            font-weight: 600;
+            color: #6b21a8;
+        }
+        
+        .biological-processes {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .process-card {
+            background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #bbf7d0;
+            text-align: center;
+        }
+        
+        .process-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            color: white;
+        }
+        
+        .process-name {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: #065f46;
+            margin-bottom: 10px;
+        }
+        
+        .process-rate {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 5px;
+        }
+        
+        .process-unit {
+            font-size: 0.9em;
+            color: #6b7280;
+        }
+        
+        .physical-factors {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .factors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .factor-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #fed7aa;
+        }
+        
+        .factor-value {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #d97706;
+        }
+        
+        .factor-label {
+            font-size: 0.9em;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .carbon-fluxes {
+            background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border-left: 5px solid #ef4444;
+        }
+        
+        .flux-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 15px;
+        }
+        
+        .flux-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .flux-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #fca5a5;
+            text-align: center;
+        }
+        
+        .flux-value {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #dc2626;
+        }
+        
+        .flux-label {
+            font-size: 0.9em;
+            color: #374151;
+            margin-top: 5px;
+        }
+        
+        .data-log {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            border: 2px solid #cbd5e1;
+        }
+        
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 8px;
+            background: white;
+            border-radius: 5px;
+            border-left: 3px solid #3b82f6;
+        }
+        
+        .log-timestamp {
+            color: #6b7280;
+            font-size: 11px;
+        }
+        
+        .log-message {
+            color: #374151;
+            margin-top: 2px;
+        }
+        
+        .info-panel {
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #3b82f6;
+        }
+        
+        .warning-panel {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            border-left: 5px solid #f59e0b;
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 2px solid #e5e7eb;
+            text-align: center;
+        }
+        
+        .chart-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+        
+        .chart-canvas {
+            width: 100%;
+            height: 300px;
+            background: linear-gradient(to bottom, #f8fafc 0%, #f1f5f9 100%);
+            border-radius: 10px;
+            border: 1px solid #d1d5db;
+        }
+        
+        .efficiency-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .efficiency-high { background: #10b981; }
+        .efficiency-medium { background: #f59e0b; }
+        .efficiency-low { background: #ef4444; }
+        
+        @media (max-width: 1400px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .control-panel {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .metrics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .carbon-pump-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .input-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean Carbon Pump</h1>
+            <p>Comprehensive analysis of carbon sequestration and biogeochemical cycling in marine environments by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="control-panel">
+                <!-- Environmental Parameters -->
+                <div class="section">
+                    <h3>🌊 Environmental Parameters</h3>
+                    <div class="input-group">
+                        <label for="coastalZone">Coastal Zone:</label>
+                        <select id="coastalZone">
+                            <option value="nearshore">Nearshore (0-10km)</option>
+                            <option value="inner_shelf" selected>Inner Shelf (10-50km)</option>
+                            <option value="outer_shelf">Outer Shelf (50-200km)</option>
+                            <option value="shelf_break">Shelf Break (200-1000m)</option>
+                            <option value="slope">Continental Slope</option>
+                        </select>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="waterDepth">Water Depth (m):</label>
+                            <input type="number" id="waterDepth" value="50" min="5" max="2000" step="5">
+                        </div>
+                        <div class="input-group">
+                            <label for="mixedLayerDepth">Mixed Layer (m):</label>
+                            <input type="number" id="mixedLayerDepth" value="25" min="5" max="200" step="5">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="temperature">Temperature (°C):</label>
+                            <input type="number" id="temperature" value="18" min="-2" max="35" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="salinity">Salinity (PSU):</label>
+                            <input type="number" id="salinity" value="35" min="20" max="40" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="pH">pH:</label>
+                            <input type="number" id="pH" value="8.1" min="7.5" max="8.5" step="0.01">
+                        </div>
+                        <div class="input-group">
+                            <label for="dissolvedOxygen">DO (mg/L):</label>
+                            <input type="number" id="dissolvedOxygen" value="7.5" min="0" max="15" step="0.1">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Physical Forcing -->
+                <div class="section">
+                    <h3>🌪️ Physical Forcing</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="windSpeed">Wind Speed (m/s):</label>
+                            <input type="number" id="windSpeed" value="8" min="0" max="30" step="0.5">
+                        </div>
+                        <div class="input-group">
+                            <label for="waveHeight">Wave Height (m):</label>
+                            <input type="number" id="waveHeight" value="1.5" min="0" max="10" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="currentVelocity">Current (cm/s):</label>
+                            <input type="number" id="currentVelocity" value="15" min="0" max="100" step="1">
+                        </div>
+                        <div class="input-group">
+                            <label for="tidalRange">Tidal Range (m):</label>
+                            <input type="number" id="tidalRange" value="2.5" min="0" max="15" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="season">Season:</label>
+                        <select id="season">
+                            <option value="spring">Spring</option>
+                            <option value="summer" selected>Summer</option>
+                            <option value="autumn">Autumn</option>
+                            <option value="winter">Winter</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Biogeochemical Settings -->
+                <div class="section">
+                    <h3>🧪 Biogeochemical Settings</h3>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="chlorophyllA">Chl-a (μg/L):</label>
+                            <input type="number" id="chlorophyllA" value="2.5" min="0.1" max="50" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="primaryProduction">PP (mg C/m²/day):</label>
+                            <input type="number" id="primaryProduction" value="800" min="50" max="5000" step="50">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="input-group">
+                            <label for="doc">DOC (mg/L):</label>
+                            <input type="number" id="doc" value="1.2" min="0.5" max="10" step="0.1">
+                        </div>
+                        <div class="input-group">
+                            <label for="poc">POC (mg/L):</label>
+                            <input type="number" id="poc" value="0.8" min="0.1" max="5" step="0.1">
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label for="nutrientLevel">Nutrient Status:</label>
+                        <select id="nutrientLevel">
+                            <option value="oligotrophic">Oligotrophic</option>
+                            <option value="mesotrophic" selected>Mesotrophic</option>
+                            <option value="eutrophic">Eutrophic</option>
+                            <option value="hypereutrophic">Hypereutrophic</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Analysis Controls -->
+                <div class="section">
+                    <h3>⚙️ Analysis Controls</h3>
+                    <div class="input-group">
+                        <label for="analysisType">Analysis Focus:</label>
+                        <select id="analysisType">
+                            <option value="comprehensive" selected>Comprehensive Analysis</option>
+                            <option value="biological_pump">Biological Pump</option>
+                            <option value="physical_pump">Physical Pump</option>
+                            <option value="carbonate_pump">Carbonate Pump</option>
+                            <option value="microbial_pump">Microbial Pump</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="timeScale">Time Scale:</label>
+                        <select id="timeScale">
+                            <option value="daily">Daily</option>
+                            <option value="weekly" selected>Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="seasonal">Seasonal</option>
+                            <option value="annual">Annual</option>
+                        </select>
+                    </div>
+                    <button class="btn" onclick="startAnalysis()" id="startBtn">🔬 Start Analysis</button>
+                    <button class="btn btn-warning" onclick="pauseAnalysis()" id="pauseBtn" disabled>⏸️ Pause</button>
+                    <button class="btn btn-danger" onclick="stopAnalysis()" id="stopBtn" disabled>⏹️ Stop</button>
+                </div>
+                
+                <!-- Data Export -->
+                <div class="section">
+                    <h3>💾 Data Management</h3>
+                    <button class="btn btn-success" onclick="exportResults()" id="exportBtn" disabled>📊 Export Data</button>
+                    <button class="btn btn-warning" onclick="generateReport()" id="reportBtn" disabled>📋 Generate Report</button>
+                    <button class="btn" onclick="resetAnalysis()">🔄 Reset Analysis</button>
+                </div>
+            </div>
+            
+            <div class="analysis-panel">
+                <!-- Key Metrics -->
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="totalCarbonFlux">--</div>
+                        <div class="metric-label">Total Carbon Flux</div>
+                        <div class="metric-unit">mg C/m²/day</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="exportEfficiency">--</div>
+                        <div class="metric-label">Export Efficiency</div>
+                        <div class="metric-unit">%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="sequestrationRate">--</div>
+                        <div class="metric-label">Sequestration Rate</div>
+                        <div class="metric-unit">g C/m²/year</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="remineralizationDepth">--</div>
+                        <div class="metric-label">Remineralization Depth</div>
+                        <div class="metric-unit">m</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="pumpEfficiency">--</div>
+                        <div class="metric-label">Pump Efficiency</div>
+                        <div class="metric-unit">%</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="analysisProgress">0</div>
+                        <div class="metric-label">Analysis Progress</div>
+                        <div class="metric-unit">%</div>
+                    </div>
+                </div>
+                
+                <!-- Carbon Pump Components -->
+                <div class="carbon-pump-grid">
+                    <div class="pump-component">
+                        <div class="pump-title">🦠 Biological Pump</div>
+                        <div class="pump-description">Photosynthesis, particle formation, and gravitational settling of organic matter</div>
+                        <div class="pump-metrics">
+                            <div class="pump-metric">
+                                <div class="pump-value" id="biologicalFlux">--</div>
+                                <div class="pump-label">Flux (mg C/m²/day)</div>
+                            </div>
+                            <div class="pump-metric">
+                                <div class="pump-value" id="biologicalEfficiency">--</div>
+                                <div class="pump-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pump-component">
+                        <div class="pump-title">🌊 Physical Pump</div>
+                        <div class="pump-description">Solubility-driven CO₂ transport through thermohaline circulation</div>
+                        <div class="pump-metrics">
+                            <div class="pump-metric">
+                                <div class="pump-value" id="physicalFlux">--</div>
+                                <div class="pump-label">Flux (mg C/m²/day)</div>
+                            </div>
+                            <div class="pump-metric">
+                                <div class="pump-value" id="physicalEfficiency">--</div>
+                                <div class="pump-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pump-component">
+                        <div class="pump-title">🐚 Carbonate Pump</div>
+                        <div class="pump-description">Calcification and dissolution of calcium carbonate shells and skeletons</div>
+                        <div class="pump-metrics">
+                            <div class="pump-metric">
+                                <div class="pump-value" id="carbonateFlux">--</div>
+                                <div class="pump-label">Flux (mg C/m²/day)</div>
+                            </div>
+                            <div class="pump-metric">
+                                <div class="pump-value" id="carbonateEfficiency">--</div>
+                                <div class="pump-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pump-component">
+                        <div class="pump-title">🦠 Microbial Pump</div>
+                        <div class="pump-description">Microbial carbon processing and dissolved organic carbon cycling</div>
+                        <div class="pump-metrics">
+                            <div class="pump-metric">
+                                <div class="pump-value" id="microbialFlux">--</div>
+                                <div class="pump-label">Flux (mg C/m²/day)</div>
+                            </div>
+                            <div class="pump-metric">
+                                <div class="pump-value" id="microbialEfficiency">--</div>
+                                <div class="pump-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pump-component">
+                        <div class="pump-title">💨 Lipid Pump</div>
+                        <div class="pump-description">Buoyant lipid transport and deep-sea carbon sequestration</div>
+                        <div class="pump-metrics">
+                            <div class="pump-metric">
+                                <div class="pump-value" id="lipidFlux">--</div>
+                                <div class="pump-label">Flux (mg C/m²/day)</div>
+                            </div>
+                            <div class="pump-metric">
+                                <div class="pump-value" id="lipidEfficiency">--</div>
+                                <div class="pump-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="pump-component">
+                        <div class="pump-title">🌀 Mixed Layer Pump</div>
+                        <div class="pump-description">Seasonal mixing and entrainment of carbon-rich waters</div>
+                        <div class="pump-metrics">
+                            <div class="pump-metric">
+                                <div class="pump-value" id="mixedLayerFlux">--</div>
+                                <div class="pump-label">Flux (mg C/m²/day)</div>
+                            </div>
+                            <div class="pump-metric">
+                                <div class="pump-value" id="mixedLayerEfficiency">--</div>
+                                <div class="pump-label">Efficiency (%)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Depth Profile -->
+                <div class="depth-profile">
+                    <div class="profile-title">📊 Carbon Concentration Depth Profile</div>
+                    <div class="depth-layers">
+                        <div class="depth-layer">
+                            <div class="layer-name">Surface Layer</div>
+                            <div class="layer-depth">0-10m</div>
+                            <div class="layer-carbon">
+                                <div class="carbon-bar">
+                                    <div class="carbon-fill" id="surfaceBar" style="width: 0%"></div>
+                                </div>
+                                <div class="carbon-value" id="surfaceValue">0 mg/L</div>
+                            </div>
+                        </div>
+                        
+                        <div class="depth-layer">
+                            <div class="layer-name">Mixed Layer</div>
+                            <div class="layer-depth">10-50m</div>
+                            <div class="layer-carbon">
+                                <div class="carbon-bar">
+                                    <div class="carbon-fill" id="mixedBar" style="width: 0%"></div>
+                                </div>
+                                <div class="carbon-value" id="mixedValue">0 mg/L</div>
+                            </div>
+                        </div>
+                        
+                        <div class="depth-layer">
+                            <div class="layer-name">Thermocline</div>
+                            <div class="layer-depth">50-200m</div>
+                            <div class="layer-carbon">
+                                <div class="carbon-bar">
+                                    <div class="carbon-fill" id="thermoclineBar" style="width: 0%"></div>
+                                </div>
+                                <div class="carbon-value" id="thermoclineValue">0 mg/L</div>
+                            </div>
+                        </div>
+                        
+                        <div class="depth-layer">
+                            <div class="layer-name">Mesopelagic</div>
+                            <div class="layer-depth">200-1000m</div>
+                            <div class="layer-carbon">
+                                <div class="carbon-bar">
+                                    <div class="carbon-fill" id="mesopelagicBar" style="width: 0%"></div>
+                                </div>
+                                <div class="carbon-value" id="mesopelagicValue">0 mg/L</div>
+                            </div>
+                        </div>
+                        
+                        <div class="depth-layer">
+                            <div class="layer-name">Bathypelagic</div>
+                            <div class="layer-depth">1000m+</div>
+                            <div class="layer-carbon">
+                                <div class="carbon-bar">
+                                    <div class="carbon-fill" id="bathypelagicBar" style="width: 0%"></div>
+                                </div>
+                                <div class="carbon-value" id="bathypelagicValue">0 mg/L</div>
+                            </div>
+                        </div>
+                        
+                        <div class="depth-layer">
+                            <div class="layer-name">Sediment</div>
+                            <div class="layer-depth">Seafloor</div>
+                            <div class="layer-carbon">
+                                <div class="carbon-bar">
+                                    <div class="carbon-fill" id="sedimentBar" style="width: 0%"></div>
+                                </div>
+                                <div class="carbon-value" id="sedimentValue">0 mg/g</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Biological Processes -->
+                <div class="biological-processes">
+                    <div class="process-card">
+                        <div class="process-icon">🌱</div>
+                        <div class="process-name">Primary Production</div>
+                        <div class="process-rate" id="primaryProductionRate">--</div>
+                        <div class="process-unit">mg C/m²/day</div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-icon">🍃</div>
+                        <div class="process-name">Particle Formation</div>
+                        <div class="process-rate" id="particleFormationRate">--</div>
+                        <div class="process-unit">particles/L/day</div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-icon">⬇️</div>
+                        <div class="process-name">Sinking Velocity</div>
+                        <div class="process-rate" id="sinkingVelocity">--</div>
+                        <div class="process-unit">m/day</div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-icon">🔄</div>
+                        <div class="process-name">Remineralization</div>
+                        <div class="process-rate" id="remineralizationRate">--</div>
+                        <div class="process-unit">%/day</div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-icon">🦠</div>
+                        <div class="process-name">Microbial Respiration</div>
+                        <div class="process-rate" id="microbialRespiration">--</div>
+                        <div class="process-unit">mg C/m³/day</div>
+                    </div>
+                    
+                    <div class="process-card">
+                        <div class="process-icon">🐚</div>
+                        <div class="process-name">Calcification</div>
+                        <div class="process-rate" id="calcificationRate">--</div>
+                        <div class="process-unit">mg CaCO₃/m²/day</div>
+                    </div>
+                </div>
+                
+                <!-- Physical Factors -->
+                <div class="physical-factors">
+                    <h3 style="color: #d97706; margin-bottom: 15px;">🌊 Physical Environment</h3>
+                    <div class="factors-grid">
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentTemp">--</div>
+                            <div class="factor-label">Temperature (°C)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentSalinity">--</div>
+                            <div class="factor-label">Salinity (PSU)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentDensity">--</div>
+                            <div class="factor-label">Density (kg/m³)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentWind">--</div>
+                            <div class="factor-label">Wind Speed (m/s)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentMLD">--</div>
+                            <div class="factor-label">Mixed Layer (m)</div>
+                        </div>
+                        <div class="factor-item">
+                            <div class="factor-value" id="currentStratification">--</div>
+                            <div class="factor-label">Stratification</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Carbon Fluxes -->
+                <div class="carbon-fluxes">
+                    <div class="flux-title">📈 Carbon Flux Components</div>
+                    <div class="flux-grid">
+                        <div class="flux-item">
+                            <div class="flux-value" id="airSeaFlux">--</div>
+                            <div class="flux-label">Air-Sea Exchange</div>
+                        </div>
+                        <div class="flux-item">
+                            <div class="flux-value" id="exportFlux">--</div>
+                            <div class="flux-label">Export Production</div>
+                        </div>
+                        <div class="flux-item">
+                            <div class="flux-value" id="sedimentFlux">--</div>
+                            <div class="flux-label">Sediment Burial</div>
+                        </div>
+                        <div class="flux-item">
+                            <div class="flux-value" id="lateralFlux">--</div>
+                            <div class="flux-label">Lateral Transport</div>
+                        </div>
+                        <div class="flux-item">
+                            <div class="flux-value" id="upwellingFlux">--</div>
+                            <div class="flux-label">Upwelling Input</div>
+                        </div>
+                        <div class="flux-item">
+                            <div class="flux-value" id="riverineFlux">--</div>
+                            <div class="flux-label">Riverine Input</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Analysis Charts -->
+                <div class="chart-container">
+                    <div class="chart-title">📈 Carbon Pump Efficiency Over Time</div>
+                    <canvas class="chart-canvas" id="carbonChart" width="800" height="300"></canvas>
+                </div>
+                
+                <!-- Data Log -->
+                <div class="data-log" id="dataLog">
+                    <div class="log-entry">
+                        <div class="log-timestamp">System Ready</div>
+                        <div class="log-message">🌊 Coastal Ocean Carbon Pump Analysis System initialized</div>
+                    </div>
+                </div>
+                
+                <!-- Information Panel -->
+                <div class="info-panel">
+                    <strong>🌊 Carbon Pump Analysis:</strong><br>
+                    This system evaluates all major components of the coastal ocean carbon pump:
+                    <br><br>
+                    <strong>• Biological Pump:</strong> Photosynthesis, particle formation, gravitational settling<br>
+                    <strong>• Physical Pump:</strong> Solubility-driven CO₂ transport via circulation<br>
+                    <strong>• Carbonate Pump:</strong> Calcification and CaCO₃ dissolution<br>
+                    <strong>• Microbial Pump:</strong> DOC cycling and microbial carbon processing<br>
+                    <strong>• Mixed Layer Pump:</strong> Seasonal mixing and entrainment<br>
+                    <strong>• Lipid Pump:</strong> Buoyant lipid transport to deep waters
+                    <br><br>
+                    <strong>📊 Key Parameters:</strong><br>
+                    • Primary production and export efficiency<br>
+                    • Particle sinking velocities and remineralization<br>
+                    • Air-sea CO₂ exchange and solubility<br>
+                    • Depth-dependent carbon concentrations<br>
+                    • Physical forcing and stratification effects<br>
+                    • Seasonal and spatial variability
+                </div>
+                
+                <div class="warning-panel">
+                    <strong>⚠️ Important Considerations:</strong><br>
+                    • Carbon pump efficiency varies significantly with season and location<br>
+                    • Physical forcing (wind, currents, mixing) strongly affects carbon transport<br>
+                    • Temperature and pH changes alter pump mechanisms<br>
+                    • Coastal zones show high spatial and temporal variability<br>
+                    • Multiple pump mechanisms operate simultaneously<br><br>
+                    <strong>🔬 Applications:</strong> Climate change research, carbon budget assessments, marine ecosystem management, biogeochemical modeling, and ocean acidification studies.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let analysisActive = false;
+        let analysisInterval = null;
+        let analysisData = [];
+        let timeElapsed = 0;
+        let chartCanvas, chartCtx;
+        
+        // Environmental conditions
+        let environmentalConditions = {
+            coastalZone: 'inner_shelf',
+            waterDepth: 50,
+            mixedLayerDepth: 25,
+            temperature: 18,
+            salinity: 35,
+            pH: 8.1,
+            dissolvedOxygen: 7.5,
+            windSpeed: 8,
+            waveHeight: 1.5,
+            currentVelocity: 15,
+            tidalRange: 2.5,
+            season: 'summer',
+            chlorophyllA: 2.5,
+            primaryProduction: 800,
+            doc: 1.2,
+            poc: 0.8,
+            nutrientLevel: 'mesotrophic'
+        };
+        
+        // Carbon pump components
+        let carbonPumpComponents = {
+            biological: { flux: 0, efficiency: 0 },
+            physical: { flux: 0, efficiency: 0 },
+            carbonate: { flux: 0, efficiency: 0 },
+            microbial: { flux: 0, efficiency: 0 },
+            lipid: { flux: 0, efficiency: 0 },
+            mixedLayer: { flux: 0, efficiency: 0 }
+        };
+        
+        // Depth profile data
+        let depthProfile = {
+            surface: 0,
+            mixed: 0,
+            thermocline: 0,
+            mesopelagic: 0,
+            bathypelagic: 0,
+            sediment: 0
+        };
+        
+        // Biological processes
+        let biologicalProcesses = {
+            primaryProduction: 0,
+            particleFormation: 0,
+            sinkingVelocity: 0,
+            remineralization: 0,
+            microbialRespiration: 0,
+            calcification: 0
+        };
+        
+        // Carbon fluxes
+        let carbonFluxes = {
+            airSea: 0,
+            export: 0,
+            sediment: 0,
+            lateral: 0,
+            upwelling: 0,
+            riverine: 0
+        };
+        
+        // Overall metrics
+        let overallMetrics = {
+            totalCarbonFlux: 0,
+            exportEfficiency: 0,
+            sequestrationRate: 0,
+            remineralizationDepth: 0,
+            pumpEfficiency: 0
+        };
+        
+        window.onload = function() {
+            chartCanvas = document.getElementById('carbonChart');
+            chartCtx = chartCanvas.getContext('2d');
+            
+            setupEventListeners();
+            updateEnvironmentalDisplay();
+            initializeChart();
+            
+            logMessage('🌊 Coastal Ocean Carbon Pump System ready for analysis');
+        };
+        
+        function setupEventListeners() {
+            // Environmental parameter listeners
+            const inputs = ['temperature', 'salinity', 'pH', 'dissolvedOxygen', 'waterDepth', 'mixedLayerDepth', 
+                           'windSpeed', 'waveHeight', 'currentVelocity', 'tidalRange', 'chlorophyllA', 
+                           'primaryProduction', 'doc', 'poc'];
+            
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateConditions);
+            });
+            
+            const selects = ['coastalZone', 'season', 'nutrientLevel'];
+            selects.forEach(id => {
+                document.getElementById(id).addEventListener('change', updateConditions);
+            });
+        }
+        
+        function updateConditions() {
+            // Update environmental conditions from inputs
+            environmentalConditions.temperature = parseFloat(document.getElementById('temperature').value);
+            environmentalConditions.salinity = parseFloat(document.getElementById('salinity').value);
+            environmentalConditions.pH = parseFloat(document.getElementById('pH').value);
+            environmentalConditions.dissolvedOxygen = parseFloat(document.getElementById('dissolvedOxygen').value);
+            environmentalConditions.waterDepth = parseFloat(document.getElementById('waterDepth').value);
+            environmentalConditions.mixedLayerDepth = parseFloat(document.getElementById('mixedLayerDepth').value);
+            environmentalConditions.windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            environmentalConditions.waveHeight = parseFloat(document.getElementById('waveHeight').value);
+            environmentalConditions.currentVelocity = parseFloat(document.getElementById('currentVelocity').value);
+            environmentalConditions.tidalRange = parseFloat(document.getElementById('tidalRange').value);
+            environmentalConditions.chlorophyllA = parseFloat(document.getElementById('chlorophyllA').value);
+            environmentalConditions.primaryProduction = parseFloat(document.getElementById('primaryProduction').value);
+            environmentalConditions.doc = parseFloat(document.getElementById('doc').value);
+            environmentalConditions.poc = parseFloat(document.getElementById('poc').value);
+            
+            environmentalConditions.coastalZone = document.getElementById('coastalZone').value;
+            environmentalConditions.season = document.getElementById('season').value;
+            environmentalConditions.nutrientLevel = document.getElementById('nutrientLevel').value;
+            
+            updateEnvironmentalDisplay();
+            
+            if (analysisActive) {
+                calculateCarbonPump();
+                updateDisplays();
+            }
+        }
+        
+        function updateEnvironmentalDisplay() {
+            document.getElementById('currentTemp').textContent = environmentalConditions.temperature.toFixed(1);
+            document.getElementById('currentSalinity').textContent = environmentalConditions.salinity.toFixed(1);
+            document.getElementById('currentWind').textContent = environmentalConditions.windSpeed.toFixed(1);
+            document.getElementById('currentMLD').textContent = environmentalConditions.mixedLayerDepth.toFixed(0);
+            
+            // Calculate derived parameters
+            const density = calculateSeawaterDensity();
+            const stratification = calculateStratification();
+            
+            document.getElementById('currentDensity').textContent = density.toFixed(1);
+            document.getElementById('currentStratification').textContent = stratification;
+        }
+        
+        function calculateSeawaterDensity() {
+            // Simplified seawater density calculation
+            const T = environmentalConditions.temperature;
+            const S = environmentalConditions.salinity;
+            
+            return 1000 + (0.8 * S) - (0.2 * T) + (0.001 * S * T);
+        }
+        
+        function calculateStratification() {
+            const mld = environmentalConditions.mixedLayerDepth;
+            const depth = environmentalConditions.waterDepth;
+            const temp = environmentalConditions.temperature;
+            const wind = environmentalConditions.windSpeed;
+            
+            if (mld / depth > 0.8) return 'Weak';
+            if (wind > 15 || temp < 10) return 'Mixed';
+            if (mld / depth < 0.3) return 'Strong';
+            return 'Moderate';
+        }
+        
+        function startAnalysis() {
+            analysisActive = true;
+            timeElapsed = 0;
+            analysisData = [];
+            
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('pauseBtn').disabled = false;
+            document.getElementById('stopBtn').disabled = false;
+            
+            analysisInterval = setInterval(() => {
+                timeElapsed += 1;
+                calculateCarbonPump();
+                updateDisplays();
+                updateChart();
+                
+                // Update progress (simulate analysis duration)
+                const maxTime = getAnalysisMaxTime();
+                const progress = Math.min(100, (timeElapsed / maxTime) * 100);
+                document.getElementById('analysisProgress').textContent = progress.toFixed(0);
+                
+                if (timeElapsed >= maxTime) {
+                    completeAnalysis();
+                }
+            }, 1000);
+            
+            logMessage(`🔬 Analysis started - ${document.getElementById('analysisType').value} focus`);
+            logMessage(`📊 Time scale: ${document.getElementById('timeScale').value}`);
+        }
+        
+        function getAnalysisMaxTime() {
+            const timeScale = document.getElementById('timeScale').value;
+            switch (timeScale) {
+                case 'daily': return 24;
+                case 'weekly': return 168;
+                case 'monthly': return 720;
+                case 'seasonal': return 2160;
+                case 'annual': return 8760;
+                default: return 168;
+            }
+        }
+        
+        function pauseAnalysis() {
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+                document.getElementById('pauseBtn').textContent = '▶️ Resume';
+                document.getElementById('pauseBtn').onclick = resumeAnalysis;
+                logMessage('⏸️ Analysis paused');
+            }
+        }
+        
+        function resumeAnalysis() {
+            analysisInterval = setInterval(() => {
+                timeElapsed += 1;
+                calculateCarbonPump();
+                updateDisplays();
+                updateChart();
+                
+                const maxTime = getAnalysisMaxTime();
+                const progress = Math.min(100, (timeElapsed / maxTime) * 100);
+                document.getElementById('analysisProgress').textContent = progress.toFixed(0);
+                
+                if (timeElapsed >= maxTime) {
+                    completeAnalysis();
+                }
+            }, 1000);
+            
+            document.getElementById('pauseBtn').textContent = '⏸️ Pause';
+            document.getElementById('pauseBtn').onclick = pauseAnalysis;
+            logMessage('▶️ Analysis resumed');
+        }
+        
+        function stopAnalysis() {
+            analysisActive = false;
+            
+            if (analysisInterval) {
+                clearInterval(analysisInterval);
+                analysisInterval = null;
+            }
+            
+            document.getElementById('startBtn').disabled = false;
+            document.getElementById('pauseBtn').disabled = true;
+            document.getElementById('stopBtn').disabled = true;
+            document.getElementById('exportBtn').disabled = false;
+            document.getElementById('reportBtn').disabled = false;
+            
+            logMessage('⏹️ Analysis stopped');
+        }
+        
+        function completeAnalysis() {
+            stopAnalysis();
+            logMessage('✅ Carbon pump analysis completed successfully');
+            logMessage(`📊 Total data points collected: ${analysisData.length}`);
+        }
+        
+        function calculateCarbonPump() {
+            const temp = environmentalConditions.temperature;
+            const salinity = environmentalConditions.salinity;
+            const pH = environmentalConditions.pH;
+            const wind = environmentalConditions.windSpeed;
+            const mld = environmentalConditions.mixedLayerDepth;
+            const depth = environmentalConditions.waterDepth;
+            const chlA = environmentalConditions.chlorophyllA;
+            const pp = environmentalConditions.primaryProduction;
+            const doc = environmentalConditions.doc;
+            const poc = environmentalConditions.poc;
+            
+            // Temperature factor
+            const tempFactor = Math.exp((temp - 15) / 10);
+            
+            // Stratification factor
+            const stratificationFactor = Math.max(0.1, 1 - (mld / depth));
+            
+            // Wind mixing factor
+            const windFactor = Math.min(2, wind / 10);
+            
+            // Nutrient factor
+            const nutrientFactors = {
+                'oligotrophic': 0.5,
+                'mesotrophic': 1.0,
+                'eutrophic': 1.8,
+                'hypereutrophic': 2.5
+            };
+            const nutrientFactor = nutrientFactors[environmentalConditions.nutrientLevel];
+            
+            // Seasonal factor
+            const seasonalFactors = {
+                'spring': 1.5,
+                'summer': 1.2,
+                'autumn': 0.8,
+                'winter': 0.6
+            };
+            const seasonalFactor = seasonalFactors[environmentalConditions.season];
+            
+            // Calculate biological pump
+            const biologicalBaseFlux = pp * 0.3; // 30% of primary production exported
+            carbonPumpComponents.biological.flux = biologicalBaseFlux * tempFactor * nutrientFactor * seasonalFactor;
+            carbonPumpComponents.biological.efficiency = Math.min(95, 20 + (chlA / 5) * 30 + (stratificationFactor * 20));
+            
+            // Calculate physical pump
+            const solubilityFactor = Math.exp((temp - 20) / -15); // CO2 solubility increases with lower temp
+            carbonPumpComponents.physical.flux = 150 * solubilityFactor * windFactor * (1 - stratificationFactor);
+            carbonPumpComponents.physical.efficiency = Math.min(90, 40 + (windFactor * 20) + ((35 - temp) * 2));
+            
+            // Calculate carbonate pump
+            const carbonateBaseFlux = 50; // Base calcification rate
+            const pHFactor = Math.exp((pH - 8.1) / 0.3); // pH effect on calcification
+            carbonPumpComponents.carbonate.flux = carbonateBaseFlux * tempFactor * pHFactor * nutrientFactor;
+            carbonPumpComponents.carbonate.efficiency = Math.min(85, 30 + (pH - 7.5) * 20);
+            
+            // Calculate microbial pump
+            carbonPumpComponents.microbial.flux = doc * 100 * tempFactor * (1 - stratificationFactor);
+            carbonPumpComponents.microbial.efficiency = Math.min(80, 25 + (doc / 2) * 25);
+            
+            // Calculate lipid pump
+            const lipidFactor = Math.min(1, chlA / 10); // Lipid production related to phytoplankton
+            carbonPumpComponents.lipid.flux = 20 * lipidFactor * tempFactor * seasonalFactor;
+            carbonPumpComponents.lipid.efficiency = Math.min(70, 15 + (lipidFactor * 30));
+            
+            // Calculate mixed layer pump
+            const mixingIntensity = windFactor * (1 / Math.max(0.1, stratificationFactor));
+            carbonPumpComponents.mixedLayer.flux = 80 * mixingIntensity * seasonalFactor;
+            carbonPumpComponents.mixedLayer.efficiency = Math.min(75, 20 + (mixingIntensity * 15));
+            
+            // Calculate depth profile
+            calculateDepthProfile();
+            
+            // Calculate biological processes
+            calculateBiologicalProcesses();
+            
+            // Calculate carbon fluxes
+            calculateCarbonFluxes();
+            
+            // Calculate overall metrics
+            calculateOverallMetrics();
+            
+            // Store data point
+            analysisData.push({
+                time: timeElapsed,
+                components: { ...carbonPumpComponents },
+                depthProfile: { ...depthProfile },
+                processes: { ...biologicalProcesses },
+                fluxes: { ...carbonFluxes },
+                metrics: { ...overallMetrics },
+                conditions: { ...environmentalConditions }
+            });
+        }
+        
+        function calculateDepthProfile() {
+            const temp = environmentalConditions.temperature;
+            const chlA = environmentalConditions.chlorophyllA;
+            const doc = environmentalConditions.doc;
+            const poc = environmentalConditions.poc;
+            const depth = environmentalConditions.waterDepth;
+            const mld = environmentalConditions.mixedLayerDepth;
+            
+            // Surface layer (high productivity, variable carbon)
+            depthProfile.surface = (chlA * 0.5) + (doc * 0.8) + (poc * 1.2);
+            
+            // Mixed layer (homogeneous, moderate carbon)
+            depthProfile.mixed = depthProfile.surface * 0.8;
+            
+            // Thermocline (carbon accumulation)
+            depthProfile.thermocline = depthProfile.mixed * 1.3;
+            
+            // Mesopelagic (remineralization zone)
+            depthProfile.mesopelagic = depthProfile.thermocline * 0.6;
+            
+            // Bathypelagic (deep water, stable carbon)
+            depthProfile.bathypelagic = depthProfile.mesopelagic * 0.4;
+            
+            // Sediment (carbon burial)
+            depthProfile.sediment = (depthProfile.bathypelagic * 0.1) + (Math.random() * 5);
+        }
+        
+        function calculateBiologicalProcesses() {
+            const temp = environmentalConditions.temperature;
+            const chlA = environmentalConditions.chlorophyllA;
+            const wind = environmentalConditions.windSpeed;
+            const nutrientFactor = {
+                'oligotrophic': 0.5,
+                'mesotrophic': 1.0,
+                'eutrophic': 1.8,
+                'hypereutrophic': 2.5
+            }[environmentalConditions.nutrientLevel];
+            
+            biologicalProcesses.primaryProduction = environmentalConditions.primaryProduction;
+            biologicalProcesses.particleFormation = chlA * 1000 * nutrientFactor;
+            biologicalProcesses.sinkingVelocity = 10 + (temp / 5) + (wind / 10);
+            biologicalProcesses.remineralization = 5 + (temp / 3);
+            biologicalProcesses.microbialRespiration = environmentalConditions.doc * 50 * Math.exp(temp / 15);
+            biologicalProcesses.calcification = 100 * nutrientFactor * Math.exp((environmentalConditions.pH - 8) / 0.2);
+        }
+        
+        function calculateCarbonFluxes() {
+            const temp = environmentalConditions.temperature;
+            const wind = environmentalConditions.windSpeed;
+            const pp = environmentalConditions.primaryProduction;
+            
+            // Air-sea exchange (positive = ocean uptake)
+            const solubility = Math.exp((temp - 20) / -15);
+            carbonFluxes.airSea = wind * solubility * 10 * (Math.random() * 0.4 + 0.8);
+            
+            // Export production
+            carbonFluxes.export = pp * 0.25; // 25% of primary production exported
+            
+            // Sediment burial
+            carbonFluxes.sediment = carbonFluxes.export * 0.05; // 5% reaches sediment
+            
+            // Lateral transport
+            const currentFactor = environmentalConditions.currentVelocity / 20;
+            carbonFluxes.lateral = 50 * currentFactor * (Math.random() * 0.6 + 0.7);
+            
+            // Upwelling input
+            carbonFluxes.upwelling = 30 * (1 - temp / 30) * (Math.random() * 0.5 + 0.75);
+            
+            // Riverine input (coastal zones)
+            const coastalFactors = {
+                'nearshore': 2.0,
+                'inner_shelf': 1.2,
+                'outer_shelf': 0.5,
+                'shelf_break': 0.2,
+                'slope': 0.1
+            };
+            carbonFluxes.riverine = 20 * coastalFactors[environmentalConditions.coastalZone];
+        }
+        
+        function calculateOverallMetrics() {
+            // Total carbon flux
+            overallMetrics.totalCarbonFlux = Object.values(carbonPumpComponents).reduce((sum, comp) => sum + comp.flux, 0);
+            
+            // Export efficiency
+            overallMetrics.exportEfficiency = (carbonFluxes.export / environmentalConditions.primaryProduction) * 100;
+            
+            // Sequestration rate (annual)
+            overallMetrics.sequestrationRate = carbonFluxes.sediment * 365 / 1000; // g C/m²/year
+            
+            // Remineralization depth
+            const sinkingRate = biologicalProcesses.sinkingVelocity;
+            const remineralizationRate = biologicalProcesses.remineralization / 100;
+            overallMetrics.remineralizationDepth = sinkingRate / remineralizationRate;
+            
+            // Overall pump efficiency
+            const totalInput = environmentalConditions.primaryProduction + carbonFluxes.riverine + carbonFluxes.upwelling;
+            overallMetrics.pumpEfficiency = (overallMetrics.totalCarbonFlux / totalInput) * 100;
+        }
+        
+        function updateDisplays() {
+            // Update overall metrics
+            document.getElementById('totalCarbonFlux').textContent = overallMetrics.totalCarbonFlux.toFixed(0);
+            document.getElementById('exportEfficiency').textContent = overallMetrics.exportEfficiency.toFixed(1);
+            document.getElementById('sequestrationRate').textContent = overallMetrics.sequestrationRate.toFixed(1);
+            document.getElementById('remineralizationDepth').textContent = overallMetrics.remineralizationDepth.toFixed(0);
+            document.getElementById('pumpEfficiency').textContent = overallMetrics.pumpEfficiency.toFixed(1);
+            
+            // Update carbon pump components
+            document.getElementById('biologicalFlux').textContent = carbonPumpComponents.biological.flux.toFixed(0);
+            document.getElementById('biologicalEfficiency').textContent = carbonPumpComponents.biological.efficiency.toFixed(0);
+            
+            document.getElementById('physicalFlux').textContent = carbonPumpComponents.physical.flux.toFixed(0);
+            document.getElementById('physicalEfficiency').textContent = carbonPumpComponents.physical.efficiency.toFixed(0);
+            
+            document.getElementById('carbonateFlux').textContent = carbonPumpComponents.carbonate.flux.toFixed(0);
+            document.getElementById('carbonateEfficiency').textContent = carbonPumpComponents.carbonate.efficiency.toFixed(0);
+            
+            document.getElementById('microbialFlux').textContent = carbonPumpComponents.microbial.flux.toFixed(0);
+            document.getElementById('microbialEfficiency').textContent = carbonPumpComponents.microbial.efficiency.toFixed(0);
+            
+            document.getElementById('lipidFlux').textContent = carbonPumpComponents.lipid.flux.toFixed(0);
+            document.getElementById('lipidEfficiency').textContent = carbonPumpComponents.lipid.efficiency.toFixed(0);
+            
+            document.getElementById('mixedLayerFlux').textContent = carbonPumpComponents.mixedLayer.flux.toFixed(0);
+            document.getElementById('mixedLayerEfficiency').textContent = carbonPumpComponents.mixedLayer.efficiency.toFixed(0);
+            
+            // Update depth profile
+            updateDepthBars();
+            
+            // Update biological processes
+            document.getElementById('primaryProductionRate').textContent = biologicalProcesses.primaryProduction.toFixed(0);
+            document.getElementById('particleFormationRate').textContent = biologicalProcesses.particleFormation.toFixed(0);
+            document.getElementById('sinkingVelocity').textContent = biologicalProcesses.sinkingVelocity.toFixed(1);
+            document.getElementById('remineralizationRate').textContent = biologicalProcesses.remineralization.toFixed(1);
+            document.getElementById('microbialRespiration').textContent = biologicalProcesses.microbialRespiration.toFixed(0);
+            document.getElementById('calcificationRate').textContent = biologicalProcesses.calcification.toFixed(0);
+            
+            // Update carbon fluxes
+            document.getElementById('airSeaFlux').textContent = carbonFluxes.airSea.toFixed(0);
+            document.getElementById('exportFlux').textContent = carbonFluxes.export.toFixed(0);
+            document.getElementById('sedimentFlux').textContent = carbonFluxes.sediment.toFixed(1);
+            document.getElementById('lateralFlux').textContent = carbonFluxes.lateral.toFixed(0);
+            document.getElementById('upwellingFlux').textContent = carbonFluxes.upwelling.toFixed(0);
+            document.getElementById('riverineFlux').textContent = carbonFluxes.riverine.toFixed(0);
+        }
+        
+        function updateDepthBars() {
+            const layers = ['surface', 'mixed', 'thermocline', 'mesopelagic', 'bathypelagic', 'sediment'];
+            const maxValue = Math.max(...Object.values(depthProfile));
+            
+            layers.forEach(layer => {
+                const percentage = (depthProfile[layer] / maxValue) * 100;
+                const bar = document.getElementById(layer + 'Bar');
+                const value = document.getElementById(layer + 'Value');
+                
+                if (bar && value) {
+                    bar.style.width = percentage + '%';
+                    const unit = layer === 'sediment' ? ' mg/g' : ' mg/L';
+                    value.textContent = depthProfile[layer].toFixed(1) + unit;
+                }
+            });
+        }
+        
+        function initializeChart() {
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            
+            // Draw axes
+            chartCtx.strokeStyle = '#d1d5db';
+            chartCtx.lineWidth = 1;
+            
+            // Y-axis
+            chartCtx.beginPath();
+            chartCtx.moveTo(50, 20);
+            chartCtx.lineTo(50, chartCanvas.height - 40);
+            chartCtx.stroke();
+            
+            // X-axis
+            chartCtx.beginPath();
+            chartCtx.moveTo(50, chartCanvas.height - 40);
+            chartCtx.lineTo(chartCanvas.width - 20, chartCanvas.height - 40);
+            chartCtx.stroke();
+            
+            // Labels
+            chartCtx.fillStyle = '#374151';
+            chartCtx.font = '12px Arial';
+            chartCtx.fillText('Time', chartCanvas.width / 2 - 15, chartCanvas.height - 10);
+            
+            chartCtx.save();
+            chartCtx.translate(15, chartCanvas.height / 2);
+            chartCtx.rotate(-Math.PI / 2);
+            chartCtx.fillText('Carbon Flux (mg C/m²/day)', -80, 0);
+            chartCtx.restore();
+        }
+        
+        function updateChart() {
+            if (analysisData.length < 2) return;
+            
+            chartCtx.clearRect(0, 0, chartCanvas.width, chartCanvas.height);
+            initializeChart();
+            
+            const maxTime = Math.max(...analysisData.map(d => d.time));
+            const maxFlux = Math.max(...analysisData.map(d => d.metrics.totalCarbonFlux));
+            
+            const chartWidth = chartCanvas.width - 70;
+            const chartHeight = chartCanvas.height - 60;
+            
+            // Draw total carbon flux line
+            chartCtx.strokeStyle = '#3b82f6';
+            chartCtx.lineWidth = 3;
+            chartCtx.beginPath();
+            
+            analysisData.forEach((data, index) => {
+                const x = 50 + (data.time / maxTime) * chartWidth;
+                const y = chartCanvas.height - 40 - (data.metrics.totalCarbonFlux / maxFlux) * chartHeight;
+                
+                if (index === 0) {
+                    chartCtx.moveTo(x, y);
+                } else {
+                    chartCtx.lineTo(x, y);
+                }
+            });
+            
+            chartCtx.stroke();
+            
+            // Draw biological pump line
+            chartCtx.strokeStyle = '#10b981';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            
+            const maxBiological = Math.max(...analysisData.map(d => d.components.biological.flux));
+            
+            analysisData.forEach((data, index) => {
+                const x = 50 + (data.time / maxTime) * chartWidth;
+                const y = chartCanvas.height - 40 - (data.components.biological.flux / maxBiological) * chartHeight;
+                
+                if (index === 0) {
+                    chartCtx.moveTo(x, y);
+                } else {
+                    chartCtx.lineTo(x, y);
+                }
+            });
+            
+            chartCtx.stroke();
+            
+            // Draw physical pump line
+            chartCtx.strokeStyle = '#f59e0b';
+            chartCtx.lineWidth = 2;
+            chartCtx.beginPath();
+            
+            const maxPhysical = Math.max(...analysisData.map(d => d.components.physical.flux));
+            
+            analysisData.forEach((data, index) => {
+                const x = 50 + (data.time / maxTime) * chartWidth;
+                const y = chartCanvas.height - 40 - (data.components.physical.flux / maxPhysical) * chartHeight;
+                
+                if (index === 0) {
+                    chartCtx.moveTo(x, y);
+                } else {
+                    chartCtx.lineTo(x, y);
+                }
+            });
+            
+            chartCtx.stroke();
+            
+            // Legend
+            chartCtx.fillStyle = '#3b82f6';
+            chartCtx.fillRect(chartCanvas.width - 180, 30, 15, 3);
+            chartCtx.fillStyle = '#374151';
+            chartCtx.font = '11px Arial';
+            chartCtx.fillText('Total Carbon Flux', chartCanvas.width - 160, 35);
+            
+            chartCtx.fillStyle = '#10b981';
+            chartCtx.fillRect(chartCanvas.width - 180, 50, 15, 3);
+            chartCtx.fillStyle = '#374151';
+            chartCtx.fillText('Biological Pump', chartCanvas.width - 160, 55);
+            
+            chartCtx.fillStyle = '#f59e0b';
+            chartCtx.fillRect(chartCanvas.width - 180, 70, 15, 3);
+            chartCtx.fillStyle = '#374151';
+            chartCtx.fillText('Physical Pump', chartCanvas.width - 160, 75);
+        }
+        
+        function resetAnalysis() {
+            stopAnalysis();
+            
+            timeElapsed = 0;
+            analysisData = [];
+            
+            // Reset all values
+            Object.keys(carbonPumpComponents).forEach(key => {
+                carbonPumpComponents[key] = { flux: 0, efficiency: 0 };
+            });
+            
+            Object.keys(depthProfile).forEach(key => {
+                depthProfile[key] = 0;
+            });
+            
+            Object.keys(biologicalProcesses).forEach(key => {
+                biologicalProcesses[key] = 0;
+            });
+            
+            Object.keys(carbonFluxes).forEach(key => {
+                carbonFluxes[key] = 0;
+            });
+            
+            Object.keys(overallMetrics).forEach(key => {
+                overallMetrics[key] = 0;
+            });
+            
+            document.getElementById('analysisProgress').textContent = '0';
+            document.getElementById('exportBtn').disabled = true;
+            document.getElementById('reportBtn').disabled = true;
+            
+            updateDisplays();
+            initializeChart();
+            
+            logMessage('🔄 Analysis reset - ready for new carbon pump analysis');
+        }
+        
+        function exportResults() {
+            if (analysisData.length === 0) {
+                alert('No data to export. Run an analysis first.');
+                return;
+            }
+            
+            const exportData = {
+                metadata: {
+                    exportDate: new Date().toISOString(),
+                    analysisType: document.getElementById('analysisType').value,
+                    timeScale: document.getElementById('timeScale').value,
+                    coastalZone: environmentalConditions.coastalZone,
+                    totalDataPoints: analysisData.length,
+                    conditions: environmentalConditions
+                },
+                data: analysisData
+            };
+            
+            // Create CSV
+            let csv = 'Time,TotalCarbonFlux,ExportEfficiency,SequestrationRate,PumpEfficiency,BiologicalFlux,PhysicalFlux,CarbonateFlux,MicrobialFlux,AirSeaFlux,ExportFlux,SedimentFlux\n';
+            
+            analysisData.forEach(record => {
+                csv += `${record.time},${record.metrics.totalCarbonFlux.toFixed(2)},${record.metrics.exportEfficiency.toFixed(2)},${record.metrics.sequestrationRate.toFixed(3)},${record.metrics.pumpEfficiency.toFixed(2)},${record.components.biological.flux.toFixed(2)},${record.components.physical.flux.toFixed(2)},${record.components.carbonate.flux.toFixed(2)},${record.components.microbial.flux.toFixed(2)},${record.fluxes.airSea.toFixed(2)},${record.fluxes.export.toFixed(2)},${record.fluxes.sediment.toFixed(3)}\n`;
+            });
+            
+            // Download files
+            downloadFile(csv, `carbon_pump_analysis_${new Date().toISOString().slice(0, 10)}.csv`);
+            downloadFile(JSON.stringify(exportData, null, 2), `carbon_pump_analysis_${new Date().toISOString().slice(0, 10)}.json`);
+            
+            logMessage(`💾 Data exported: ${analysisData.length} data points`);
+        }
+        
+        function generateReport() {
+            if (analysisData.length === 0) {
+                alert('No data available. Run an analysis first.');
+                return;
+            }
+            
+            const finalData = analysisData[analysisData.length - 1];
+            
+            const report = `
+COASTAL OCEAN CARBON PUMP ANALYSIS REPORT
+Generated: ${new Date().toLocaleString()}
+
+ENVIRONMENTAL CONDITIONS:
+- Coastal Zone: ${environmentalConditions.coastalZone}
+- Water Depth: ${environmentalConditions.waterDepth} m
+- Mixed Layer Depth: ${environmentalConditions.mixedLayerDepth} m
+- Temperature: ${environmentalConditions.temperature}°C
+- Salinity: ${environmentalConditions.salinity} PSU
+- pH: ${environmentalConditions.pH}
+- Dissolved Oxygen: ${environmentalConditions.dissolvedOxygen} mg/L
+- Wind Speed: ${environmentalConditions.windSpeed} m/s
+- Season: ${environmentalConditions.season}
+- Nutrient Status: ${environmentalConditions.nutrientLevel}
+
+OVERALL CARBON PUMP METRICS:
+- Total Carbon Flux: ${finalData.metrics.totalCarbonFlux.toFixed(0)} mg C/m²/day
+- Export Efficiency: ${finalData.metrics.exportEfficiency.toFixed(1)}%
+- Sequestration Rate: ${finalData.metrics.sequestrationRate.toFixed(1)} g C/m²/year
+- Remineralization Depth: ${finalData.metrics.remineralizationDepth.toFixed(0)} m
+- Overall Pump Efficiency: ${finalData.metrics.pumpEfficiency.toFixed(1)}%
+
+CARBON PUMP COMPONENTS:
+- Biological Pump: ${finalData.components.biological.flux.toFixed(0)} mg C/m²/day (${finalData.components.biological.efficiency.toFixed(0)}% efficiency)
+- Physical Pump: ${finalData.components.physical.flux.toFixed(0)} mg C/m²/day (${finalData.components.physical.efficiency.toFixed(0)}% efficiency)
+- Carbonate Pump: ${finalData.components.carbonate.flux.toFixed(0)} mg C/m²/day (${finalData.components.carbonate.efficiency.toFixed(0)}% efficiency)
+- Microbial Pump: ${finalData.components.microbial.flux.toFixed(0)} mg C/m²/day (${finalData.components.microbial.efficiency.toFixed(0)}% efficiency)
+- Lipid Pump: ${finalData.components.lipid.flux.toFixed(0)} mg C/m²/day (${finalData.components.lipid.efficiency.toFixed(0)}% efficiency)
+- Mixed Layer Pump: ${finalData.components.mixedLayer.flux.toFixed(0)} mg C/m²/day (${finalData.components.mixedLayer.efficiency.toFixed(0)}% efficiency)
+
+DEPTH PROFILE (Carbon Concentration):
+- Surface Layer (0-10m): ${finalData.depthProfile.surface.toFixed(1)} mg/L
+- Mixed Layer (10-50m): ${finalData.depthProfile.mixed.toFixed(1)} mg/L
+- Thermocline (50-200m): ${finalData.depthProfile.thermocline.toFixed(1)} mg/L
+- Mesopelagic (200-1000m): ${finalData.depthProfile.mesopelagic.toFixed(1)} mg/L
+- Bathypelagic (1000m+): ${finalData.depthProfile.bathypelagic.toFixed(1)} mg/L
+- Sediment: ${finalData.depthProfile.sediment.toFixed(1)} mg/g
+
+BIOLOGICAL PROCESSES:
+- Primary Production: ${finalData.processes.primaryProduction.toFixed(0)} mg C/m²/day
+- Particle Formation: ${finalData.processes.particleFormation.toFixed(0)} particles/L/day
+- Sinking Velocity: ${finalData.processes.sinkingVelocity.toFixed(1)} m/day
+- Remineralization Rate: ${finalData.processes.remineralization.toFixed(1)}%/day
+- Microbial Respiration: ${finalData.processes.microbialRespiration.toFixed(0)} mg C/m³/day
+- Calcification Rate: ${finalData.processes.calcification.toFixed(0)} mg CaCO₃/m²/day
+
+CARBON FLUXES:
+- Air-Sea Exchange: ${finalData.fluxes.airSea.toFixed(0)} mg C/m²/day
+- Export Production: ${finalData.fluxes.export.toFixed(0)} mg C/m²/day
+- Sediment Burial: ${finalData.fluxes.sediment.toFixed(1)} mg C/m²/day
+- Lateral Transport: ${finalData.fluxes.lateral.toFixed(0)} mg C/m²/day
+- Upwelling Input: ${finalData.fluxes.upwelling.toFixed(0)} mg C/m²/day
+- Riverine Input: ${finalData.fluxes.riverine.toFixed(0)} mg C/m²/day
+
+ANALYSIS SUMMARY:
+Analysis duration: ${timeElapsed} time units
+Data points collected: ${analysisData.length}
+Analysis type: ${document.getElementById('analysisType').value}
+Time scale: ${document.getElementById('timeScale').value}
+
+This comprehensive analysis evaluates all major components of the coastal ocean carbon pump,
+including biological, physical, carbonate, microbial, lipid, and mixed layer pumps.
+Results provide insights into carbon sequestration efficiency and biogeochemical cycling
+in coastal marine environments.
+            `;
+            
+            downloadFile(report, `carbon_pump_report_${new Date().toISOString().slice(0, 10)}.txt`);
+            logMessage('📋 Comprehensive carbon pump analysis report generated');
+        }
+        
+        function downloadFile(content, filename) {
+            const blob = new Blob([content], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+        
+        function logMessage(message) {
+            const log = document.getElementById('dataLog');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            
+            const timestamp = document.createElement('div');
+            timestamp.className = 'log-timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString();
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'log-message';
+            messageDiv.textContent = message;
+            
+            entry.appendChild(timestamp);
+            entry.appendChild(messageDiv);
+            
+            log.insertBefore(entry, log.firstChild);
+            
+            while (log.children.length > 20) {
+                log.removeChild(log.lastChild);
+            }
+        }
+        
+        // Initialize environmental display on load
+        setTimeout(updateEnvironmentalDisplay, 100);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c3c75fd41f88a6',t:'MTc1NDcwNjA3My4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
