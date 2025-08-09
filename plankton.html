@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Plankton Analysis System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #87CEEB;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .controls-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            height: fit-content;
+        }
+        
+        .analysis-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .parameter-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #87CEEB;
+        }
+        
+        .parameter-group h3 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        
+        .parameter {
+            margin-bottom: 15px;
+        }
+        
+        .parameter label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .parameter input {
+            width: 100%;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .parameter .unit {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-left: 5px;
+        }
+        
+        .calculate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .scenario-btn {
+            padding: 10px 12px;
+            background: linear-gradient(45deg, #2196F3, #1976D2);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .scenario-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(33, 150, 243, 0.4);
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .result-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .result-card h3 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .equation {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            border-left: 3px solid #87CEEB;
+        }
+        
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #90EE90;
+            margin: 10px 0;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+        
+        .interpretation {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 4px solid #FFD700;
+        }
+        
+        .interpretation h4 {
+            color: #FFD700;
+            margin-bottom: 8px;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean Plankton Analysis System</h1>
+            <p>Comprehensive evaluation of zooplankton and phytoplankton dynamics in coastal marine ecosystems by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-grid">
+            <div class="controls-panel">
+                <h2>Environmental Parameters</h2>
+                
+                <div class="parameter-group">
+                    <h3>🌡️ Physical Parameters</h3>
+                    <div class="parameter">
+                        <label>Temperature <span class="unit">(°C)</span></label>
+                        <input type="number" id="temperature" value="18" step="0.1">
+                    </div>
+                    <div class="parameter">
+                        <label>Salinity <span class="unit">(PSU)</span></label>
+                        <input type="number" id="salinity" value="35" step="0.1">
+                    </div>
+                    <div class="parameter">
+                        <label>Light Intensity <span class="unit">(μmol photons/m²/s)</span></label>
+                        <input type="number" id="light" value="800" step="10">
+                    </div>
+                    <div class="parameter">
+                        <label>Mixed Layer Depth <span class="unit">(m)</span></label>
+                        <input type="number" id="mixedLayer" value="25" step="1">
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <h3>🧪 Chemical Parameters</h3>
+                    <div class="parameter">
+                        <label>Nitrate (NO₃⁻) <span class="unit">(μM)</span></label>
+                        <input type="number" id="nitrate" value="15" step="0.1">
+                    </div>
+                    <div class="parameter">
+                        <label>Phosphate (PO₄³⁻) <span class="unit">(μM)</span></label>
+                        <input type="number" id="phosphate" value="1.2" step="0.01">
+                    </div>
+                    <div class="parameter">
+                        <label>Silicate (SiO₄⁴⁻) <span class="unit">(μM)</span></label>
+                        <input type="number" id="silicate" value="8" step="0.1">
+                    </div>
+                    <div class="parameter">
+                        <label>Dissolved Oxygen <span class="unit">(mg/L)</span></label>
+                        <input type="number" id="oxygen" value="7.5" step="0.1">
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <h3>🦠 Biological Parameters</h3>
+                    <div class="parameter">
+                        <label>Phytoplankton Biomass <span class="unit">(mg Chl-a/m³)</span></label>
+                        <input type="number" id="phytoBiomass" value="2.5" step="0.1">
+                    </div>
+                    <div class="parameter">
+                        <label>Zooplankton Density <span class="unit">(ind/m³)</span></label>
+                        <input type="number" id="zooDensity" value="150" step="1">
+                    </div>
+                    <div class="parameter">
+                        <label>Grazing Pressure <span class="unit">(day⁻¹)</span></label>
+                        <input type="number" id="grazing" value="0.3" step="0.01">
+                    </div>
+                </div>
+                
+                <div class="parameter-group">
+                    <h3>🌊 Oceanographic Scenarios</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+                        <button class="scenario-btn" onclick="loadScenario('upwelling')">⬆️ Upwelling</button>
+                        <button class="scenario-btn" onclick="loadScenario('downwelling')">⬇️ Downwelling</button>
+                        <button class="scenario-btn" onclick="loadScenario('relaxation')">🌀 Relaxation</button>
+                        <button class="scenario-btn" onclick="loadScenario('storm')">⛈️ Storm Event</button>
+                        <button class="scenario-btn" onclick="loadScenario('stratified')">🏔️ Stratified</button>
+                        <button class="scenario-btn" onclick="loadScenario('mixed')">🌊 Well-Mixed</button>
+                    </div>
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateAll()">🔬 Analyze Ecosystem</button>
+            </div>
+            
+            <div class="analysis-panel">
+                <h2>Real-time Analysis Results</h2>
+                <div id="results"></div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📊 Ecosystem Dynamics Visualization</h3>
+            <div style="position: relative; height: 400px; width: 100%;">
+                <canvas id="ecosystemChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let chart;
+        
+        // Oceanographic scenarios with realistic parameter sets
+        const scenarios = {
+            upwelling: {
+                name: "Coastal Upwelling",
+                description: "Cold, nutrient-rich water rises to surface",
+                temperature: 12,
+                salinity: 34.2,
+                light: 900,
+                mixedLayer: 15,
+                nitrate: 25,
+                phosphate: 2.1,
+                silicate: 18,
+                oxygen: 6.2,
+                phytoBiomass: 4.5,
+                zooDensity: 80,
+                grazing: 0.2
+            },
+            downwelling: {
+                name: "Coastal Downwelling",
+                description: "Surface water sinks, low nutrients",
+                temperature: 16,
+                salinity: 35.1,
+                light: 750,
+                mixedLayer: 45,
+                nitrate: 5,
+                phosphate: 0.4,
+                silicate: 3,
+                oxygen: 8.1,
+                phytoBiomass: 1.2,
+                zooDensity: 200,
+                grazing: 0.45
+            },
+            relaxation: {
+                name: "Wind Relaxation",
+                description: "Calm conditions after upwelling event",
+                temperature: 15,
+                salinity: 34.8,
+                light: 850,
+                mixedLayer: 20,
+                nitrate: 12,
+                phosphate: 1.0,
+                silicate: 8,
+                oxygen: 7.8,
+                phytoBiomass: 3.2,
+                zooDensity: 120,
+                grazing: 0.35
+            },
+            storm: {
+                name: "Storm Event",
+                description: "High winds, deep mixing, resuspension",
+                temperature: 14,
+                salinity: 34.5,
+                light: 400,
+                mixedLayer: 80,
+                nitrate: 20,
+                phosphate: 1.8,
+                silicate: 15,
+                oxygen: 6.8,
+                phytoBiomass: 1.8,
+                zooDensity: 60,
+                grazing: 0.15
+            },
+            stratified: {
+                name: "Summer Stratification",
+                description: "Warm surface, thermocline present",
+                temperature: 22,
+                salinity: 35.5,
+                light: 1200,
+                mixedLayer: 12,
+                nitrate: 2,
+                phosphate: 0.2,
+                silicate: 1,
+                oxygen: 8.5,
+                phytoBiomass: 0.8,
+                zooDensity: 300,
+                grazing: 0.6
+            },
+            mixed: {
+                name: "Well-Mixed Winter",
+                description: "Deep convective mixing, homogeneous",
+                temperature: 10,
+                salinity: 34.0,
+                light: 300,
+                mixedLayer: 120,
+                nitrate: 18,
+                phosphate: 1.5,
+                silicate: 12,
+                oxygen: 9.2,
+                phytoBiomass: 1.0,
+                zooDensity: 40,
+                grazing: 0.1
+            }
+        };
+        
+        function loadScenario(scenarioName) {
+            const scenario = scenarios[scenarioName];
+            if (!scenario) return;
+            
+            // Update all input fields
+            document.getElementById('temperature').value = scenario.temperature;
+            document.getElementById('salinity').value = scenario.salinity;
+            document.getElementById('light').value = scenario.light;
+            document.getElementById('mixedLayer').value = scenario.mixedLayer;
+            document.getElementById('nitrate').value = scenario.nitrate;
+            document.getElementById('phosphate').value = scenario.phosphate;
+            document.getElementById('silicate').value = scenario.silicate;
+            document.getElementById('oxygen').value = scenario.oxygen;
+            document.getElementById('phytoBiomass').value = scenario.phytoBiomass;
+            document.getElementById('zooDensity').value = scenario.zooDensity;
+            document.getElementById('grazing').value = scenario.grazing;
+            
+            // Show scenario info
+            showScenarioInfo(scenario);
+            
+            // Auto-calculate
+            setTimeout(calculateAll, 100);
+        }
+        
+        function showScenarioInfo(scenario) {
+            const existingInfo = document.querySelector('.scenario-info');
+            if (existingInfo) existingInfo.remove();
+            
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'scenario-info';
+            infoDiv.style.cssText = `
+                background: rgba(255, 215, 0, 0.1);
+                border: 1px solid #FFD700;
+                border-radius: 10px;
+                padding: 15px;
+                margin: 15px 0;
+                animation: fadeIn 0.5s ease;
+            `;
+            infoDiv.innerHTML = `
+                <h4 style="color: #FFD700; margin-bottom: 8px;">📍 ${scenario.name}</h4>
+                <p style="font-size: 0.9rem; opacity: 0.9;">${scenario.description}</p>
+            `;
+            
+            document.querySelector('.controls-panel').insertBefore(infoDiv, document.querySelector('.calculate-btn'));
+        }
+        
+        function calculateAll() {
+            // Get all parameter values
+            const params = {
+                T: parseFloat(document.getElementById('temperature').value),
+                S: parseFloat(document.getElementById('salinity').value),
+                I: parseFloat(document.getElementById('light').value),
+                MLD: parseFloat(document.getElementById('mixedLayer').value),
+                NO3: parseFloat(document.getElementById('nitrate').value),
+                PO4: parseFloat(document.getElementById('phosphate').value),
+                SiO4: parseFloat(document.getElementById('silicate').value),
+                O2: parseFloat(document.getElementById('oxygen').value),
+                P: parseFloat(document.getElementById('phytoBiomass').value),
+                Z: parseFloat(document.getElementById('zooDensity').value),
+                G: parseFloat(document.getElementById('grazing').value)
+            };
+            
+            // Calculate complex ecological parameters
+            const results = performAnalysis(params);
+            displayResults(results);
+            updateChart(results);
+        }
+        
+        function performAnalysis(p) {
+            const results = {};
+            
+            // 1. Phytoplankton Growth Rate (Monod kinetics with temperature dependence)
+            const Topt = 20; // Optimal temperature
+            const Q10 = 2.0; // Temperature coefficient
+            const tempFactor = Math.pow(Q10, (p.T - Topt) / 10);
+            const KN = 2.0; // Half-saturation constant for nitrate
+            const KP = 0.1; // Half-saturation constant for phosphate
+            const Iopt = 600; // Optimal light intensity
+            
+            const nutrientLimitation = Math.min(p.NO3 / (KN + p.NO3), p.PO4 / (KP + p.PO4));
+            const lightLimitation = p.I / (p.I + Iopt) * Math.exp(1 - p.I / Iopt);
+            
+            results.phytoGrowthRate = 1.2 * tempFactor * nutrientLimitation * lightLimitation;
+            results.phytoGrowthEquation = "μ = μmax × f(T) × min(N/(KN+N), P/(KP+P)) × I/(I+Iopt) × exp(1-I/Iopt)";
+            
+            // 2. Zooplankton Grazing Rate (Holling Type II functional response)
+            const Imax = 0.8; // Maximum ingestion rate
+            const Kp = 1.5; // Half-saturation constant for prey
+            const tempGrazingFactor = Math.pow(1.8, (p.T - 15) / 10);
+            
+            results.grazingRate = Imax * tempGrazingFactor * (p.P / (Kp + p.P));
+            results.grazingEquation = "I = Imax × f(T) × P/(Kp + P)";
+            
+            // 3. Net Primary Production (NPP)
+            const respirationRate = 0.1 * Math.pow(2, (p.T - 20) / 10);
+            results.npp = (results.phytoGrowthRate - respirationRate) * p.P;
+            results.nppEquation = "NPP = (μ - R) × P";
+            
+            // 4. Zooplankton Production Efficiency
+            const assimilationEfficiency = 0.7;
+            const metabolicRate = 0.05 * Math.pow(2.2, (p.T - 15) / 10);
+            
+            results.zooProduction = assimilationEfficiency * results.grazingRate * p.Z - metabolicRate * p.Z;
+            results.zooProductionEquation = "ZP = α × I × Z - R × Z";
+            
+            // 5. Nutrient Regeneration Rate
+            const excretionRate = 0.15;
+            const remineralizationRate = 0.08;
+            
+            results.nutrientRegeneration = excretionRate * results.grazingRate * p.Z + remineralizationRate * p.P;
+            results.regenEquation = "NR = ε × I × Z + δ × P";
+            
+            // 6. Oxygen Production/Consumption
+            const photosyntheticQuotient = 1.2;
+            const respiratoryQuotient = 0.85;
+            
+            results.oxygenBalance = photosyntheticQuotient * results.npp - respiratoryQuotient * (metabolicRate * p.Z + respirationRate * p.P);
+            results.oxygenEquation = "ΔO₂ = PQ × NPP - RQ × (Rz × Z + Rp × P)";
+            
+            // 7. Trophic Transfer Efficiency
+            results.trophicEfficiency = (results.zooProduction / results.npp) * 100;
+            results.trophicEquation = "TE = (ZP / NPP) × 100%";
+            
+            // 8. Ecosystem Stability Index (Shannon-Weaver based)
+            const diversityIndex = -((p.P / (p.P + p.Z)) * Math.log(p.P / (p.P + p.Z)) + 
+                                   (p.Z / (p.P + p.Z)) * Math.log(p.Z / (p.P + p.Z)));
+            results.stabilityIndex = diversityIndex * (1 - Math.abs(results.phytoGrowthRate - results.grazingRate));
+            results.stabilityEquation = "SI = H' × (1 - |μ - G|)";
+            
+            // 9. Carrying Capacity
+            const K_phyto = (p.NO3 * p.PO4) / (0.1 + 0.01 * p.T);
+            results.carryingCapacity = K_phyto;
+            results.carryingEquation = "K = (N × P) / (a + b × T)";
+            
+            // 10. Predation Pressure Index
+            results.predationPressure = (results.grazingRate * p.Z) / p.P;
+            results.predationEquation = "PP = (I × Z) / P";
+            
+            return results;
+        }
+        
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="results-grid">
+                    <div class="result-card">
+                        <h3>🌱 Phytoplankton Growth</h3>
+                        <div class="equation">${results.phytoGrowthEquation}</div>
+                        <div class="result-value">${results.phytoGrowthRate.toFixed(3)} day⁻¹</div>
+                        <div class="interpretation">
+                            <h4>Interpretation:</h4>
+                            <p>${results.phytoGrowthRate > 0.5 ? 'High growth conditions - favorable for phytoplankton blooms' : 
+                                results.phytoGrowthRate > 0.2 ? 'Moderate growth - stable phytoplankton population' : 
+                                'Low growth - nutrient or light limitation'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🦐 Zooplankton Grazing</h3>
+                        <div class="equation">${results.grazingEquation}</div>
+                        <div class="result-value">${results.grazingRate.toFixed(3)} day⁻¹</div>
+                        <div class="interpretation">
+                            <h4>Interpretation:</h4>
+                            <p>${results.grazingRate > 0.4 ? 'High grazing pressure - strong top-down control' : 
+                                results.grazingRate > 0.2 ? 'Moderate grazing - balanced predator-prey dynamics' : 
+                                'Low grazing - weak zooplankton control'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🌿 Net Primary Production</h3>
+                        <div class="equation">${results.nppEquation}</div>
+                        <div class="result-value">${results.npp.toFixed(2)} mg C/m³/day</div>
+                        <div class="interpretation">
+                            <h4>Interpretation:</h4>
+                            <p>${results.npp > 2 ? 'High productivity - eutrophic conditions' : 
+                                results.npp > 0.5 ? 'Moderate productivity - mesotrophic conditions' : 
+                                'Low productivity - oligotrophic conditions'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>🔄 Trophic Efficiency</h3>
+                        <div class="equation">${results.trophicEquation}</div>
+                        <div class="result-value">${results.trophicEfficiency.toFixed(1)}%</div>
+                        <div class="interpretation">
+                            <h4>Interpretation:</h4>
+                            <p>${results.trophicEfficiency > 15 ? 'Efficient energy transfer - healthy food web' : 
+                                results.trophicEfficiency > 8 ? 'Moderate efficiency - typical marine ecosystem' : 
+                                'Low efficiency - energy loss in transfer'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>💨 Oxygen Balance</h3>
+                        <div class="equation">${results.oxygenEquation}</div>
+                        <div class="result-value">${results.oxygenBalance.toFixed(2)} mg O₂/L/day</div>
+                        <div class="interpretation">
+                            <h4>Interpretation:</h4>
+                            <p>${results.oxygenBalance > 0 ? 'Net oxygen production - healthy ecosystem' : 
+                                'Net oxygen consumption - potential hypoxia risk'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="result-card">
+                        <h3>⚖️ Ecosystem Stability</h3>
+                        <div class="equation">${results.stabilityEquation}</div>
+                        <div class="result-value">${results.stabilityIndex.toFixed(3)}</div>
+                        <div class="interpretation">
+                            <h4>Interpretation:</h4>
+                            <p>${results.stabilityIndex > 0.5 ? 'High stability - resilient ecosystem' : 
+                                results.stabilityIndex > 0.3 ? 'Moderate stability - some fluctuations expected' : 
+                                'Low stability - vulnerable to disturbances'}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function updateChart(results) {
+            const ctx = document.getElementById('ecosystemChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            // Normalize data for better visualization with proper scaling
+            const normalizedData = [
+                Math.min(100, Math.max(5, results.phytoGrowthRate * 100)),
+                Math.min(100, Math.max(5, results.grazingRate * 150)),
+                Math.min(100, Math.max(5, Math.abs(results.npp) * 20 + 30)),
+                Math.min(100, Math.max(5, results.trophicEfficiency * 3)),
+                Math.min(100, Math.max(5, Math.abs(results.oxygenBalance) * 10 + 40)),
+                Math.min(100, Math.max(5, results.stabilityIndex * 120))
+            ];
+            
+            console.log('Chart data:', normalizedData); // Debug log
+            
+            try {
+                chart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Phyto Growth', 'Grazing Rate', 'Net Production', 'Trophic Efficiency', 'O₂ Balance', 'Stability'],
+                        datasets: [{
+                            label: 'Ecosystem Health',
+                            data: normalizedData,
+                            backgroundColor: 'rgba(135, 206, 235, 0.2)',
+                            borderColor: 'rgba(135, 206, 235, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(135, 206, 235, 1)',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                angleLines: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                },
+                                pointLabels: {
+                                    color: 'white'
+                                },
+                                ticks: {
+                                    color: 'white',
+                                    backdropColor: 'transparent'
+                                }
+                            }
+                        }
+                    }
+                });
+                console.log('Chart created successfully');
+            } catch (error) {
+                console.error('Chart creation failed:', error);
+                // Fallback: create a simple bar chart
+                chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Growth', 'Grazing', 'Production', 'Efficiency', 'Oxygen', 'Stability'],
+                        datasets: [{
+                            label: 'Ecosystem Parameters',
+                            data: normalizedData,
+                            backgroundColor: 'rgba(135, 206, 235, 0.7)',
+                            borderColor: 'rgba(135, 206, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                }
+                            },
+                            x: {
+                                ticks: {
+                                    color: 'white'
+                                },
+                                grid: {
+                                    color: 'rgba(255, 255, 255, 0.3)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        // Initialize with default values
+        calculateAll();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96cb1859e65188a6',t:'MTc1NDc4Mjc5MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
