@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepción Continental Shelf - Oceanographic Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: #87CEEB;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .controls {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            margin: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .control-group label {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .control-group input, .control-group select {
+            padding: 0.5rem;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            color: #333;
+        }
+        
+        .chart-container h3 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-size: 1.2rem;
+            text-align: center;
+        }
+        
+        .chart-wrapper {
+            position: relative;
+            height: 300px;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #87CEEB;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 0.5rem;
+        }
+        
+        .analysis-panel {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 2rem;
+            padding: 2rem;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .analysis-panel h3 {
+            color: #87CEEB;
+            margin-bottom: 1rem;
+        }
+        
+        .analysis-text {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🌊 Concepción Continental Shelf Analysis</h1>
+        <p>Vertical Water Column Structure Assessment - 100m Depth Profile by Claudio Iturra</p>
+        <p>Oceanographic Parameters & Stratification Analysis</p>
+    </div>
+    
+    <div class="controls">
+        <div class="control-group">
+            <label>Season</label>
+            <select id="season">
+                <option value="summer">Summer (DJF)</option>
+                <option value="autumn">Autumn (MAM)</option>
+                <option value="winter">Winter (JJA)</option>
+                <option value="spring">Spring (SON)</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label>Latitude (°S)</label>
+            <input type="number" id="latitude" value="36.8" min="36" max="37.5" step="0.1">
+        </div>
+        <div class="control-group">
+            <label>Distance from Shore (km)</label>
+            <input type="number" id="distance" value="15" min="5" max="50" step="5">
+        </div>
+        <div class="control-group">
+            <label>Wind Stress (N/m²)</label>
+            <input type="number" id="windStress" value="0.1" min="0" max="0.3" step="0.01">
+        </div>
+        <button class="btn" onclick="updateAnalysis()">🔄 Update Analysis</button>
+        <button class="btn" onclick="exportData()">📊 Export Data</button>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value" id="mixedLayerDepth">25</div>
+            <div class="stat-label">Mixed Layer Depth (m)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="thermoclineStrength">0.15</div>
+            <div class="stat-label">Thermocline Strength (°C/m)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="maxBruntVaisala">0.025</div>
+            <div class="stat-label">Max N² (s⁻²)</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" id="avgRichardson">2.8</div>
+            <div class="stat-label">Avg Richardson Number</div>
+        </div>
+    </div>
+    
+    <div class="dashboard">
+        <div class="chart-container">
+            <h3>🌡️ Temperature Profile</h3>
+            <div class="chart-wrapper">
+                <canvas id="temperatureChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>🧂 Salinity Profile</h3>
+            <div class="chart-wrapper">
+                <canvas id="salinityChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>⚖️ Density (σₜ) Profile</h3>
+            <div class="chart-wrapper">
+                <canvas id="densityChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>🌀 Brunt-Väisälä Frequency (N²)</h3>
+            <div class="chart-wrapper">
+                <canvas id="bruntVaisalaChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>🔄 Richardson Number</h3>
+            <div class="chart-wrapper">
+                <canvas id="richardsonChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>💨 Horizontal Shear</h3>
+            <div class="chart-wrapper">
+                <canvas id="shearChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>🌊 Mixing Coefficient</h3>
+            <div class="chart-wrapper">
+                <canvas id="mixingChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📊 Stratification Index</h3>
+            <div class="chart-wrapper">
+                <canvas id="stratificationChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="analysis-panel">
+        <h3>📋 Oceanographic Analysis Summary</h3>
+        <div class="analysis-text" id="analysisText">
+            <p><strong>Current Conditions:</strong> The water column shows typical summer stratification patterns for the Concepción continental shelf region.</p>
+            <p><strong>Mixed Layer:</strong> Well-developed surface mixed layer extending to approximately 25m depth, influenced by seasonal heating and wind mixing.</p>
+            <p><strong>Thermocline:</strong> Strong thermocline between 25-50m depth with maximum temperature gradient of 0.15°C/m, indicating significant thermal stratification.</p>
+            <p><strong>Stability:</strong> High Brunt-Väisälä frequency values in the thermocline region suggest strong density stratification that inhibits vertical mixing.</p>
+            <p><strong>Shear & Mixing:</strong> Richardson numbers above critical value (0.25) indicate stable conditions with limited turbulent mixing below the mixed layer.</p>
+        </div>
+    </div>
+
+    <script>
+        // Oceanographic data and calculations
+        let charts = {};
+        let currentData = {};
+        
+        // Initialize the analysis
+        function initializeAnalysis() {
+            generateOceanographicData();
+            createAllCharts();
+            updateStats();
+        }
+        
+        function generateOceanographicData() {
+            const season = document.getElementById('season').value;
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const distance = parseFloat(document.getElementById('distance').value);
+            const windStress = parseFloat(document.getElementById('windStress').value);
+            
+            // Depth array (0-100m)
+            const depths = Array.from({length: 101}, (_, i) => i);
+            
+            // Generate realistic profiles based on Concepción shelf conditions
+            currentData = {
+                depths: depths,
+                temperature: generateTemperatureProfile(depths, season, latitude),
+                salinity: generateSalinityProfile(depths, season, distance),
+                density: [],
+                bruntVaisala: [],
+                richardson: [],
+                horizontalShear: [],
+                mixing: [],
+                stratification: []
+            };
+            
+            // Calculate derived parameters
+            calculateDensity();
+            calculateBruntVaisala();
+            calculateRichardsonNumber();
+            calculateHorizontalShear();
+            calculateMixingCoefficient();
+            calculateStratificationIndex();
+        }
+        
+        function generateTemperatureProfile(depths, season, latitude) {
+            const seasonalTemp = {
+                'summer': 16, 'autumn': 14, 'winter': 11, 'spring': 13
+            };
+            
+            const surfaceTemp = seasonalTemp[season];
+            const deepTemp = 8; // Typical deep water temperature
+            
+            return depths.map(depth => {
+                if (depth <= 20) {
+                    // Mixed layer
+                    return surfaceTemp - (depth * 0.02);
+                } else if (depth <= 60) {
+                    // Thermocline
+                    const thermoclineDepth = depth - 20;
+                    return surfaceTemp - 0.4 - (thermoclineDepth * 0.15);
+                } else {
+                    // Deep water
+                    return deepTemp + Math.exp(-(depth - 60) * 0.05);
+                }
+            });
+        }
+        
+        function generateSalinityProfile(depths, season, distance) {
+            const surfaceSalinity = distance < 20 ? 34.2 : 34.5; // Coastal influence
+            const deepSalinity = 34.8;
+            
+            return depths.map(depth => {
+                if (depth <= 30) {
+                    return surfaceSalinity + (depth * 0.003);
+                } else {
+                    const transition = (depth - 30) / 70;
+                    return surfaceSalinity + 0.09 + (transition * (deepSalinity - surfaceSalinity - 0.09));
+                }
+            });
+        }
+        
+        function calculateDensity() {
+            // Simplified density calculation (σₜ)
+            currentData.density = currentData.temperature.map((temp, i) => {
+                const sal = currentData.salinity[i];
+                return 1000 + (28.14 - 0.0735 * temp - 0.00469 * temp * temp + 
+                              (0.802 - 0.002 * temp) * (sal - 35));
+            });
+        }
+        
+        function calculateBruntVaisala() {
+            const g = 9.81; // gravity
+            const rho0 = 1025; // reference density
+            
+            currentData.bruntVaisala = currentData.density.map((rho, i) => {
+                if (i === 0) return 0;
+                const drho_dz = (currentData.density[i] - currentData.density[i-1]) / 1; // 1m intervals
+                return Math.max(0, (g / rho0) * drho_dz);
+            });
+        }
+        
+        function calculateRichardsonNumber() {
+            currentData.richardson = currentData.bruntVaisala.map((n2, i) => {
+                const shear = 0.001 + Math.random() * 0.01; // Simplified shear
+                return n2 / (shear * shear);
+            });
+        }
+        
+        function calculateHorizontalShear() {
+            currentData.horizontalShear = currentData.depths.map(depth => {
+                if (depth <= 25) {
+                    return 0.005 + Math.random() * 0.01;
+                } else if (depth <= 60) {
+                    return 0.002 + Math.random() * 0.005;
+                } else {
+                    return 0.001 + Math.random() * 0.002;
+                }
+            });
+        }
+        
+        function calculateMixingCoefficient() {
+            currentData.mixing = currentData.richardson.map((ri, i) => {
+                if (ri < 0.25) {
+                    return 0.01 + Math.random() * 0.05; // High mixing
+                } else {
+                    return 0.001 + Math.random() * 0.005; // Low mixing
+                }
+            });
+        }
+        
+        function calculateStratificationIndex() {
+            currentData.stratification = currentData.bruntVaisala.map((n2, i) => {
+                return Math.sqrt(n2) * 3600; // Convert to cycles per hour
+            });
+        }
+        
+        function createChart(canvasId, data, label, color, unit = '') {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            if (charts[canvasId]) {
+                charts[canvasId].destroy();
+            }
+            
+            charts[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: currentData.depths,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)'
+                            },
+                            reverse: false
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: label + unit
+                            },
+                            reverse: true // Depth increases downward
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        function createAllCharts() {
+            createChart('temperatureChart', currentData.temperature, 'Temperature', '#FF6B6B', ' (°C)');
+            createChart('salinityChart', currentData.salinity, 'Salinity', '#4ECDC4', ' (PSU)');
+            createChart('densityChart', currentData.density, 'Density σₜ', '#45B7D1', ' (kg/m³)');
+            createChart('bruntVaisalaChart', currentData.bruntVaisala, 'N²', '#96CEB4', ' (s⁻²)');
+            createChart('richardsonChart', currentData.richardson, 'Richardson Number', '#FFEAA7', '');
+            createChart('shearChart', currentData.horizontalShear, 'Horizontal Shear', '#DDA0DD', ' (s⁻¹)');
+            createChart('mixingChart', currentData.mixing, 'Mixing Coefficient', '#98D8C8', ' (m²/s)');
+            createChart('stratificationChart', currentData.stratification, 'Stratification', '#F7DC6F', ' (cph)');
+        }
+        
+        function updateStats() {
+            // Calculate key statistics
+            const mixedLayerDepth = findMixedLayerDepth();
+            const thermoclineStrength = calculateThermoclineStrength();
+            const maxBruntVaisala = Math.max(...currentData.bruntVaisala);
+            const avgRichardson = currentData.richardson.reduce((a, b) => a + b, 0) / currentData.richardson.length;
+            
+            document.getElementById('mixedLayerDepth').textContent = mixedLayerDepth.toFixed(0);
+            document.getElementById('thermoclineStrength').textContent = thermoclineStrength.toFixed(3);
+            document.getElementById('maxBruntVaisala').textContent = maxBruntVaisala.toFixed(4);
+            document.getElementById('avgRichardson').textContent = avgRichardson.toFixed(1);
+        }
+        
+        function findMixedLayerDepth() {
+            const surfaceTemp = currentData.temperature[0];
+            for (let i = 1; i < currentData.temperature.length; i++) {
+                if (Math.abs(currentData.temperature[i] - surfaceTemp) > 0.5) {
+                    return i;
+                }
+            }
+            return 20; // Default
+        }
+        
+        function calculateThermoclineStrength() {
+            let maxGradient = 0;
+            for (let i = 1; i < currentData.temperature.length; i++) {
+                const gradient = Math.abs(currentData.temperature[i-1] - currentData.temperature[i]);
+                maxGradient = Math.max(maxGradient, gradient);
+            }
+            return maxGradient;
+        }
+        
+        function updateAnalysis() {
+            generateOceanographicData();
+            createAllCharts();
+            updateStats();
+            updateAnalysisText();
+        }
+        
+        function updateAnalysisText() {
+            const season = document.getElementById('season').value;
+            const mixedLayerDepth = findMixedLayerDepth();
+            const maxN2 = Math.max(...currentData.bruntVaisala);
+            
+            let analysisText = `
+                <p><strong>Current Conditions (${season.charAt(0).toUpperCase() + season.slice(1)}):</strong> The water column shows ${season === 'summer' ? 'strong' : season === 'winter' ? 'weak' : 'moderate'} stratification patterns for the Concepción continental shelf region.</p>
+                <p><strong>Mixed Layer:</strong> Surface mixed layer extends to approximately ${mixedLayerDepth}m depth, influenced by seasonal ${season === 'winter' ? 'cooling and strong wind mixing' : 'heating and moderate wind stress'}.</p>
+                <p><strong>Thermocline:</strong> ${maxN2 > 0.02 ? 'Strong' : 'Moderate'} thermocline development with maximum Brunt-Väisälä frequency of ${maxN2.toFixed(4)} s⁻², indicating ${maxN2 > 0.02 ? 'significant' : 'moderate'} density stratification.</p>
+                <p><strong>Stability:</strong> ${maxN2 > 0.02 ? 'High stability conditions limit vertical mixing and promote stratification' : 'Moderate stability allows for some vertical exchange'}.</p>
+                <p><strong>Mixing Processes:</strong> Richardson numbers indicate ${currentData.richardson.some(ri => ri < 0.25) ? 'potential for shear instability and enhanced mixing in some regions' : 'generally stable conditions with limited turbulent mixing'}.</p>
+            `;
+            
+            document.getElementById('analysisText').innerHTML = analysisText;
+        }
+        
+        function exportData() {
+            const data = {
+                metadata: {
+                    location: 'Concepción Continental Shelf',
+                    latitude: document.getElementById('latitude').value,
+                    distance_from_shore: document.getElementById('distance').value,
+                    season: document.getElementById('season').value,
+                    analysis_date: new Date().toISOString()
+                },
+                profiles: currentData
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'concepcion_oceanographic_analysis.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // Initialize on page load
+        window.addEventListener('load', initializeAnalysis);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c9aa9b76bc88b1',t:'MTc1NDc2NzgxMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
