@@ -1,0 +1,1767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepción Coastal Upwelling Analysis System</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f4c75 0%, #3282b8 30%, #bbe1fa 70%, #87CEEB 100%);
+            color: white;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 15px;
+            color: #87CEEB;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .location-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+        
+        .location-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        
+        .nav-tab {
+            padding: 12px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .nav-tab:hover, .nav-tab.active {
+            background: rgba(135, 206, 235, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(135, 206, 235, 0.2);
+        }
+        
+        .content-section {
+            display: none;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .main-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .control-panel {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            height: fit-content;
+        }
+        
+        .control-group {
+            margin-bottom: 25px;
+        }
+        
+        .control-group h4 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .parameter-input {
+            margin-bottom: 15px;
+        }
+        
+        .parameter-input label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #B0E0E6;
+            font-size: 0.9rem;
+        }
+        
+        .parameter-input input, .parameter-input select {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9rem;
+        }
+        
+        .slider-input {
+            margin-bottom: 15px;
+        }
+        
+        .slider-input label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #B0E0E6;
+            font-size: 0.9rem;
+        }
+        
+        .value-display {
+            color: #FFD700;
+            font-weight: bold;
+        }
+        
+        .slider {
+            width: 100%;
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 10px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(76, 175, 80, 0.4);
+        }
+        
+        .results-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .results-box h4 {
+            color: #87CEEB;
+            margin-bottom: 15px;
+        }
+        
+        .chart-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 25px 0;
+            color: #333;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FFD700;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9rem;
+            color: #B0E0E6;
+        }
+        
+        .equation-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            border-left: 4px solid #87CEEB;
+            overflow-x: auto;
+        }
+        
+        .temperature-profile {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .profile-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .upwelling-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        
+        .upwelling-strong {
+            background: rgba(255, 0, 0, 0.3);
+            border: 2px solid #ff4444;
+        }
+        
+        .upwelling-moderate {
+            background: rgba(255, 165, 0, 0.3);
+            border: 2px solid #ffaa00;
+        }
+        
+        .upwelling-weak {
+            background: rgba(0, 255, 0, 0.3);
+            border: 2px solid #44ff44;
+        }
+        
+        .time-series-controls {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+        
+        .time-btn {
+            padding: 8px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .time-btn.active {
+            background: rgba(135, 206, 235, 0.4);
+        }
+        
+        @media (max-width: 1200px) {
+            .analysis-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .temperature-profile {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .location-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Concepción Coastal Upwelling Analysis</h1>
+            <p>Comprehensive evaluation of wind-driven upwelling circulation and temperature dynamics by Claudio Iturra</p>
+            
+            <div class="location-info">
+                <div class="location-card">
+                    <strong>📍 Location</strong><br>
+                    Concepción, Chile<br>
+                    36.8°S, 73.0°W
+                </div>
+                <div class="location-card">
+                    <strong>🌊 Depth Analysis</strong><br>
+                    0 - 100 meters<br>
+                    Continental Shelf
+                </div>
+                <div class="location-card">
+                    <strong>🌀 Current System</strong><br>
+                    Humboldt Current<br>
+                    Eastern Boundary
+                </div>
+                <div class="location-card">
+                    <strong>🌬️ Wind Pattern</strong><br>
+                    Southerly Winds<br>
+                    Seasonal Variation
+                </div>
+            </div>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showSection('wind-analysis')">Wind & Upwelling</button>
+            <button class="nav-tab" onclick="showSection('temperature')">Temperature Structure</button>
+            <button class="nav-tab" onclick="showSection('circulation')">Circulation Patterns</button>
+            <button class="nav-tab" onclick="showSection('time-series')">Time Series Analysis</button>
+            <button class="nav-tab" onclick="showSection('parameters')">Oceanographic Parameters</button>
+        </div>
+
+        <!-- Wind & Upwelling Analysis Section -->
+        <div id="wind-analysis" class="content-section active">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌬️ Wind-Driven Upwelling Analysis</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="windStressValue">0.085</div>
+                            <div class="metric-label">Wind Stress (N/m²)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="ekmanTransportValue">1.2</div>
+                            <div class="metric-label">Ekman Transport (m²/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="upwellingVelocityValue">2.5</div>
+                            <div class="metric-label">Upwelling Velocity (m/day)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="upwellingIndexValue">125</div>
+                            <div class="metric-label">Upwelling Index (m³/s/100m)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="upwelling-indicator" id="upwellingStrength">
+                        🌊 MODERATE UPWELLING CONDITIONS
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Key Upwelling Equations:</strong><br><br>
+                        Wind Stress: τ = ρₐ × Cᴅ × |U₁₀|² = <span id="eqWindStress">0.085</span> N/m²<br>
+                        Ekman Transport: Mₑ = τ/(ρf) = <span id="eqEkmanTransport">1.2</span> m²/s<br>
+                        Upwelling Velocity: w = ∇ × (τ/ρf) = <span id="eqUpwellingVel">2.5</span> m/day<br>
+                        Coriolis Parameter: f = 2Ω sin(φ) = <span id="eqCoriolis">-8.76×10⁻⁵</span> s⁻¹
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="windUpwellingChart" width="400" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🌬️ Wind Conditions</h4>
+                        <div class="slider-input">
+                            <label>Wind Speed (m/s): <span class="value-display" id="windSpeedDisplay">8.0</span></label>
+                            <input type="range" class="slider" id="windSpeed" min="0" max="20" value="8" step="0.5" oninput="updateWindAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Wind Direction (°): <span class="value-display" id="windDirDisplay">180</span></label>
+                            <input type="range" class="slider" id="windDirection" min="0" max="360" value="180" step="10" oninput="updateWindAnalysis()">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Wind Pattern</label>
+                            <select id="windPattern" onchange="updateWindAnalysis()">
+                                <option value="steady">Steady Southerly</option>
+                                <option value="variable">Variable</option>
+                                <option value="storm">Storm Event</option>
+                                <option value="calm">Calm Period</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌊 Ocean Conditions</h4>
+                        <div class="slider-input">
+                            <label>Sea Surface Temp (°C): <span class="value-display" id="sstDisplay">14.5</span></label>
+                            <input type="range" class="slider" id="sst" min="10" max="20" value="14.5" step="0.1" oninput="updateWindAnalysis()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Stratification (N²×10⁴): <span class="value-display" id="stratDisplay">4.0</span></label>
+                            <input type="range" class="slider" id="stratification" min="0" max="10" value="4" step="0.1" oninput="updateWindAnalysis()">
+                        </div>
+                        <div class="parameter-input">
+                            <label>Season</label>
+                            <select id="season" onchange="updateWindAnalysis()">
+                                <option value="summer">Summer (Dec-Feb)</option>
+                                <option value="autumn">Autumn (Mar-May)</option>
+                                <option value="winter">Winter (Jun-Aug)</option>
+                                <option value="spring">Spring (Sep-Nov)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateUpwelling()">Calculate Upwelling Parameters</button>
+                    
+                    <div class="results-box" id="upwellingResults">
+                        <h4>Upwelling Analysis Results</h4>
+                        <p id="upwellingResultsText">Click "Calculate Upwelling Parameters" to see detailed analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Temperature Structure Section -->
+        <div id="temperature" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌡️ Vertical Temperature Structure</h3>
+                    
+                    <div class="temperature-profile">
+                        <div class="profile-section">
+                            <h4>Current Temperature Profile</h4>
+                            <div class="chart-container">
+                                <canvas id="temperatureProfileChart" width="300" height="400"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-section">
+                            <h4>Temperature Anomaly</h4>
+                            <div class="chart-container">
+                                <canvas id="temperatureAnomalyChart" width="300" height="400"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="thermoclineDepthValue">25</div>
+                            <div class="metric-label">Thermocline Depth (m)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="thermoclineStrengthValue">8.5</div>
+                            <div class="metric-label">Thermocline Strength (°C)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="mixedLayerDepthValue">15</div>
+                            <div class="metric-label">Mixed Layer Depth (m)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="bottomTempValue">11.2</div>
+                            <div class="metric-label">Bottom Temp (°C)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Temperature Structure Equations:</strong><br><br>
+                        Heat Balance: ∂T/∂t + u·∇T = ∇·(K∇T) + Q/(ρCₚ)<br>
+                        Thermocline Depth: h = u*/(N·f) where N² = -(g/ρ₀)(∂ρ/∂z)<br>
+                        Upwelling Temperature: T_up = T_bottom + (T_surface - T_bottom)·e^(-z/H)<br>
+                        Mixed Layer: h_ml = 2.5·u*³/(B·N³) where B = buoyancy flux
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🌡️ Temperature Parameters</h4>
+                        <div class="slider-input">
+                            <label>Surface Temperature (°C): <span class="value-display" id="surfTempDisplay">16.0</span></label>
+                            <input type="range" class="slider" id="surfaceTemp" min="12" max="22" value="16" step="0.1" oninput="updateTemperature()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Deep Water Temp (°C): <span class="value-display" id="deepTempDisplay">10.0</span></label>
+                            <input type="range" class="slider" id="deepTemp" min="8" max="14" value="10" step="0.1" oninput="updateTemperature()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Upwelling Intensity: <span class="value-display" id="upwellingIntensityDisplay">0.5</span></label>
+                            <input type="range" class="slider" id="upwellingIntensity" min="0" max="1" value="0.5" step="0.05" oninput="updateTemperature()">
+                        </div>
+                    </div>
+                    
+                    <div class="control-group">
+                        <h4>🌊 Mixing Parameters</h4>
+                        <div class="slider-input">
+                            <label>Wind Mixing (m²/s): <span class="value-display" id="windMixingDisplay">0.01</span></label>
+                            <input type="range" class="slider" id="windMixing" min="0.001" max="0.05" value="0.01" step="0.001" oninput="updateTemperature()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Solar Heating (W/m²): <span class="value-display" id="solarHeatingDisplay">200</span></label>
+                            <input type="range" class="slider" id="solarHeating" min="50" max="400" value="200" step="10" oninput="updateTemperature()">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateTemperatureProfile()">Update Temperature Profile</button>
+                    
+                    <div class="results-box" id="temperatureResults">
+                        <h4>Temperature Analysis</h4>
+                        <p id="temperatureResultsText">Temperature profile updated based on current parameters.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Circulation Patterns Section -->
+        <div id="circulation" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🌀 Coastal Circulation Patterns</h3>
+                    
+                    <div class="chart-container">
+                        <canvas id="circulationChart" width="600" height="400"></canvas>
+                    </div>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-value" id="coastalJetVelValue">0.35</div>
+                            <div class="metric-label">Coastal Jet Velocity (m/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="crossShoreTransportValue">1.8</div>
+                            <div class="metric-label">Cross-shore Transport (m²/s)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="rossbyRadiusValue">28</div>
+                            <div class="metric-label">Rossby Radius (km)</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value" id="geostrophicVelValue">0.22</div>
+                            <div class="metric-label">Geostrophic Velocity (m/s)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Circulation Equations:</strong><br><br>
+                        Coastal Jet: v = (τˢ/ρf)[1 - exp(-fh/Aᵥ)]<br>
+                        Geostrophic Balance: fv = -g(∂η/∂x)<br>
+                        Rossby Radius: R = NH/f = <span id="eqRossbyRadius">28</span> km<br>
+                        Cross-shore Transport: Q = ∫₀ʰ u dz = <span id="eqCrossTransport">1.8</span> m²/s
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>🌊 Circulation Controls</h4>
+                        <div class="slider-input">
+                            <label>Alongshore Wind (m/s): <span class="value-display" id="alongWindDisplay">7.0</span></label>
+                            <input type="range" class="slider" id="alongshoreWind" min="0" max="15" value="7" step="0.5" oninput="updateCirculation()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Density Gradient (kg/m⁴): <span class="value-display" id="densityGradDisplay">0.002</span></label>
+                            <input type="range" class="slider" id="densityGradient" min="0" max="0.01" value="0.002" step="0.0001" oninput="updateCirculation()">
+                        </div>
+                        <div class="slider-input">
+                            <label>Bottom Friction: <span class="value-display" id="bottomFrictionDisplay">0.003</span></label>
+                            <input type="range" class="slider" id="bottomFriction" min="0.001" max="0.01" value="0.003" step="0.0001" oninput="updateCirculation()">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateCirculation()">Calculate Circulation</button>
+                    
+                    <div class="results-box" id="circulationResults">
+                        <h4>Circulation Analysis</h4>
+                        <p id="circulationResultsText">Circulation patterns calculated based on current parameters.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Time Series Analysis Section -->
+        <div id="time-series" class="content-section">
+            <div class="main-panel">
+                <h3>📈 Time Series Analysis</h3>
+                
+                <div class="time-series-controls">
+                    <button class="time-btn active" onclick="setTimeRange('week')">1 Week</button>
+                    <button class="time-btn" onclick="setTimeRange('month')">1 Month</button>
+                    <button class="time-btn" onclick="setTimeRange('season')">Season</button>
+                    <button class="time-btn" onclick="setTimeRange('year')">1 Year</button>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="timeSeriesChart" width="800" height="400"></canvas>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="avgUpwellingValue">2.1</div>
+                        <div class="metric-label">Avg Upwelling (m/day)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="maxUpwellingValue">5.8</div>
+                        <div class="metric-label">Max Upwelling (m/day)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="sstVariabilityValue">3.2</div>
+                        <div class="metric-label">SST Variability (°C)</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="upwellingFrequencyValue">65</div>
+                        <div class="metric-label">Upwelling Frequency (%)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Oceanographic Parameters Section -->
+        <div id="parameters" class="content-section">
+            <div class="analysis-grid">
+                <div class="main-panel">
+                    <h3>🔬 Complete Oceanographic Parameter Analysis</h3>
+                    
+                    <div class="chart-container">
+                        <canvas id="parametersChart" width="600" height="400"></canvas>
+                    </div>
+                    
+                    <div class="equation-box">
+                        <strong>Complete Parameter Set for Concepción Upwelling:</strong><br><br>
+                        
+                        <strong>Wind & Forcing:</strong><br>
+                        • Wind Stress: τ = ρₐCᴅU₁₀² = <span id="paramWindStress">0.085</span> N/m²<br>
+                        • Ekman Transport: Mₑ = τ/(ρf) = <span id="paramEkman">1.2</span> m²/s<br>
+                        • Upwelling Index: UI = -τᵧ/(ρf) × 1000 = <span id="paramUI">125</span> m³/s/100m<br><br>
+                        
+                        <strong>Thermal Structure:</strong><br>
+                        • Brunt-Väisälä: N² = -(g/ρ₀)(∂ρ/∂z) = <span id="paramN2">4.0×10⁻⁴</span> s⁻²<br>
+                        • Richardson Number: Ri = N²/(∂u/∂z)² = <span id="paramRi">1.8</span><br>
+                        • Thermocline Depth: h_th = <span id="paramThermo">25</span> m<br><br>
+                        
+                        <strong>Circulation:</strong><br>
+                        • Rossby Radius: R = NH/f = <span id="paramRossby">28</span> km<br>
+                        • Coastal Jet: v_jet = <span id="paramJet">0.35</span> m/s<br>
+                        • Geostrophic Velocity: v_g = -(g/f)(∂η/∂x) = <span id="paramGeo">0.22</span> m/s
+                    </div>
+                </div>
+                
+                <div class="control-panel">
+                    <div class="control-group">
+                        <h4>📊 Parameter Display</h4>
+                        <div class="parameter-input">
+                            <label>Primary Parameter</label>
+                            <select id="primaryParam" onchange="updateParameterDisplay()">
+                                <option value="temperature">Temperature Profile</option>
+                                <option value="velocity">Velocity Structure</option>
+                                <option value="density">Density Profile</option>
+                                <option value="mixing">Mixing Coefficients</option>
+                            </select>
+                        </div>
+                        <div class="parameter-input">
+                            <label>Secondary Parameter</label>
+                            <select id="secondaryParam" onchange="updateParameterDisplay()">
+                                <option value="upwelling">Upwelling Velocity</option>
+                                <option value="wind">Wind Stress</option>
+                                <option value="transport">Transport</option>
+                                <option value="stratification">Stratification</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="generateParameterReport()">Generate Full Report</button>
+                    
+                    <div class="results-box" id="parameterResults">
+                        <h4>Parameter Analysis Report</h4>
+                        <p id="parameterResultsText">Complete oceanographic parameter analysis for Concepción coastal upwelling system.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for charts
+        let windUpwellingChart, temperatureProfileChart, temperatureAnomalyChart, circulationChart, timeSeriesChart, parametersChart;
+        let currentTimeRange = 'week';
+        
+        // Concepción-specific constants
+        const CONCEPCION_LAT = -36.8;
+        const CONCEPCION_LON = -73.0;
+        const CORIOLIS_F = 2 * 7.27e-5 * Math.sin(CONCEPCION_LAT * Math.PI / 180);
+        const RHO_AIR = 1.225;
+        const RHO_WATER = 1025;
+        const DRAG_COEFF = 0.0015;
+        const GRAVITY = 9.81;
+        
+        // Current parameters
+        let params = {
+            windSpeed: 8.0,
+            windDirection: 180,
+            sst: 14.5,
+            stratification: 4.0,
+            surfaceTemp: 16.0,
+            deepTemp: 10.0,
+            upwellingIntensity: 0.5,
+            windMixing: 0.01,
+            solarHeating: 200,
+            alongshoreWind: 7.0,
+            densityGradient: 0.002,
+            bottomFriction: 0.003
+        };
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section and activate tab
+            document.getElementById(sectionId).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Initialize charts for the section
+            setTimeout(() => {
+                switch(sectionId) {
+                    case 'wind-analysis':
+                        initWindUpwellingChart();
+                        break;
+                    case 'temperature':
+                        initTemperatureCharts();
+                        break;
+                    case 'circulation':
+                        initCirculationChart();
+                        break;
+                    case 'time-series':
+                        initTimeSeriesChart();
+                        break;
+                    case 'parameters':
+                        initParametersChart();
+                        break;
+                }
+            }, 100);
+        }
+
+        function updateWindAnalysis() {
+            // Update parameter values
+            params.windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            params.windDirection = parseFloat(document.getElementById('windDirection').value);
+            params.sst = parseFloat(document.getElementById('sst').value);
+            params.stratification = parseFloat(document.getElementById('stratification').value);
+            
+            // Update displays
+            document.getElementById('windSpeedDisplay').textContent = params.windSpeed.toFixed(1);
+            document.getElementById('windDirDisplay').textContent = params.windDirection.toFixed(0);
+            document.getElementById('sstDisplay').textContent = params.sst.toFixed(1);
+            document.getElementById('stratDisplay').textContent = params.stratification.toFixed(1);
+            
+            // Calculate upwelling parameters
+            calculateUpwellingMetrics();
+            updateWindUpwellingChart();
+        }
+
+        function calculateUpwellingMetrics() {
+            // Wind stress calculation
+            const windStress = RHO_AIR * DRAG_COEFF * params.windSpeed * params.windSpeed;
+            
+            // Ekman transport (considering wind direction)
+            const windAngle = (params.windDirection - 180) * Math.PI / 180; // Relative to southerly
+            const alongshoreComponent = params.windSpeed * Math.cos(windAngle);
+            const ekmanTransport = windStress / (RHO_WATER * Math.abs(CORIOLIS_F));
+            
+            // Upwelling velocity (simplified)
+            const upwellingVelocity = Math.max(0, ekmanTransport * Math.sin(windAngle) * 86400 / 1000); // m/day
+            
+            // Upwelling index
+            const upwellingIndex = Math.max(0, -windStress * Math.cos(windAngle) / (RHO_WATER * Math.abs(CORIOLIS_F)) * 1000);
+            
+            // Update displays
+            document.getElementById('windStressValue').textContent = windStress.toFixed(3);
+            document.getElementById('ekmanTransportValue').textContent = ekmanTransport.toFixed(1);
+            document.getElementById('upwellingVelocityValue').textContent = upwellingVelocity.toFixed(1);
+            document.getElementById('upwellingIndexValue').textContent = upwellingIndex.toFixed(0);
+            
+            // Update equation displays
+            document.getElementById('eqWindStress').textContent = windStress.toFixed(3);
+            document.getElementById('eqEkmanTransport').textContent = ekmanTransport.toFixed(1);
+            document.getElementById('eqUpwellingVel').textContent = upwellingVelocity.toFixed(1);
+            document.getElementById('eqCoriolis').textContent = CORIOLIS_F.toExponential(2);
+            
+            // Update upwelling strength indicator
+            const upwellingStrengthEl = document.getElementById('upwellingStrength');
+            if (upwellingIndex > 200) {
+                upwellingStrengthEl.textContent = '🌊 STRONG UPWELLING CONDITIONS';
+                upwellingStrengthEl.className = 'upwelling-indicator upwelling-strong';
+            } else if (upwellingIndex > 50) {
+                upwellingStrengthEl.textContent = '🌊 MODERATE UPWELLING CONDITIONS';
+                upwellingStrengthEl.className = 'upwelling-indicator upwelling-moderate';
+            } else {
+                upwellingStrengthEl.textContent = '🌊 WEAK UPWELLING CONDITIONS';
+                upwellingStrengthEl.className = 'upwelling-indicator upwelling-weak';
+            }
+        }
+
+        function calculateUpwelling() {
+            calculateUpwellingMetrics();
+            
+            const windStress = RHO_AIR * DRAG_COEFF * params.windSpeed * params.windSpeed;
+            const ekmanTransport = windStress / (RHO_WATER * Math.abs(CORIOLIS_F));
+            const upwellingVelocity = Math.max(0, ekmanTransport * 86400 / 1000);
+            
+            const resultsText = `
+                <strong>Detailed Upwelling Analysis:</strong><br><br>
+                
+                <strong>Wind Forcing:</strong><br>
+                • Wind Speed: ${params.windSpeed.toFixed(1)} m/s<br>
+                • Wind Direction: ${params.windDirection.toFixed(0)}° (${getWindDirectionText(params.windDirection)})<br>
+                • Wind Stress: ${windStress.toFixed(3)} N/m²<br><br>
+                
+                <strong>Upwelling Response:</strong><br>
+                • Ekman Transport: ${ekmanTransport.toFixed(2)} m²/s offshore<br>
+                • Upwelling Velocity: ${upwellingVelocity.toFixed(2)} m/day<br>
+                • Estimated SST Drop: ${(upwellingVelocity * 0.5).toFixed(1)}°C<br><br>
+                
+                <strong>Physical Interpretation:</strong><br>
+                ${getUpwellingInterpretation(upwellingVelocity)}
+            `;
+            
+            document.getElementById('upwellingResultsText').innerHTML = resultsText;
+        }
+
+        function getWindDirectionText(direction) {
+            if (direction >= 135 && direction <= 225) return 'Southerly (Upwelling Favorable)';
+            if (direction >= 315 || direction <= 45) return 'Northerly (Downwelling)';
+            if (direction > 45 && direction < 135) return 'Easterly (Alongshore)';
+            return 'Westerly (Offshore)';
+        }
+
+        function getUpwellingInterpretation(velocity) {
+            if (velocity > 4) {
+                return 'Strong upwelling event. Cold, nutrient-rich water rapidly rising to surface. Expect significant SST cooling and high biological productivity.';
+            } else if (velocity > 2) {
+                return 'Moderate upwelling conditions. Typical summer upwelling pattern for Concepción region. Good conditions for marine productivity.';
+            } else if (velocity > 0.5) {
+                return 'Weak upwelling. Limited vertical water movement. Minimal impact on surface temperature and nutrients.';
+            } else {
+                return 'No significant upwelling. Possible downwelling or neutral conditions. Surface waters may warm and stratify.';
+            }
+        }
+
+        function updateTemperature() {
+            params.surfaceTemp = parseFloat(document.getElementById('surfaceTemp').value);
+            params.deepTemp = parseFloat(document.getElementById('deepTemp').value);
+            params.upwellingIntensity = parseFloat(document.getElementById('upwellingIntensity').value);
+            params.windMixing = parseFloat(document.getElementById('windMixing').value);
+            params.solarHeating = parseFloat(document.getElementById('solarHeating').value);
+            
+            // Update displays
+            document.getElementById('surfTempDisplay').textContent = params.surfaceTemp.toFixed(1);
+            document.getElementById('deepTempDisplay').textContent = params.deepTemp.toFixed(1);
+            document.getElementById('upwellingIntensityDisplay').textContent = params.upwellingIntensity.toFixed(2);
+            document.getElementById('windMixingDisplay').textContent = params.windMixing.toFixed(3);
+            document.getElementById('solarHeatingDisplay').textContent = params.solarHeating.toFixed(0);
+            
+            calculateTemperatureProfile();
+        }
+
+        function calculateTemperatureProfile() {
+            // Calculate thermocline parameters
+            const thermoclineDepth = 15 + (1 - params.upwellingIntensity) * 20; // 15-35m
+            const thermoclineStrength = params.surfaceTemp - params.deepTemp;
+            const mixedLayerDepth = 5 + params.windMixing * 1000; // 5-55m
+            const bottomTemp = params.deepTemp + params.upwellingIntensity * 2;
+            
+            // Update metric displays
+            document.getElementById('thermoclineDepthValue').textContent = thermoclineDepth.toFixed(0);
+            document.getElementById('thermoclineStrengthValue').textContent = thermoclineStrength.toFixed(1);
+            document.getElementById('mixedLayerDepthValue').textContent = mixedLayerDepth.toFixed(0);
+            document.getElementById('bottomTempValue').textContent = bottomTemp.toFixed(1);
+            
+            updateTemperatureCharts();
+            
+            const resultsText = `
+                <strong>Temperature Structure Analysis:</strong><br><br>
+                
+                <strong>Surface Layer:</strong><br>
+                • Mixed Layer Depth: ${mixedLayerDepth.toFixed(0)} m<br>
+                • Surface Temperature: ${params.surfaceTemp.toFixed(1)}°C<br>
+                • Solar Heating: ${params.solarHeating} W/m²<br><br>
+                
+                <strong>Thermocline:</strong><br>
+                • Thermocline Depth: ${thermoclineDepth.toFixed(0)} m<br>
+                • Temperature Gradient: ${(thermoclineStrength/10).toFixed(2)}°C/m<br>
+                • Stratification: ${(params.stratification * 1e-4).toExponential(1)} s⁻²<br><br>
+                
+                <strong>Upwelling Impact:</strong><br>
+                • Upwelling brings ${bottomTemp.toFixed(1)}°C water to surface<br>
+                • Temperature anomaly: ${(params.surfaceTemp - bottomTemp).toFixed(1)}°C<br>
+                • Mixing intensity: ${params.upwellingIntensity > 0.7 ? 'High' : params.upwellingIntensity > 0.3 ? 'Moderate' : 'Low'}
+            `;
+            
+            document.getElementById('temperatureResultsText').innerHTML = resultsText;
+        }
+
+        function updateCirculation() {
+            params.alongshoreWind = parseFloat(document.getElementById('alongshoreWind').value);
+            params.densityGradient = parseFloat(document.getElementById('densityGradient').value);
+            params.bottomFriction = parseFloat(document.getElementById('bottomFriction').value);
+            
+            // Update displays
+            document.getElementById('alongWindDisplay').textContent = params.alongshoreWind.toFixed(1);
+            document.getElementById('densityGradDisplay').textContent = params.densityGradient.toFixed(4);
+            document.getElementById('bottomFrictionDisplay').textContent = params.bottomFriction.toFixed(4);
+            
+            calculateCirculation();
+        }
+
+        function calculateCirculation() {
+            // Calculate circulation parameters
+            const windStress = RHO_AIR * DRAG_COEFF * params.alongshoreWind * params.alongshoreWind;
+            const coastalJetVel = (windStress / (RHO_WATER * Math.abs(CORIOLIS_F))) * 
+                                 (1 - Math.exp(-Math.abs(CORIOLIS_F) * 100 / 0.01)); // Assuming 100m depth, 0.01 m²/s viscosity
+            
+            const crossShoreTransport = windStress / (RHO_WATER * Math.abs(CORIOLIS_F));
+            
+            const N = Math.sqrt(params.stratification * 1e-4);
+            const rossbyRadius = N * 100 / Math.abs(CORIOLIS_F) / 1000; // km
+            
+            const geostrophicVel = GRAVITY * params.densityGradient / (RHO_WATER * Math.abs(CORIOLIS_F));
+            
+            // Update displays
+            document.getElementById('coastalJetVelValue').textContent = coastalJetVel.toFixed(2);
+            document.getElementById('crossShoreTransportValue').textContent = crossShoreTransport.toFixed(1);
+            document.getElementById('rossbyRadiusValue').textContent = rossbyRadius.toFixed(0);
+            document.getElementById('geostrophicVelValue').textContent = geostrophicVel.toFixed(2);
+            
+            // Update equation displays
+            document.getElementById('eqRossbyRadius').textContent = rossbyRadius.toFixed(0);
+            document.getElementById('eqCrossTransport').textContent = crossShoreTransport.toFixed(1);
+            
+            updateCirculationChart();
+            
+            const resultsText = `
+                <strong>Circulation Analysis:</strong><br><br>
+                
+                <strong>Wind-Driven Flow:</strong><br>
+                • Coastal Jet Velocity: ${coastalJetVel.toFixed(2)} m/s northward<br>
+                • Cross-shore Transport: ${crossShoreTransport.toFixed(1)} m²/s offshore<br>
+                • Wind Stress: ${windStress.toFixed(3)} N/m²<br><br>
+                
+                <strong>Geostrophic Balance:</strong><br>
+                • Geostrophic Velocity: ${geostrophicVel.toFixed(2)} m/s<br>
+                • Density Gradient: ${params.densityGradient.toFixed(4)} kg/m⁴<br>
+                • Rossby Radius: ${rossbyRadius.toFixed(0)} km<br><br>
+                
+                <strong>Dynamics:</strong><br>
+                • Flow regime: ${rossbyRadius > 50 ? 'Geostrophic' : 'Ageostrophic'}<br>
+                • Bottom friction: ${params.bottomFriction > 0.005 ? 'High' : 'Moderate'}<br>
+                • Circulation strength: ${coastalJetVel > 0.5 ? 'Strong' : coastalJetVel > 0.2 ? 'Moderate' : 'Weak'}
+            `;
+            
+            document.getElementById('circulationResultsText').innerHTML = resultsText;
+        }
+
+        function setTimeRange(range) {
+            currentTimeRange = range;
+            
+            // Update button states
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            updateTimeSeriesChart();
+        }
+
+        function updateParameterDisplay() {
+            updateParametersChart();
+        }
+
+        function generateParameterReport() {
+            // Update all parameter displays
+            const windStress = RHO_AIR * DRAG_COEFF * params.windSpeed * params.windSpeed;
+            const ekmanTransport = windStress / (RHO_WATER * Math.abs(CORIOLIS_F));
+            const upwellingIndex = windStress / (RHO_WATER * Math.abs(CORIOLIS_F)) * 1000;
+            const N2 = params.stratification * 1e-4;
+            const richardson = N2 / (0.01 * 0.01); // Assuming 0.01 s⁻¹ shear
+            const rossbyRadius = Math.sqrt(N2) * 100 / Math.abs(CORIOLIS_F) / 1000;
+            const coastalJetVel = (windStress / (RHO_WATER * Math.abs(CORIOLIS_F))) * 0.8;
+            const geostrophicVel = GRAVITY * params.densityGradient / (RHO_WATER * Math.abs(CORIOLIS_F));
+            
+            // Update parameter equation displays
+            document.getElementById('paramWindStress').textContent = windStress.toFixed(3);
+            document.getElementById('paramEkman').textContent = ekmanTransport.toFixed(1);
+            document.getElementById('paramUI').textContent = upwellingIndex.toFixed(0);
+            document.getElementById('paramN2').textContent = N2.toExponential(1);
+            document.getElementById('paramRi').textContent = richardson.toFixed(1);
+            document.getElementById('paramThermo').textContent = (15 + (1 - params.upwellingIntensity) * 20).toFixed(0);
+            document.getElementById('paramRossby').textContent = rossbyRadius.toFixed(0);
+            document.getElementById('paramJet').textContent = coastalJetVel.toFixed(2);
+            document.getElementById('paramGeo').textContent = geostrophicVel.toFixed(2);
+            
+            const reportText = `
+                <strong>Complete Oceanographic Parameter Report - Concepción, Chile</strong><br><br>
+                
+                <strong>Location:</strong> 36.8°S, 73.0°W | Depth: 0-100m | Date: ${new Date().toLocaleDateString()}<br><br>
+                
+                <strong>Wind & Forcing Parameters:</strong><br>
+                • Wind Speed: ${params.windSpeed} m/s<br>
+                • Wind Stress: ${windStress.toFixed(3)} N/m²<br>
+                • Coriolis Parameter: ${CORIOLIS_F.toExponential(2)} s⁻¹<br>
+                • Ekman Transport: ${ekmanTransport.toFixed(1)} m²/s<br>
+                • Upwelling Index: ${upwellingIndex.toFixed(0)} m³/s/100m<br><br>
+                
+                <strong>Thermal Structure:</strong><br>
+                • Sea Surface Temperature: ${params.sst}°C<br>
+                • Deep Water Temperature: ${params.deepTemp}°C<br>
+                • Stratification (N²): ${N2.toExponential(1)} s⁻²<br>
+                • Richardson Number: ${richardson.toFixed(1)}<br>
+                • Thermocline Depth: ${(15 + (1 - params.upwellingIntensity) * 20).toFixed(0)} m<br><br>
+                
+                <strong>Circulation Dynamics:</strong><br>
+                • Rossby Deformation Radius: ${rossbyRadius.toFixed(0)} km<br>
+                • Coastal Jet Velocity: ${coastalJetVel.toFixed(2)} m/s<br>
+                • Geostrophic Velocity: ${geostrophicVel.toFixed(2)} m/s<br>
+                • Cross-shore Transport: ${ekmanTransport.toFixed(1)} m²/s<br><br>
+                
+                <strong>System Status:</strong><br>
+                • Upwelling Intensity: ${params.upwellingIntensity > 0.7 ? 'Strong' : params.upwellingIntensity > 0.3 ? 'Moderate' : 'Weak'}<br>
+                • Mixing Regime: ${richardson > 0.25 ? 'Stable' : 'Turbulent'}<br>
+                • Flow Regime: ${rossbyRadius > 30 ? 'Geostrophic' : 'Ageostrophic'}<br>
+                • Seasonal Condition: ${document.getElementById('season').value.charAt(0).toUpperCase() + document.getElementById('season').value.slice(1)}
+            `;
+            
+            document.getElementById('parameterResultsText').innerHTML = reportText;
+        }
+
+        // Chart initialization functions
+        function initWindUpwellingChart() {
+            const ctx = document.getElementById('windUpwellingChart');
+            if (!ctx) return;
+            
+            if (windUpwellingChart) {
+                windUpwellingChart.destroy();
+            }
+            
+            // Generate sample data for wind vs upwelling relationship
+            const windSpeeds = [];
+            const upwellingVelocities = [];
+            const sstAnomalies = [];
+            
+            for (let ws = 0; ws <= 15; ws += 0.5) {
+                windSpeeds.push(ws);
+                const stress = RHO_AIR * DRAG_COEFF * ws * ws;
+                const transport = stress / (RHO_WATER * Math.abs(CORIOLIS_F));
+                const upwelling = Math.max(0, transport * 86400 / 1000); // m/day
+                upwellingVelocities.push(upwelling);
+                sstAnomalies.push(-upwelling * 0.5); // Approximate SST cooling
+            }
+            
+            windUpwellingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: windSpeeds,
+                    datasets: [{
+                        label: 'Upwelling Velocity (m/day)',
+                        data: upwellingVelocities,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'SST Anomaly (°C)',
+                        data: sstAnomalies,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Wind Speed vs Upwelling Response - Concepción'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Upwelling Velocity (m/day)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'SST Anomaly (°C)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateWindUpwellingChart() {
+            if (!windUpwellingChart) return;
+            
+            // Add current point to chart
+            const currentStress = RHO_AIR * DRAG_COEFF * params.windSpeed * params.windSpeed;
+            const currentTransport = currentStress / (RHO_WATER * Math.abs(CORIOLIS_F));
+            const currentUpwelling = Math.max(0, currentTransport * 86400 / 1000);
+            
+            // Update chart with current position indicator
+            windUpwellingChart.update();
+        }
+
+        function initTemperatureCharts() {
+            // Temperature Profile Chart
+            const ctx1 = document.getElementById('temperatureProfileChart');
+            if (ctx1) {
+                if (temperatureProfileChart) {
+                    temperatureProfileChart.destroy();
+                }
+                
+                const depths = [];
+                const temperatures = [];
+                
+                for (let d = 0; d <= 100; d += 5) {
+                    depths.push(-d);
+                    
+                    // Calculate temperature profile with upwelling effect
+                    let temp;
+                    const thermoclineDepth = 15 + (1 - params.upwellingIntensity) * 20;
+                    
+                    if (d <= 10) {
+                        // Mixed layer
+                        temp = params.surfaceTemp - params.upwellingIntensity * 2;
+                    } else if (d <= thermoclineDepth) {
+                        // Thermocline
+                        const thermoclineProgress = (d - 10) / (thermoclineDepth - 10);
+                        temp = (params.surfaceTemp - params.upwellingIntensity * 2) - 
+                               thermoclineProgress * (params.surfaceTemp - params.deepTemp) * 0.7;
+                    } else {
+                        // Deep water
+                        temp = params.deepTemp + params.upwellingIntensity * 1.5;
+                    }
+                    
+                    temperatures.push(temp);
+                }
+                
+                temperatureProfileChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: depths,
+                        datasets: [{
+                            label: 'Temperature (°C)',
+                            data: temperatures,
+                            borderColor: 'rgb(255, 99, 132)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Temperature Profile (0-100m)'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Depth (m)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Temperature (°C)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Temperature Anomaly Chart
+            const ctx2 = document.getElementById('temperatureAnomalyChart');
+            if (ctx2) {
+                if (temperatureAnomalyChart) {
+                    temperatureAnomalyChart.destroy();
+                }
+                
+                const anomalies = temperatures.map((temp, i) => {
+                    const climatologyTemp = 16 - (depths[i] * -1) * 0.05; // Simple climatology
+                    return temp - climatologyTemp;
+                });
+                
+                temperatureAnomalyChart = new Chart(ctx2, {
+                    type: 'line',
+                    data: {
+                        labels: depths,
+                        datasets: [{
+                            label: 'Temperature Anomaly (°C)',
+                            data: anomalies,
+                            borderColor: 'rgb(54, 162, 235)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Temperature Anomaly from Climatology'
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Depth (m)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Anomaly (°C)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        function updateTemperatureCharts() {
+            if (temperatureProfileChart) {
+                // Recalculate temperature profile
+                const depths = [];
+                const temperatures = [];
+                
+                for (let d = 0; d <= 100; d += 5) {
+                    depths.push(-d);
+                    
+                    let temp;
+                    const thermoclineDepth = 15 + (1 - params.upwellingIntensity) * 20;
+                    
+                    if (d <= 10) {
+                        temp = params.surfaceTemp - params.upwellingIntensity * 2;
+                    } else if (d <= thermoclineDepth) {
+                        const thermoclineProgress = (d - 10) / (thermoclineDepth - 10);
+                        temp = (params.surfaceTemp - params.upwellingIntensity * 2) - 
+                               thermoclineProgress * (params.surfaceTemp - params.deepTemp) * 0.7;
+                    } else {
+                        temp = params.deepTemp + params.upwellingIntensity * 1.5;
+                    }
+                    
+                    temperatures.push(temp);
+                }
+                
+                temperatureProfileChart.data.datasets[0].data = temperatures;
+                temperatureProfileChart.update();
+                
+                // Update anomaly chart
+                if (temperatureAnomalyChart) {
+                    const anomalies = temperatures.map((temp, i) => {
+                        const climatologyTemp = 16 - (depths[i] * -1) * 0.05;
+                        return temp - climatologyTemp;
+                    });
+                    
+                    temperatureAnomalyChart.data.datasets[0].data = anomalies;
+                    temperatureAnomalyChart.update();
+                }
+            }
+        }
+
+        function initCirculationChart() {
+            const ctx = document.getElementById('circulationChart');
+            if (!ctx) return;
+            
+            if (circulationChart) {
+                circulationChart.destroy();
+            }
+            
+            // Generate circulation velocity profiles
+            const depths = [];
+            const alongshoreVel = [];
+            const crossshoreVel = [];
+            
+            for (let d = 0; d <= 100; d += 5) {
+                depths.push(d);
+                
+                // Alongshore velocity (coastal jet)
+                const windStress = RHO_AIR * DRAG_COEFF * params.alongshoreWind * params.alongshoreWind;
+                const surfaceVel = windStress / (RHO_WATER * Math.abs(CORIOLIS_F)) * 0.8;
+                const alongVel = surfaceVel * Math.exp(-d / 30); // Exponential decay
+                alongshoreVel.push(alongVel);
+                
+                // Cross-shore velocity (Ekman)
+                const crossVel = (windStress / (RHO_WATER * Math.abs(CORIOLIS_F))) * 
+                                Math.sin(Math.PI * d / 50) * 0.3; // Oscillatory profile
+                crossshoreVel.push(crossVel);
+            }
+            
+            circulationChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Alongshore Velocity (m/s)',
+                        data: alongshoreVel,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)'
+                    }, {
+                        label: 'Cross-shore Velocity (m/s)',
+                        data: crossshoreVel,
+                        borderColor: 'rgb(255, 159, 64)',
+                        backgroundColor: 'rgba(255, 159, 64, 0.2)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Velocity Profiles - Coastal Circulation'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Velocity (m/s)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCirculationChart() {
+            if (!circulationChart) return;
+            
+            // Recalculate velocity profiles
+            const depths = [];
+            const alongshoreVel = [];
+            const crossshoreVel = [];
+            
+            for (let d = 0; d <= 100; d += 5) {
+                depths.push(d);
+                
+                const windStress = RHO_AIR * DRAG_COEFF * params.alongshoreWind * params.alongshoreWind;
+                const surfaceVel = windStress / (RHO_WATER * Math.abs(CORIOLIS_F)) * 0.8;
+                const alongVel = surfaceVel * Math.exp(-d / 30);
+                alongshoreVel.push(alongVel);
+                
+                const crossVel = (windStress / (RHO_WATER * Math.abs(CORIOLIS_F))) * 
+                                Math.sin(Math.PI * d / 50) * 0.3;
+                crossshoreVel.push(crossVel);
+            }
+            
+            circulationChart.data.datasets[0].data = alongshoreVel;
+            circulationChart.data.datasets[1].data = crossshoreVel;
+            circulationChart.update();
+        }
+
+        function initTimeSeriesChart() {
+            const ctx = document.getElementById('timeSeriesChart');
+            if (!ctx) return;
+            
+            if (timeSeriesChart) {
+                timeSeriesChart.destroy();
+            }
+            
+            updateTimeSeriesChart();
+        }
+
+        function updateTimeSeriesChart() {
+            const ctx = document.getElementById('timeSeriesChart');
+            if (!ctx) return;
+            
+            if (timeSeriesChart) {
+                timeSeriesChart.destroy();
+            }
+            
+            // Generate time series data based on selected range
+            let timePoints = [];
+            let upwellingData = [];
+            let sstData = [];
+            let windData = [];
+            
+            const now = new Date();
+            let dataPoints, timeStep, timeUnit;
+            
+            switch(currentTimeRange) {
+                case 'week':
+                    dataPoints = 168; // Hours
+                    timeStep = 1;
+                    timeUnit = 'hour';
+                    break;
+                case 'month':
+                    dataPoints = 30; // Days
+                    timeStep = 1;
+                    timeUnit = 'day';
+                    break;
+                case 'season':
+                    dataPoints = 90; // Days
+                    timeStep = 1;
+                    timeUnit = 'day';
+                    break;
+                case 'year':
+                    dataPoints = 365; // Days
+                    timeStep = 1;
+                    timeUnit = 'day';
+                    break;
+            }
+            
+            for (let i = 0; i < dataPoints; i++) {
+                const time = new Date(now.getTime() - (dataPoints - i) * timeStep * 
+                                     (timeUnit === 'hour' ? 3600000 : 86400000));
+                timePoints.push(time.toLocaleDateString());
+                
+                // Generate realistic time series with seasonal and random variations
+                const dayOfYear = time.getDate() + time.getMonth() * 30;
+                const seasonalWind = 8 + 4 * Math.sin(2 * Math.PI * dayOfYear / 365);
+                const randomWind = seasonalWind + (Math.random() - 0.5) * 4;
+                windData.push(Math.max(0, randomWind));
+                
+                const windStress = RHO_AIR * DRAG_COEFF * randomWind * randomWind;
+                const upwelling = Math.max(0, windStress / (RHO_WATER * Math.abs(CORIOLIS_F)) * 86400 / 1000);
+                upwellingData.push(upwelling);
+                
+                const baseSst = 15 + 3 * Math.sin(2 * Math.PI * dayOfYear / 365);
+                const sstAnomaly = -upwelling * 0.3;
+                sstData.push(baseSst + sstAnomaly + (Math.random() - 0.5) * 1);
+            }
+            
+            timeSeriesChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timePoints,
+                    datasets: [{
+                        label: 'Upwelling Velocity (m/day)',
+                        data: upwellingData,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Sea Surface Temperature (°C)',
+                        data: sstData,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Wind Speed (m/s)',
+                        data: windData,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        yAxisID: 'y2'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `Time Series Analysis - ${currentTimeRange.charAt(0).toUpperCase() + currentTimeRange.slice(1)}`
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Upwelling (m/day)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'SST (°C)'
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        },
+                        y2: {
+                            type: 'linear',
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Update time series metrics
+            const avgUpwelling = upwellingData.reduce((a, b) => a + b, 0) / upwellingData.length;
+            const maxUpwelling = Math.max(...upwellingData);
+            const sstVariability = Math.max(...sstData) - Math.min(...sstData);
+            const upwellingFrequency = (upwellingData.filter(u => u > 1).length / upwellingData.length) * 100;
+            
+            document.getElementById('avgUpwellingValue').textContent = avgUpwelling.toFixed(1);
+            document.getElementById('maxUpwellingValue').textContent = maxUpwelling.toFixed(1);
+            document.getElementById('sstVariabilityValue').textContent = sstVariability.toFixed(1);
+            document.getElementById('upwellingFrequencyValue').textContent = upwellingFrequency.toFixed(0);
+        }
+
+        function initParametersChart() {
+            const ctx = document.getElementById('parametersChart');
+            if (!ctx) return;
+            
+            updateParametersChart();
+        }
+
+        function updateParametersChart() {
+            const ctx = document.getElementById('parametersChart');
+            if (!ctx) return;
+            
+            if (parametersChart) {
+                parametersChart.destroy();
+            }
+            
+            const primaryParam = document.getElementById('primaryParam')?.value || 'temperature';
+            const secondaryParam = document.getElementById('secondaryParam')?.value || 'upwelling';
+            
+            // Generate data based on selected parameters
+            const depths = [];
+            const primaryData = [];
+            const secondaryData = [];
+            
+            for (let d = 0; d <= 100; d += 5) {
+                depths.push(d);
+                
+                // Primary parameter data
+                switch(primaryParam) {
+                    case 'temperature':
+                        const thermoclineDepth = 15 + (1 - params.upwellingIntensity) * 20;
+                        let temp;
+                        if (d <= 10) {
+                            temp = params.surfaceTemp - params.upwellingIntensity * 2;
+                        } else if (d <= thermoclineDepth) {
+                            const progress = (d - 10) / (thermoclineDepth - 10);
+                            temp = (params.surfaceTemp - params.upwellingIntensity * 2) - 
+                                   progress * (params.surfaceTemp - params.deepTemp) * 0.7;
+                        } else {
+                            temp = params.deepTemp + params.upwellingIntensity * 1.5;
+                        }
+                        primaryData.push(temp);
+                        break;
+                    case 'velocity':
+                        const windStress = RHO_AIR * DRAG_COEFF * params.windSpeed * params.windSpeed;
+                        const surfaceVel = windStress / (RHO_WATER * Math.abs(CORIOLIS_F)) * 0.8;
+                        const vel = surfaceVel * Math.exp(-d / 30);
+                        primaryData.push(vel);
+                        break;
+                    case 'density':
+                        const surfDensity = 1025 - 0.2 * (params.surfaceTemp - 15);
+                        const density = surfDensity + d * 0.02;
+                        primaryData.push(density);
+                        break;
+                    case 'mixing':
+                        const mixing = params.windMixing * Math.exp(-d / 20);
+                        primaryData.push(mixing * 1000); // Scale for visibility
+                        break;
+                }
+                
+                // Secondary parameter data
+                switch(secondaryParam) {
+                    case 'upwelling':
+                        const upwellingVel = Math.max(0, 0.1 * Math.sin(Math.PI * d / 50));
+                        secondaryData.push(upwellingVel * 1000); // mm/s
+                        break;
+                    case 'wind':
+                        const stress = RHO_AIR * DRAG_COEFF * params.windSpeed * params.windSpeed;
+                        secondaryData.push(stress * 1000); // Scale for visibility
+                        break;
+                    case 'transport':
+                        const transport = Math.abs(Math.sin(Math.PI * d / 100)) * 2;
+                        secondaryData.push(transport);
+                        break;
+                    case 'stratification':
+                        const N2 = params.stratification * 1e-4 * Math.exp(-d / 40);
+                        secondaryData.push(N2 * 1e6); // Scale for visibility
+                        break;
+                }
+            }
+            
+            parametersChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: primaryParam.charAt(0).toUpperCase() + primaryParam.slice(1),
+                        data: primaryData,
+                        borderColor: 'rgb(75, 192, 192)',
+                        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                        yAxisID: 'y'
+                    }, {
+                        label: secondaryParam.charAt(0).toUpperCase() + secondaryParam.slice(1),
+                        data: secondaryData,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Oceanographic Parameters vs Depth'
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: primaryParam.charAt(0).toUpperCase() + primaryParam.slice(1)
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: secondaryParam.charAt(0).toUpperCase() + secondaryParam.slice(1)
+                            },
+                            grid: {
+                                drawOnChartArea: false,
+                            },
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize with default values
+            updateWindAnalysis();
+            calculateUpwelling();
+            updateTemperature();
+            calculateTemperatureProfile();
+            updateCirculation();
+            calculateCirculation();
+            generateParameterReport();
+            
+            // Initialize charts
+            setTimeout(() => {
+                initWindUpwellingChart();
+            }, 100);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96c8f174b74488b2',t:'MTc1NDc2MDIyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
