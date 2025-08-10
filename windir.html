@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wind Analysis Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">🌪️ Wind Analysis Dashboard</h1>
+            <p class="text-gray-600">Convert wind direction and speed to U/V components with interactive visualizations by Claudio Iturra</p>
+        </div>
+
+        <!-- Input Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Wind Data Input</h2>
+            <div class="grid md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Wind Direction (degrees, 0-360)</label>
+                    <textarea id="directionInput" class="w-full h-32 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter directions separated by commas or new lines..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Wind Speed (knots)</label>
+                    <textarea id="speedInput" class="w-full h-32 p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Enter speeds separated by commas or new lines..."></textarea>
+                </div>
+            </div>
+            <div class="mt-6 flex gap-4">
+                <button onclick="loadSampleData()" class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-md transition-colors">
+                    Load Sample Data
+                </button>
+                <button onclick="processData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md transition-colors">
+                    Process & Visualize
+                </button>
+                <button onclick="clearData()" class="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-md transition-colors">
+                    Clear All
+                </button>
+            </div>
+        </div>
+
+        <!-- Results Table -->
+        <div id="resultsSection" class="bg-white rounded-lg shadow-lg p-6 mb-8 hidden">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">Converted Data</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full table-auto">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Index</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Direction (°)</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Speed (knots)</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">Speed (m/s)</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">U (m/s)</th>
+                            <th class="px-4 py-2 text-left text-sm font-medium text-gray-700">V (m/s)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultsTable" class="divide-y divide-gray-200">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Visualizations -->
+        <div class="grid lg:grid-cols-2 gap-8">
+            <!-- U/V Components Plot -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">U & V Wind Components</h3>
+                <div id="uvPlot" class="w-full h-96"></div>
+            </div>
+
+            <!-- Wind Speed Time Series -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Wind Speed Time Series</h3>
+                <div id="speedPlot" class="w-full h-96"></div>
+            </div>
+
+            <!-- Wind Rose -->
+            <div class="bg-white rounded-lg shadow-lg p-6 lg:col-span-2">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Wind Rose - Direction & Magnitude</h3>
+                <div id="windRose" class="w-full h-96"></div>
+            </div>
+        </div>
+
+        <!-- Info Section -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">📊 About the Conversions</h3>
+            <div class="grid md:grid-cols-2 gap-6 text-sm text-gray-600">
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">Unit Conversions:</h4>
+                    <ul class="space-y-1">
+                        <li>• 1 knot = 0.514444 m/s</li>
+                        <li>• Wind direction: meteorological convention (from direction)</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-800 mb-2">U/V Components:</h4>
+                    <ul class="space-y-1">
+                        <li>• U = -speed × sin(direction × π/180)</li>
+                        <li>• V = -speed × cos(direction × π/180)</li>
+                        <li>• U: East-West component (positive = eastward)</li>
+                        <li>• V: North-South component (positive = northward)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let windData = [];
+
+        function loadSampleData() {
+            // Sample wind data - realistic wind patterns
+            const sampleDirections = [
+                45, 50, 55, 60, 65, 70, 75, 80, 85, 90,
+                95, 100, 105, 110, 115, 120, 125, 130, 135, 140,
+                225, 230, 235, 240, 245, 250, 255, 260, 265, 270,
+                275, 280, 285, 290, 295, 300, 305, 310, 315, 320
+            ];
+            
+            const sampleSpeeds = [
+                12, 15, 18, 22, 25, 28, 30, 32, 28, 25,
+                22, 20, 18, 16, 14, 12, 10, 8, 6, 8,
+                10, 12, 15, 18, 20, 22, 25, 28, 30, 32,
+                30, 28, 25, 22, 20, 18, 15, 12, 10, 8
+            ];
+
+            document.getElementById('directionInput').value = sampleDirections.join(', ');
+            document.getElementById('speedInput').value = sampleSpeeds.join(', ');
+            
+            processData();
+        }
+
+        function clearData() {
+            document.getElementById('directionInput').value = '';
+            document.getElementById('speedInput').value = '';
+            document.getElementById('resultsSection').classList.add('hidden');
+            
+            // Clear plots
+            Plotly.purge('uvPlot');
+            Plotly.purge('speedPlot');
+            Plotly.purge('windRose');
+        }
+
+        function parseInput(input) {
+            return input.split(/[,\n]/)
+                       .map(x => x.trim())
+                       .filter(x => x !== '')
+                       .map(x => parseFloat(x))
+                       .filter(x => !isNaN(x));
+        }
+
+        function knotsToMs(knots) {
+            return knots * 0.514444;
+        }
+
+        function calculateUV(direction, speedMs) {
+            const dirRad = direction * Math.PI / 180;
+            const u = -speedMs * Math.sin(dirRad);
+            const v = -speedMs * Math.cos(dirRad);
+            return { u, v };
+        }
+
+        function processData() {
+            const directionText = document.getElementById('directionInput').value;
+            const speedText = document.getElementById('speedInput').value;
+
+            const directions = parseInput(directionText);
+            const speeds = parseInput(speedText);
+
+            if (directions.length === 0 || speeds.length === 0) {
+                alert('Please enter both wind directions and speeds');
+                return;
+            }
+
+            if (directions.length !== speeds.length) {
+                alert('Number of directions and speeds must match');
+                return;
+            }
+
+            // Validate direction range
+            const invalidDirections = directions.filter(d => d < 0 || d > 360);
+            if (invalidDirections.length > 0) {
+                alert('Wind directions must be between 0 and 360 degrees');
+                return;
+            }
+
+            // Process data
+            windData = [];
+            for (let i = 0; i < directions.length; i++) {
+                const direction = directions[i];
+                const speedKnots = speeds[i];
+                const speedMs = knotsToMs(speedKnots);
+                const { u, v } = calculateUV(direction, speedMs);
+
+                windData.push({
+                    index: i + 1,
+                    direction,
+                    speedKnots,
+                    speedMs,
+                    u,
+                    v
+                });
+            }
+
+            displayResults();
+            createVisualizations();
+        }
+
+        function displayResults() {
+            const tableBody = document.getElementById('resultsTable');
+            tableBody.innerHTML = '';
+
+            windData.forEach(data => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-4 py-2 text-sm text-gray-900">${data.index}</td>
+                    <td class="px-4 py-2 text-sm text-gray-900">${data.direction.toFixed(1)}°</td>
+                    <td class="px-4 py-2 text-sm text-gray-900">${data.speedKnots.toFixed(1)}</td>
+                    <td class="px-4 py-2 text-sm text-gray-900">${data.speedMs.toFixed(2)}</td>
+                    <td class="px-4 py-2 text-sm text-gray-900">${data.u.toFixed(2)}</td>
+                    <td class="px-4 py-2 text-sm text-gray-900">${data.v.toFixed(2)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+
+            document.getElementById('resultsSection').classList.remove('hidden');
+        }
+
+        function createVisualizations() {
+            createUVPlot();
+            createSpeedPlot();
+            createWindRose();
+        }
+
+        function createUVPlot() {
+            const indices = windData.map(d => d.index);
+            const uValues = windData.map(d => d.u);
+            const vValues = windData.map(d => d.v);
+
+            const trace1 = {
+                x: indices,
+                y: uValues,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'U Component (East-West)',
+                line: { color: '#3B82F6', width: 2 },
+                marker: { size: 6 }
+            };
+
+            const trace2 = {
+                x: indices,
+                y: vValues,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'V Component (North-South)',
+                line: { color: '#EF4444', width: 2 },
+                marker: { size: 6 }
+            };
+
+            const layout = {
+                title: 'Wind U & V Components Over Time',
+                xaxis: { title: 'Data Point Index' },
+                yaxis: { title: 'Velocity (m/s)' },
+                hovermode: 'x unified',
+                showlegend: true,
+                margin: { t: 50, r: 50, b: 50, l: 50 }
+            };
+
+            Plotly.newPlot('uvPlot', [trace1, trace2], layout, { responsive: true });
+        }
+
+        function createSpeedPlot() {
+            const indices = windData.map(d => d.index);
+            const speedsMs = windData.map(d => d.speedMs);
+            const speedsKnots = windData.map(d => d.speedKnots);
+
+            const trace1 = {
+                x: indices,
+                y: speedsMs,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Speed (m/s)',
+                line: { color: '#10B981', width: 2 },
+                marker: { size: 6 },
+                yaxis: 'y'
+            };
+
+            const trace2 = {
+                x: indices,
+                y: speedsKnots,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Speed (knots)',
+                line: { color: '#F59E0B', width: 2 },
+                marker: { size: 6 },
+                yaxis: 'y2'
+            };
+
+            const layout = {
+                title: 'Wind Speed Over Time',
+                xaxis: { title: 'Data Point Index' },
+                yaxis: { 
+                    title: 'Speed (m/s)',
+                    side: 'left'
+                },
+                yaxis2: {
+                    title: 'Speed (knots)',
+                    side: 'right',
+                    overlaying: 'y'
+                },
+                hovermode: 'x unified',
+                showlegend: true,
+                margin: { t: 50, r: 50, b: 50, l: 50 }
+            };
+
+            Plotly.newPlot('speedPlot', [trace1, trace2], layout, { responsive: true });
+        }
+
+        function createWindRose() {
+            const directions = windData.map(d => d.direction);
+            const speeds = windData.map(d => d.speedMs);
+
+            // Create wind rose using polar scatter plot
+            const trace = {
+                type: 'scatterpolar',
+                r: speeds,
+                theta: directions,
+                mode: 'markers',
+                marker: {
+                    color: speeds,
+                    colorscale: 'Viridis',
+                    size: 8,
+                    colorbar: {
+                        title: 'Wind Speed (m/s)',
+                        titleside: 'right'
+                    }
+                },
+                text: windData.map(d => `Direction: ${d.direction}°<br>Speed: ${d.speedMs.toFixed(2)} m/s`),
+                hovertemplate: '%{text}<extra></extra>'
+            };
+
+            const layout = {
+                title: 'Wind Rose - Direction vs Magnitude',
+                polar: {
+                    radialaxis: {
+                        title: 'Wind Speed (m/s)',
+                        angle: 90
+                    },
+                    angularaxis: {
+                        title: 'Wind Direction (degrees)',
+                        direction: 'clockwise',
+                        period: 360,
+                        tickmode: 'array',
+                        tickvals: [0, 45, 90, 135, 180, 225, 270, 315],
+                        ticktext: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']
+                    }
+                },
+                showlegend: false,
+                margin: { t: 80, r: 80, b: 50, l: 50 }
+            };
+
+            Plotly.newPlot('windRose', [trace], layout, { responsive: true });
+        }
+
+        // Load sample data on page load
+        window.onload = function() {
+            loadSampleData();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d054571422e79b',t:'MTc1NDgzNzY3Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
