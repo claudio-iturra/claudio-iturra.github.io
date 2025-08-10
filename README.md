@@ -101,3 +101,7 @@
 [convert wind direction and speed to U/V (paste your data)](https://claudio-iturra.github.io/windir_rot.html)
 	
 [comprehensive evaluation of coastal wind patterns](https://claudio-iturra.github.io/windsim.html)
+
+[parameters affecting diel vertical migration (experimental)](https://claudio-iturra.github.io/vertical_migration.html)
+
+[marine mammals (experimental-future SIM AGI model)](https://claudio-iturra.github.io/basic_mammal.html)
