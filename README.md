@@ -26,7 +26,7 @@
 
 [basic CTD Profiling sim](https://claudio-iturra.github.io/ctdprofilesim.html)
 
-[Upload and visualize CTD profiles from Seabird and RBR - AGI model](https://claudio-iturra.github.io/ctdsearbr.html)
+[upload and visualize CTD profiles from Seabird and RBR - AGI model](https://claudio-iturra.github.io/ctdsearbr.html)
 
 [complex CTD Profile Simulator](https://claudio-iturra.github.io/ctdsim.html)
 	
@@ -34,7 +34,7 @@
 
 [Coastal Temperature Profile Simulator](https://claudio-iturra.github.io/ctpsim.html)
 
-[Physical Oceanography Equations](https://claudio-iturra.github.io/eq.html)
+[physical Oceanography Equations](https://claudio-iturra.github.io/eq.html)
 
 [stuarine Circulation Evaluator](https://claudio-iturra.github.io/estuarine.html)
 
@@ -64,40 +64,40 @@
 	
 [freshwater intrusion impacts on coastal marine systems](https://claudio-iturra.github.io/river_ocean.html)
 	
-[Wind Direction & Velocity Analysis (experimental)](https://claudio-iturra.github.io/rose.html)
+[wind Direction & Velocity Analysis (experimental)](https://claudio-iturra.github.io/rose.html)
 	
-[Rotary Spectral Analysis (paste your data)](https://claudio-iturra.github.io/rotary.html)
+[rotary Spectral Analysis (paste your data)](https://claudio-iturra.github.io/rotary.html)
 	
-[Concepción Shelf Sedimentation](https://claudio-iturra.github.io/sedimentation.html)
+[concepción Shelf Sedimentation](https://claudio-iturra.github.io/sedimentation.html)
 	
-[Near-Inertial Oscillation Station 18](https://claudio-iturra.github.io/simnios.html)
+[near-Inertial Oscillation Station 18](https://claudio-iturra.github.io/simnios.html)
 	
-[Slab Model for Wind-Induced Ocean Currents](https://claudio-iturra.github.io/simniosplus.html)
+[slab Model for Wind-Induced Ocean Currents](https://claudio-iturra.github.io/simniosplus.html)
 	
-[Frequency Analysis (paste your data)](https://claudio-iturra.github.io/spectral.html)
+[frequency Analysis (paste your data)](https://claudio-iturra.github.io/spectral.html)
 	
-[Convert webcam feed to thermal imaging](https://claudio-iturra.github.io/temcam.html)
+[convert webcam feed to thermal imaging](https://claudio-iturra.github.io/temcam.html)
 	
-[Load, analyze, and visualize time-series data](https://claudio-iturra.github.io/textrec.html)
+[load, analyze, and visualize time-series data](https://claudio-iturra.github.io/textrec.html)
 	
-[Tidal Ellipse Analysis (+)](https://claudio-iturra.github.io/tidal.html)
+[tidal Ellipse Analysis (+)](https://claudio-iturra.github.io/tidal.html)
 	
 [sea level fluctuations and horizontal tidal velocities](https://claudio-iturra.github.io/tidal_calculator.html)
 	
-[Evaluating plume intensity during upwelling/relaxation events](https://claudio-iturra.github.io/updynamic.html)
+[evaluating plume intensity during upwelling/relaxation events](https://claudio-iturra.github.io/updynamic.html)
 	
 [advanced simulation of coastal upwelling dynamics](https://claudio-iturra.github.io/upsim.html)
 	
-[Evaluation of wind-driven upwelling circulation and temperature dynamics](https://claudio-iturra.github.io/upwellingsim.html)
+[evaluation of wind-driven upwelling circulation and temperature dynamics](https://claudio-iturra.github.io/upwellingsim.html)
 
-[Vertical Water Column Structure Assessment S18](https://claudio-iturra.github.io/verticals.html)
+[vertical Water Column Structure Assessment S18](https://claudio-iturra.github.io/verticals.html)
 	
-[Calculate ocean dynamic vertical modes](https://claudio-iturra.github.io/vmodes.html)
+[calculate ocean dynamic vertical modes](https://claudio-iturra.github.io/vmodes.html)
 	
-[Spectral Analysis & Continuous Wavelet (paste your data)](https://claudio-iturra.github.io/wavelet.html)
+[spectral Analysis & Continuous Wavelet (paste your data)](https://claudio-iturra.github.io/wavelet.html)
 	
-[Convert wind direction and speed to U/V](https://claudio-iturra.github.io/windir.html)
+[convert wind direction and speed to U/V](https://claudio-iturra.github.io/windir.html)
 	
-[Convert wind direction and speed to U/V (paste your data)](https://claudio-iturra.github.io/windir_rot.html)
+[convert wind direction and speed to U/V (paste your data)](https://claudio-iturra.github.io/windir_rot.html)
 	
-[Comprehensive evaluation of coastal wind patterns](https://claudio-iturra.github.io/windsim.html)
+[comprehensive evaluation of coastal wind patterns](https://claudio-iturra.github.io/windsim.html)
