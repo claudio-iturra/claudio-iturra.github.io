@@ -4,7 +4,7 @@
 
 [Biogeochemical Model](https://claudio-iturra.github.io/biomodel.html)
 
-[Buoy Trajectory(experimental)](https://claudio-iturra.github.io/buoysim.html)
+[Buoy Trajectory (experimental)](https://claudio-iturra.github.io/buoysim.html)
 
 [Cell Counter Pro](https://claudio-iturra.github.io/cellcount.html)
 
