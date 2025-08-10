@@ -18,7 +18,7 @@
 
 [carbon sequestration and biogeochemical cycling](https://claudio-iturra.github.io/cpump.html)
 
-[PDF CTD-Log Creator](https://claudio-iturra.github.io/ctd-log.html)
+[pDF CTD-Log Creator](https://claudio-iturra.github.io/ctd-log.html)
 
 [coastal ocean analysis tool for vertical profiles](https://claudio-iturra.github.io/ctd.html)
 
@@ -30,7 +30,7 @@
 
 [complex CTD Profile Simulator](https://claudio-iturra.github.io/ctdsim.html)
 	
-[CTD view](https://claudio-iturra.github.io/ctdview.html)
+[cTD view](https://claudio-iturra.github.io/ctdview.html)
 
 [Coastal Temperature Profile Simulator](https://claudio-iturra.github.io/ctpsim.html)
 
@@ -38,7 +38,7 @@
 
 [stuarine Circulation Evaluator](https://claudio-iturra.github.io/estuarine.html)
 
-[Advanced signal filter processing (*paste your data)](https://claudio-iturra.github.io/filters.html)
+[advanced signal filter processing (*paste your data)](https://claudio-iturra.github.io/filters.html)
 
 [Harmful Algal Bloom Analysis](https://claudio-iturra.github.io/habcalculator.html)
 
@@ -46,7 +46,7 @@
 
 [air-sea heat exchange and near-surface temperature dynamics](https://claudio-iturra.github.io/heatflux_t.html)
 	
-[Evaluation of Internal Waves in Coastal Ocean](https://claudio-iturra.github.io/iw.html)
+[evaluation of Internal Waves in Coastal Ocean](https://claudio-iturra.github.io/iw.html)
 	
 [advanced bacterial and biogeochemical evaluation](https://claudio-iturra.github.io/microbiology.html)
 	
