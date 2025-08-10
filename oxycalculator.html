@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Oxygen Distribution Calculator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .parameters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .param-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .param-group h3 {
+            margin: 0 0 15px 0;
+            color: #4CAF50;
+            font-size: 1.1em;
+        }
+        
+        .input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .input-row label {
+            flex: 1;
+            font-size: 0.9em;
+            margin-right: 10px;
+        }
+        
+        .input-row input {
+            width: 80px;
+            padding: 5px 8px;
+            border: none;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 0.9em;
+        }
+        
+        .unit {
+            font-size: 0.8em;
+            color: #ccc;
+            margin-left: 5px;
+            min-width: 60px;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin: 20px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .equations-section {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 30px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .equation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+        
+        .equation-box {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #FF9800;
+        }
+        
+        .equation-title {
+            color: #FF9800;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .results-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            margin-top: 20px;
+        }
+        
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .result-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .result-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        
+        .result-label {
+            font-size: 0.9em;
+            color: #ccc;
+            margin-top: 5px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .parameters-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .equation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean Oxygen Distribution Calculator</h1>
+            <p>Comprehensive vertical oxygen profile modeling from 0-100m depth</p>
+        </div>
+        
+        <div class="main-grid">
+            <div class="panel">
+                <h2>📊 Oceanographic Parameters</h2>
+                <div class="parameters-grid">
+                    <div class="param-group">
+                        <h3>Physical Mixing</h3>
+                        <div class="input-row">
+                            <label>Mixed Layer Depth:</label>
+                            <input type="number" id="mld" value="25" step="0.1">
+                            <span class="unit">m</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Vertical Diffusivity:</label>
+                            <input type="number" id="kz" value="0.001" step="0.0001">
+                            <span class="unit">m²/s</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Turbulent Mixing:</label>
+                            <input type="number" id="turbulence" value="0.5" step="0.1">
+                            <span class="unit">factor</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Upwelling/Downwelling</h3>
+                        <div class="input-row">
+                            <label>Upwelling Velocity:</label>
+                            <input type="number" id="upwelling" value="2.0" step="0.1">
+                            <span class="unit">m/day</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Downwelling Velocity:</label>
+                            <input type="number" id="downwelling" value="0.5" step="0.1">
+                            <span class="unit">m/day</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Relaxation Time:</label>
+                            <input type="number" id="relaxation" value="5" step="0.5">
+                            <span class="unit">days</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Atmospheric Forcing</h3>
+                        <div class="input-row">
+                            <label>Wind Speed:</label>
+                            <input type="number" id="windSpeed" value="8" step="0.5">
+                            <span class="unit">m/s</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Solar Radiation:</label>
+                            <input type="number" id="radiation" value="300" step="10">
+                            <span class="unit">W/m²</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Air Temperature:</label>
+                            <input type="number" id="airTemp" value="20" step="0.5">
+                            <span class="unit">°C</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Tidal Effects</h3>
+                        <div class="input-row">
+                            <label>Tidal Amplitude:</label>
+                            <input type="number" id="tidalAmp" value="1.5" step="0.1">
+                            <span class="unit">m</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Tidal Period:</label>
+                            <input type="number" id="tidalPeriod" value="12.42" step="0.01">
+                            <span class="unit">hours</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Tidal Mixing:</label>
+                            <input type="number" id="tidalMixing" value="0.3" step="0.1">
+                            <span class="unit">factor</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Freshwater Input</h3>
+                        <div class="input-row">
+                            <label>River Discharge:</label>
+                            <input type="number" id="riverFlow" value="100" step="10">
+                            <span class="unit">m³/s</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Salinity Gradient:</label>
+                            <input type="number" id="salinityGrad" value="0.5" step="0.1">
+                            <span class="unit">psu/m</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Stratification:</label>
+                            <input type="number" id="stratification" value="0.02" step="0.01">
+                            <span class="unit">kg/m⁴</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Mesoscale Eddies</h3>
+                        <div class="input-row">
+                            <label>Eddy Intensity:</label>
+                            <input type="number" id="eddyIntensity" value="0.1" step="0.01">
+                            <span class="unit">m/s</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Eddy Scale:</label>
+                            <input type="number" id="eddyScale" value="10" step="1">
+                            <span class="unit">km</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Eddy Frequency:</label>
+                            <input type="number" id="eddyFreq" value="0.1" step="0.01">
+                            <span class="unit">1/day</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>🧪 Biogeochemical Parameters</h2>
+                <div class="parameters-grid">
+                    <div class="param-group">
+                        <h3>Oxygen Production</h3>
+                        <div class="input-row">
+                            <label>Primary Production:</label>
+                            <input type="number" id="primaryProd" value="2.5" step="0.1">
+                            <span class="unit">gC/m²/day</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Photosynthetic Quotient:</label>
+                            <input type="number" id="pq" value="1.2" step="0.1">
+                            <span class="unit">mol O₂/mol C</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Light Attenuation:</label>
+                            <input type="number" id="lightAtten" value="0.15" step="0.01">
+                            <span class="unit">1/m</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Oxygen Consumption</h3>
+                        <div class="input-row">
+                            <label>Respiration Rate:</label>
+                            <input type="number" id="respiration" value="1.8" step="0.1">
+                            <span class="unit">gC/m²/day</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Bacterial Consumption:</label>
+                            <input type="number" id="bacterial" value="0.5" step="0.1">
+                            <span class="unit">gC/m²/day</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Nitrification Rate:</label>
+                            <input type="number" id="nitrification" value="0.2" step="0.01">
+                            <span class="unit">mmol/m³/day</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Water Properties</h3>
+                        <div class="input-row">
+                            <label>Temperature:</label>
+                            <input type="number" id="temperature" value="18" step="0.5">
+                            <span class="unit">°C</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Salinity:</label>
+                            <input type="number" id="salinity" value="35" step="0.1">
+                            <span class="unit">psu</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Turbidity:</label>
+                            <input type="number" id="turbidity" value="2.5" step="0.1">
+                            <span class="unit">NTU</span>
+                        </div>
+                    </div>
+                    
+                    <div class="param-group">
+                        <h3>Initial Conditions</h3>
+                        <div class="input-row">
+                            <label>Surface O₂:</label>
+                            <input type="number" id="surfaceO2" value="280" step="5">
+                            <span class="unit">μmol/L</span>
+                        </div>
+                        <div class="input-row">
+                            <label>Deep O₂:</label>
+                            <input type="number" id="deepO2" value="180" step="5">
+                            <span class="unit">μmol/L</span>
+                        </div>
+                        <div class="input-row">
+                            <label>O₂ Gradient:</label>
+                            <input type="number" id="o2Gradient" value="1.2" step="0.1">
+                            <span class="unit">μmol/L/m</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateOxygenProfile()">
+                    🔬 Calculate Oxygen Distribution
+                </button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>📈 Vertical Oxygen Profile</h2>
+            <div class="chart-container">
+                <canvas id="oxygenChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="results-panel">
+            <h2>📋 Calculated Results</h2>
+            <div class="results-grid">
+                <div class="result-item">
+                    <div class="result-value" id="avgO2">--</div>
+                    <div class="result-label">Average O₂ (μmol/L)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="oxygenFlux">--</div>
+                    <div class="result-label">Net O₂ Flux (mmol/m²/day)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="mixingRate">--</div>
+                    <div class="result-label">Mixing Rate (m²/s)</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="stratIndex">--</div>
+                    <div class="result-label">Stratification Index</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="prodConsRatio">--</div>
+                    <div class="result-label">Production/Consumption</div>
+                </div>
+                <div class="result-item">
+                    <div class="result-value" id="oxygenDeficit">--</div>
+                    <div class="result-label">O₂ Deficit (%)</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="equations-section">
+            <h2>📐 Mathematical Equations Used</h2>
+            <div class="equation-grid">
+                <div class="equation-box">
+                    <div class="equation-title">1. Oxygen Transport Equation</div>
+                    <p>$$\frac{\partial O_2}{\partial t} = -w\frac{\partial O_2}{\partial z} + \frac{\partial}{\partial z}\left(K_z\frac{\partial O_2}{\partial z}\right) + P - R$$</p>
+                    <p><small>Where: O₂ = oxygen concentration, w = vertical velocity, K_z = vertical diffusivity, P = production, R = respiration</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">2. Primary Production (Light-Limited)</div>
+                    <p>$$P(z) = P_{max} \cdot \frac{I(z)}{I(z) + K_I} \cdot e^{-k \cdot z}$$</p>
+                    <p><small>Where: P_max = maximum production rate, I(z) = light intensity at depth z, k = light attenuation coefficient</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">3. Vertical Mixing Coefficient</div>
+                    <p>$$K_z = K_{z0} + K_{wind} \cdot U_{10}^2 + K_{tidal} \cdot \sin\left(\frac{2\pi t}{T_{tidal}}\right)$$</p>
+                    <p><small>Where: K_z0 = background diffusivity, U_10 = wind speed at 10m, T_tidal = tidal period</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">4. Upwelling Velocity</div>
+                    <p>$$w_{up} = \frac{\tau_x}{\rho f L} \cdot \left(1 - e^{-\frac{t}{T_{relax}}}\right)$$</p>
+                    <p><small>Where: τ_x = wind stress, ρ = density, f = Coriolis parameter, L = coastal length scale, T_relax = relaxation time</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">5. Oxygen Solubility (Garcia & Gordon)</div>
+                    <p>$$O_{2sat} = \exp\left(A_0 + A_1\frac{100}{T} + A_2\ln\frac{T}{100} + S\left(B_0 + B_1\frac{T}{100}\right)\right)$$</p>
+                    <p><small>Where: T = temperature (K), S = salinity, A_i and B_i are empirical constants</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">6. Respiratory Oxygen Consumption</div>
+                    <p>$$R(z) = R_0 \cdot e^{0.069(T-20)} \cdot \frac{O_2(z)}{O_2(z) + K_{O2}}$$</p>
+                    <p><small>Where: R_0 = reference respiration rate, T = temperature, K_O2 = half-saturation constant</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">7. Eddy Diffusion Enhancement</div>
+                    <p>$$K_{eddy} = K_{z0} \cdot \left(1 + A_{eddy} \cdot \sin\left(\frac{2\pi x}{L_{eddy}}\right) \cdot e^{-\omega_{eddy} t}\right)$$</p>
+                    <p><small>Where: A_eddy = eddy amplitude, L_eddy = eddy length scale, ω_eddy = eddy frequency</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">8. Freshwater Mixing Effect</div>
+                    <p>$$K_{fresh} = K_{z0} \cdot \left(1 + \frac{Q_{river}}{Q_{ref}} \cdot e^{-\frac{z}{H_{fresh}}}\right)$$</p>
+                    <p><small>Where: Q_river = river discharge, Q_ref = reference discharge, H_fresh = freshwater influence depth</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">9. Nitrification Oxygen Consumption</div>
+                    <p>$$R_{nitrif} = k_{nitrif} \cdot [NH_4^+] \cdot \frac{O_2}{O_2 + K_{O2,nitrif}}$$</p>
+                    <p><small>Where: k_nitrif = nitrification rate constant, [NH₄⁺] = ammonium concentration</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">10. Stratification Index</div>
+                    <p>$$N^2 = -\frac{g}{\rho_0}\frac{\partial \rho}{\partial z} = -\frac{g}{\rho_0}\left(\alpha\frac{\partial T}{\partial z} - \beta\frac{\partial S}{\partial z}\right)$$</p>
+                    <p><small>Where: N² = buoyancy frequency, g = gravity, α = thermal expansion, β = haline contraction</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">11. Air-Sea Oxygen Exchange</div>
+                    <p>$$F_{O2} = k_{gas} \cdot (O_{2sat} - O_{2surf}) \cdot \sqrt{\frac{Sc}{660}}$$</p>
+                    <p><small>Where: k_gas = gas transfer velocity, Sc = Schmidt number, depends on wind speed and temperature</small></p>
+                </div>
+                
+                <div class="equation-box">
+                    <div class="equation-title">12. Turbidity Effect on Light</div>
+                    <p>$$I(z) = I_0 \cdot e^{-(k_w + k_{turb} \cdot Turb) \cdot z}$$</p>
+                    <p><small>Where: I_0 = surface irradiance, k_w = water attenuation, k_turb = turbidity coefficient, Turb = turbidity</small></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let oxygenChart;
+        
+        function calculateOxygenProfile() {
+            // Get all parameter values
+            const params = {
+                mld: parseFloat(document.getElementById('mld').value),
+                kz: parseFloat(document.getElementById('kz').value),
+                turbulence: parseFloat(document.getElementById('turbulence').value),
+                upwelling: parseFloat(document.getElementById('upwelling').value),
+                downwelling: parseFloat(document.getElementById('downwelling').value),
+                relaxation: parseFloat(document.getElementById('relaxation').value),
+                windSpeed: parseFloat(document.getElementById('windSpeed').value),
+                radiation: parseFloat(document.getElementById('radiation').value),
+                airTemp: parseFloat(document.getElementById('airTemp').value),
+                tidalAmp: parseFloat(document.getElementById('tidalAmp').value),
+                tidalPeriod: parseFloat(document.getElementById('tidalPeriod').value),
+                tidalMixing: parseFloat(document.getElementById('tidalMixing').value),
+                riverFlow: parseFloat(document.getElementById('riverFlow').value),
+                salinityGrad: parseFloat(document.getElementById('salinityGrad').value),
+                stratification: parseFloat(document.getElementById('stratification').value),
+                eddyIntensity: parseFloat(document.getElementById('eddyIntensity').value),
+                eddyScale: parseFloat(document.getElementById('eddyScale').value),
+                eddyFreq: parseFloat(document.getElementById('eddyFreq').value),
+                primaryProd: parseFloat(document.getElementById('primaryProd').value),
+                pq: parseFloat(document.getElementById('pq').value),
+                lightAtten: parseFloat(document.getElementById('lightAtten').value),
+                respiration: parseFloat(document.getElementById('respiration').value),
+                bacterial: parseFloat(document.getElementById('bacterial').value),
+                nitrification: parseFloat(document.getElementById('nitrification').value),
+                temperature: parseFloat(document.getElementById('temperature').value),
+                salinity: parseFloat(document.getElementById('salinity').value),
+                turbidity: parseFloat(document.getElementById('turbidity').value),
+                surfaceO2: parseFloat(document.getElementById('surfaceO2').value),
+                deepO2: parseFloat(document.getElementById('deepO2').value),
+                o2Gradient: parseFloat(document.getElementById('o2Gradient').value)
+            };
+            
+            // Calculate oxygen profile
+            const depths = [];
+            const oxygenConc = [];
+            const production = [];
+            const consumption = [];
+            
+            for (let z = 0; z <= 100; z += 2) {
+                depths.push(z);
+                
+                // Light attenuation with turbidity effect
+                const lightAtten = params.lightAtten + (params.turbidity * 0.02);
+                const lightIntensity = params.radiation * Math.exp(-lightAtten * z);
+                
+                // Primary production (light-limited)
+                const maxProd = params.primaryProd * params.pq * 32 / 12; // Convert to O2 units
+                const prod = z < params.mld ? 
+                    maxProd * (lightIntensity / (lightIntensity + 50)) * Math.exp(-lightAtten * z) : 
+                    maxProd * 0.1 * Math.exp(-0.1 * (z - params.mld));
+                production.push(prod);
+                
+                // Oxygen consumption (temperature dependent)
+                const tempFactor = Math.exp(0.069 * (params.temperature - 20));
+                const resp = (params.respiration + params.bacterial) * tempFactor * 32 / 12;
+                const nitrif = params.nitrification * (z > params.mld ? 1 : 0.3);
+                const totalConsumption = resp + nitrif;
+                consumption.push(totalConsumption);
+                
+                // Vertical mixing coefficient
+                const windMixing = 0.0001 * Math.pow(params.windSpeed, 2);
+                const tidalMixing = params.kz * params.tidalMixing * Math.sin(2 * Math.PI * z / 50);
+                const eddyMixing = params.kz * params.eddyIntensity * Math.sin(2 * Math.PI * z / (params.eddyScale * 1000));
+                const freshMixing = params.kz * (params.riverFlow / 100) * Math.exp(-z / 20);
+                
+                const totalMixing = params.kz + windMixing + tidalMixing + eddyMixing + freshMixing;
+                
+                // Upwelling/downwelling effects
+                const upwellingEffect = params.upwelling * Math.exp(-z / 30) * (1 - Math.exp(-1 / params.relaxation));
+                const downwellingEffect = params.downwelling * Math.exp(-z / 50);
+                
+                // Base oxygen concentration with gradient
+                let baseO2 = params.surfaceO2 - (params.o2Gradient * z);
+                
+                // Apply mixing effects
+                if (z < params.mld) {
+                    baseO2 = params.surfaceO2 * (1 - z / (params.mld * 2));
+                }
+                
+                // Apply biological effects
+                const netBiological = prod - totalConsumption;
+                baseO2 += netBiological * 0.5;
+                
+                // Apply physical transport
+                baseO2 += upwellingEffect * 2 - downwellingEffect * 1;
+                
+                // Apply stratification effects
+                if (z > params.mld) {
+                    const stratEffect = params.stratification * Math.pow(z - params.mld, 1.5);
+                    baseO2 -= stratEffect * 10;
+                }
+                
+                // Ensure realistic bounds
+                baseO2 = Math.max(50, Math.min(350, baseO2));
+                
+                oxygenConc.push(baseO2);
+            }
+            
+            // Calculate summary statistics
+            const avgO2 = oxygenConc.reduce((a, b) => a + b, 0) / oxygenConc.length;
+            const oxygenFlux = (production.reduce((a, b) => a + b, 0) - consumption.reduce((a, b) => a + b, 0)) / production.length;
+            const mixingRate = params.kz * (1 + params.windSpeed * 0.1 + params.tidalMixing);
+            const stratIndex = params.stratification * 1000;
+            const prodConsRatio = production.reduce((a, b) => a + b, 0) / consumption.reduce((a, b) => a + b, 0);
+            const oxygenDeficit = ((280 - avgO2) / 280) * 100;
+            
+            // Update results
+            document.getElementById('avgO2').textContent = avgO2.toFixed(1);
+            document.getElementById('oxygenFlux').textContent = oxygenFlux.toFixed(2);
+            document.getElementById('mixingRate').textContent = (mixingRate * 1000).toFixed(3);
+            document.getElementById('stratIndex').textContent = stratIndex.toFixed(2);
+            document.getElementById('prodConsRatio').textContent = prodConsRatio.toFixed(2);
+            document.getElementById('oxygenDeficit').textContent = oxygenDeficit.toFixed(1);
+            
+            // Create or update chart
+            updateChart(depths, oxygenConc, production, consumption);
+        }
+        
+        function updateChart(depths, oxygen, production, consumption) {
+            const ctx = document.getElementById('oxygenChart').getContext('2d');
+            
+            if (oxygenChart) {
+                oxygenChart.destroy();
+            }
+            
+            oxygenChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: depths,
+                    datasets: [{
+                        label: 'Oxygen Concentration (μmol/L)',
+                        data: oxygen,
+                        borderColor: '#2196F3',
+                        backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Production Rate (μmol/L/day)',
+                        data: production,
+                        borderColor: '#4CAF50',
+                        backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        yAxisID: 'y1'
+                    }, {
+                        label: 'Consumption Rate (μmol/L/day)',
+                        data: consumption,
+                        borderColor: '#FF5722',
+                        backgroundColor: 'rgba(255, 87, 34, 0.1)',
+                        borderWidth: 2,
+                        fill: false,
+                        yAxisID: 'y1'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Vertical Oxygen Distribution Profile (0-100m)',
+                            font: { size: 16, weight: 'bold' },
+                            color: '#333'
+                        },
+                        legend: {
+                            position: 'top',
+                            labels: { color: '#333' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Depth (m)',
+                                color: '#333',
+                                font: { weight: 'bold' }
+                            },
+                            reverse: false,
+                            grid: { color: 'rgba(0,0,0,0.1)' },
+                            ticks: { color: '#333' }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Oxygen Concentration (μmol/L)',
+                                color: '#2196F3',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { color: 'rgba(33, 150, 243, 0.1)' },
+                            ticks: { color: '#2196F3' }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Production/Consumption Rate (μmol/L/day)',
+                                color: '#4CAF50',
+                                font: { weight: 'bold' }
+                            },
+                            grid: { drawOnChartArea: false },
+                            ticks: { color: '#4CAF50' }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+        
+        // Initialize with default calculation
+        window.addEventListener('load', function() {
+            setTimeout(calculateOxygenProfile, 1000);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d0a021c1ede9b6',t:'MTc1NDg0MDc4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
