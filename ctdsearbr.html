@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTD Profile Analyzer</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://unpkg.com/plotly.js-dist@2.26.0/plotly.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .file-upload {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .file-upload:hover {
+            border-color: #764ba2;
+            background-color: #f8f9ff;
+        }
+        
+        .file-upload input {
+            display: none;
+        }
+        
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #999;
+        }
+        
+        .info-section {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .format-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+        
+        .format-card {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 20px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .format-card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .format-card ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        
+        .format-card li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .format-card li:before {
+            content: "•";
+            color: #667eea;
+            position: absolute;
+            left: 0;
+        }
+        
+        .plots-container {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .plot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .plot-item {
+            background: #f8f9ff;
+            border-radius: 10px;
+            padding: 15px;
+            min-height: 400px;
+        }
+        
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background-color: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d7ff;
+        }
+        
+        @media (max-width: 768px) {
+            .format-info {
+                grid-template-columns: 1fr;
+            }
+            
+            .plot-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 CTD Profile Analyzer</h1>
+            <p>Upload and visualize CTD profiles from Seabird and RBR instruments by Claudio Iturra</p>
+        </div>
+        
+        <div class="upload-section">
+            <div class="file-upload" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Click to upload CTD file</div>
+                <div class="upload-hint">Supports .txt, .cnv, and other text formats</div>
+                <input type="file" id="fileInput" accept=".txt,.cnv,.dat,.csv" onchange="handleFileUpload(event)">
+            </div>
+            <div id="status"></div>
+        </div>
+        
+        <div class="info-section">
+            <h2>📋 Supported Formats</h2>
+            <div class="format-info">
+                <div class="format-card">
+                    <h3>Seabird CTD</h3>
+                    <ul>
+                        <li>Column names with "# name X = variable"</li>
+                        <li>Data starts after "*END*" marker</li>
+                        <li>Common variables: Pressure, Temperature, Conductivity, Salinity</li>
+                        <li>File extensions: .cnv, .txt</li>
+                    </ul>
+                </div>
+                <div class="format-card">
+                    <h3>RBR CTD</h3>
+                    <ul>
+                        <li>Channel definitions: "Channel[X].name=Variable"</li>
+                        <li>Data starts after "NumberOfSamples=" header</li>
+                        <li>Tab or comma separated values</li>
+                        <li>Date & Time column included</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="plots-container" id="plotsContainer">
+            <h2>📊 CTD Profile Plots</h2>
+            <div class="plot-grid" id="plotGrid"></div>
+        </div>
+    </div>
+
+    <script>
+        let ctdData = null;
+        let instrumentType = null;
+        
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+        
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Ensure Plotly is loaded before processing
+            if (typeof Plotly === 'undefined') {
+                showStatus('⏳ Please wait for the page to fully load before uploading files...', 'info');
+                return;
+            }
+            
+            showStatus('📖 Reading file...', 'info');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const content = e.target.result;
+                    parseCtdFile(content, file.name);
+                } catch (error) {
+                    showStatus(`❌ Error reading file: ${error.message}`, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+        
+        function parseCtdFile(content, filename) {
+            const lines = content.split('\n').map(line => line.trim()).filter(line => line);
+            
+            // Detect instrument type
+            if (content.includes('# name') && content.includes('*END*')) {
+                instrumentType = 'seabird';
+                parseSeabirdFile(lines);
+            } else if (content.includes('Channel[') && content.includes('NumberOfSamples=')) {
+                instrumentType = 'rbr';
+                parseRbrFile(lines);
+            } else {
+                showStatus('❌ Unrecognized CTD file format. Please check your file.', 'error');
+                return;
+            }
+        }
+        
+        function parseSeabirdFile(lines) {
+            showStatus('🔍 Parsing Seabird CTD file...', 'info');
+            
+            const columns = {};
+            let dataStartIndex = -1;
+            
+            // Parse column definitions
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                if (line.startsWith('# name')) {
+                    const match = line.match(/# name (\d+) = ([^:]+):\s*(.+)/);
+                    if (match) {
+                        const colIndex = parseInt(match[1]);
+                        const variable = match[2].trim();
+                        const description = match[3].trim();
+                        columns[colIndex] = { name: variable, description: description };
+                    }
+                }
+                
+                if (line === '*END*') {
+                    dataStartIndex = i + 1;
+                    break;
+                }
+            }
+            
+            if (dataStartIndex === -1) {
+                showStatus('❌ Could not find data start marker (*END*)', 'error');
+                return;
+            }
+            
+            // Parse data
+            const data = {};
+            const columnIndices = Object.keys(columns).map(k => parseInt(k)).sort((a, b) => a - b);
+            
+            columnIndices.forEach(index => {
+                data[columns[index].name] = [];
+            });
+            
+            for (let i = dataStartIndex; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line || line.startsWith('#')) continue;
+                
+                const values = line.split(/\s+/);
+                columnIndices.forEach((colIndex, arrayIndex) => {
+                    if (values[arrayIndex] !== undefined) {
+                        const value = parseFloat(values[arrayIndex]);
+                        if (!isNaN(value)) {
+                            data[columns[colIndex].name].push(value);
+                        }
+                    }
+                });
+            }
+            
+            ctdData = { data, columns, type: 'seabird' };
+            showStatus(`✅ Successfully parsed Seabird CTD file with ${Object.keys(data).length} variables`, 'success');
+            createPlots();
+        }
+        
+        function parseRbrFile(lines) {
+            showStatus('🔍 Parsing RBR CTD file...', 'info');
+            
+            const channels = {};
+            let dataStartIndex = -1;
+            let headerLine = '';
+            
+            // Parse channel definitions
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i];
+                
+                const channelMatch = line.match(/Channel\[(\d+)\]\.name=(.+)/);
+                if (channelMatch) {
+                    const channelNum = parseInt(channelMatch[1]);
+                    const channelName = channelMatch[2].trim();
+                    channels[channelNum] = channelName;
+                }
+                
+                if (line.startsWith('NumberOfSamples=')) {
+                    // Look for the header line (usually a few lines after NumberOfSamples)
+                    for (let j = i + 1; j < Math.min(i + 10, lines.length); j++) {
+                        if (lines[j].includes('Date & Time') || lines[j].includes('Cond') || lines[j].includes('Temp')) {
+                            headerLine = lines[j];
+                            dataStartIndex = j + 1;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+            
+            if (dataStartIndex === -1) {
+                showStatus('❌ Could not find data start in RBR file', 'error');
+                return;
+            }
+            
+            // Parse header to get column names
+            const columnNames = headerLine.split(/\s{2,}|\t/).map(name => name.trim()).filter(name => name);
+            
+            // Parse data
+            const data = {};
+            columnNames.forEach(name => {
+                if (name !== 'Date & Time') { // Skip datetime column for plotting
+                    data[name] = [];
+                }
+            });
+            
+            for (let i = dataStartIndex; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line) continue;
+                
+                const values = line.split(/\s+/).filter(val => val.trim());
+                
+                // Skip date/time columns and parse numeric data
+                let dataColumnIndex = 0;
+                for (let j = 0; j < columnNames.length; j++) {
+                    const colName = columnNames[j];
+                    if (colName === 'Date & Time') {
+                        continue; // Skip datetime
+                    }
+                    
+                    if (values[j] !== undefined) {
+                        const value = parseFloat(values[j]);
+                        if (!isNaN(value) && data[colName]) {
+                            data[colName].push(value);
+                        }
+                    }
+                }
+            }
+            
+            ctdData = { data, channels, type: 'rbr', columnNames };
+            showStatus(`✅ Successfully parsed RBR CTD file with ${Object.keys(data).length} variables`, 'success');
+            createPlots();
+        }
+        
+        function createPlots() {
+            // Check if Plotly is loaded
+            if (typeof Plotly === 'undefined') {
+                showStatus('⏳ Loading plotting library, please wait...', 'info');
+                setTimeout(createPlots, 1000);
+                return;
+            }
+            
+            const plotsContainer = document.getElementById('plotsContainer');
+            const plotGrid = document.getElementById('plotGrid');
+            
+            plotGrid.innerHTML = '';
+            plotsContainer.style.display = 'block';
+            
+            const data = ctdData.data;
+            
+            // Find depth variable
+            let depthVar = null;
+            const depthKeywords = ['depth', 'pres', 'pressure', 'depSM', 'Depth', 'Pres'];
+            
+            for (const variable of Object.keys(data)) {
+                if (depthKeywords.some(keyword => variable.toLowerCase().includes(keyword.toLowerCase()))) {
+                    depthVar = variable;
+                    break;
+                }
+            }
+            
+            if (!depthVar) {
+                showStatus('⚠️ No depth/pressure variable found. Using first variable as depth.', 'error');
+                depthVar = Object.keys(data)[0];
+            }
+            
+            const depthData = data[depthVar];
+            
+            // Create plots for each variable (except depth)
+            Object.keys(data).forEach(variable => {
+                if (variable === depthVar) return;
+                
+                const plotDiv = document.createElement('div');
+                plotDiv.className = 'plot-item';
+                plotDiv.id = `plot-${variable.replace(/[^a-zA-Z0-9]/g, '_')}`;
+                plotGrid.appendChild(plotDiv);
+                
+                const trace = {
+                    x: data[variable],
+                    y: depthData,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: variable,
+                    line: {
+                        color: getVariableColor(variable),
+                        width: 2
+                    }
+                };
+                
+                const layout = {
+                    title: {
+                        text: `${variable} Profile`,
+                        font: { size: 16, color: '#333' }
+                    },
+                    xaxis: {
+                        title: getVariableUnit(variable),
+                        gridcolor: '#e0e0e0'
+                    },
+                    yaxis: {
+                        title: `${depthVar} ${getDepthUnit(depthVar)}`,
+                        autorange: 'reversed', // Depth increases downward
+                        gridcolor: '#e0e0e0'
+                    },
+                    plot_bgcolor: 'white',
+                    paper_bgcolor: 'white',
+                    margin: { t: 50, r: 30, b: 50, l: 60 }
+                };
+                
+                const config = {
+                    responsive: true,
+                    displayModeBar: true,
+                    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d']
+                };
+                
+                Plotly.newPlot(plotDiv.id, [trace], layout, config);
+            });
+            
+            showStatus(`📊 Created ${Object.keys(data).length - 1} profile plots`, 'success');
+        }
+        
+        function getVariableColor(variable) {
+            const colorMap = {
+                'temperature': '#ff6b6b',
+                'temp': '#ff6b6b',
+                't090c': '#ff6b6b',
+                'conductivity': '#4ecdc4',
+                'cond': '#4ecdc4',
+                'c0ms/cm': '#4ecdc4',
+                'salinity': '#45b7d1',
+                'sal': '#45b7d1',
+                'sal00': '#45b7d1',
+                'density': '#96ceb4',
+                'oxygen': '#feca57',
+                'fluorescence': '#ff9ff3',
+                'flsp': '#ff9ff3'
+            };
+            
+            const varLower = variable.toLowerCase();
+            for (const key in colorMap) {
+                if (varLower.includes(key)) {
+                    return colorMap[key];
+                }
+            }
+            
+            // Default colors
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        function getVariableUnit(variable) {
+            const unitMap = {
+                'temperature': 'Temperature (°C)',
+                'temp': 'Temperature (°C)',
+                't090c': 'Temperature (°C)',
+                'conductivity': 'Conductivity (mS/cm)',
+                'cond': 'Conductivity (mS/cm)',
+                'c0ms/cm': 'Conductivity (mS/cm)',
+                'salinity': 'Salinity (PSU)',
+                'sal': 'Salinity (PSU)',
+                'sal00': 'Salinity (PSU)',
+                'density': 'Density (kg/m³)',
+                'oxygen': 'Oxygen (ml/L)',
+                'fluorescence': 'Fluorescence',
+                'flsp': 'Fluorescence'
+            };
+            
+            const varLower = variable.toLowerCase();
+            for (const key in unitMap) {
+                if (varLower.includes(key)) {
+                    return unitMap[key];
+                }
+            }
+            
+            return variable;
+        }
+        
+        function getDepthUnit(depthVar) {
+            if (depthVar.toLowerCase().includes('pres')) {
+                return '(db)';
+            }
+            return '(m)';
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d001e4b729e7a4',t:'MTc1NDgzNDI5OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

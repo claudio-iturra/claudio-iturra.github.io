@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vertical Dynamic Ocean Modes Calculator</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            font-weight: 300;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+        
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .panel h3 {
+            margin: 0 0 20px 0;
+            color: #495057;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+        
+        .input-group input, .input-group select, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .input-group input:focus, .input-group select:focus, .input-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .input-group textarea {
+            height: 120px;
+            resize: vertical;
+            font-family: monospace;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        }
+        
+        .results {
+            grid-column: 1 / -1;
+            margin-top: 20px;
+        }
+        
+        .chart-container {
+            height: 500px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .equations {
+            background: #fff;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border-left: 5px solid #667eea;
+        }
+        
+        .equations h4 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+        
+        .mode-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .mode-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .mode-card h5 {
+            margin: 0 0 10px 0;
+            color: #667eea;
+        }
+        
+        .mode-card .value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #495057;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Vertical Dynamic Ocean Modes Calculator</h1>
+            <p>Calculate ocean dynamic vertical modes from temperature and salinity profiles by Claudio Iturra</p>
+        </div>
+        
+        <div class="content">
+            <div class="panel">
+                <h3>📊 Input Data</h3>
+                
+                <div class="input-group">
+                    <label>Data Source:</label>
+                    <select id="dataSource" onchange="toggleDataInput()">
+                        <option value="synthetic">Synthetic Profile</option>
+                        <option value="manual">Manual Input</option>
+                    </select>
+                </div>
+                
+                <div id="syntheticInputs">
+                    <div class="input-group">
+                        <label>Surface Temperature (°C):</label>
+                        <input type="number" id="surfaceTemp" value="25" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Deep Temperature (°C):</label>
+                        <input type="number" id="deepTemp" value="5" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Surface Salinity (PSU):</label>
+                        <input type="number" id="surfaceSal" value="35.5" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Deep Salinity (PSU):</label>
+                        <input type="number" id="deepSal" value="34.8" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Thermocline Depth (m):</label>
+                        <input type="number" id="thermoclineDepth" value="30" step="5">
+                    </div>
+                </div>
+                
+                <div id="manualInputs" style="display: none;">
+                    <div class="input-group">
+                        <label>Depth (m) - one per line:</label>
+                        <textarea id="depthData" placeholder="0&#10;10&#10;20&#10;30&#10;40&#10;50&#10;75&#10;100"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Temperature (°C) - one per line:</label>
+                        <textarea id="tempData" placeholder="25.0&#10;24.5&#10;22.0&#10;18.0&#10;12.0&#10;8.0&#10;6.0&#10;5.0"></textarea>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Salinity (PSU) - one per line:</label>
+                        <textarea id="salData" placeholder="35.5&#10;35.4&#10;35.3&#10;35.2&#10;35.0&#10;34.9&#10;34.8&#10;34.8"></textarea>
+                    </div>
+                </div>
+                
+                <div class="input-group">
+                    <label>Maximum Depth (m):</label>
+                    <input type="number" id="maxDepth" value="100" step="10">
+                </div>
+                
+                <div class="input-group">
+                    <label>Number of Modes:</label>
+                    <input type="number" id="nmodes" value="4" min="1" max="8">
+                </div>
+                
+                <button class="btn" onclick="calculateModes()">🧮 Calculate Modes</button>
+                <button class="btn btn-secondary" onclick="generateSynthetic()">🔄 Generate Synthetic</button>
+            </div>
+            
+            <div class="panel">
+                <h3>📈 T/S Profiles</h3>
+                <div class="chart-container">
+                    <div id="profileChart"></div>
+                </div>
+            </div>
+            
+            <div class="results">
+                <div class="equations">
+                    <h4>🧮 Mathematical Background</h4>
+                    <p><strong>Brunt-Väisälä Frequency:</strong></p>
+                    <p>$$N^2 = -\frac{g}{\rho_0}\frac{d\rho}{dz} = \frac{g}{\rho_0}\left(\alpha\frac{dT}{dz} - \beta\frac{dS}{dz}\right)$$</p>
+                    
+                    <p><strong>Vertical Mode Equation:</strong></p>
+                    <p>$$\frac{d^2\phi_n}{dz^2} + \frac{N^2}{c_n^2}\phi_n = 0$$</p>
+                    
+                    <p><strong>Where:</strong></p>
+                    <ul>
+                        <li>$N^2$ = Brunt-Väisälä frequency squared</li>
+                        <li>$g$ = gravitational acceleration (9.81 m/s²)</li>
+                        <li>$\rho_0$ = reference density (~1025 kg/m³)</li>
+                        <li>$\alpha$ = thermal expansion coefficient (~2×10⁻⁴ K⁻¹)</li>
+                        <li>$\beta$ = haline contraction coefficient (~7.6×10⁻⁴ PSU⁻¹)</li>
+                        <li>$\phi_n$ = vertical structure function for mode n</li>
+                        <li>$c_n$ = phase speed for mode n</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="nsqChart"></div>
+                </div>
+                
+                <div class="chart-container">
+                    <div id="modesChart"></div>
+                </div>
+                
+                <div id="modeResults" class="mode-results"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = {};
+        
+        function toggleDataInput() {
+            const source = document.getElementById('dataSource').value;
+            const synthetic = document.getElementById('syntheticInputs');
+            const manual = document.getElementById('manualInputs');
+            
+            if (source === 'synthetic') {
+                synthetic.style.display = 'block';
+                manual.style.display = 'none';
+            } else {
+                synthetic.style.display = 'none';
+                manual.style.display = 'block';
+            }
+        }
+        
+        function generateSynthetic() {
+            const surfaceTemp = parseFloat(document.getElementById('surfaceTemp').value);
+            const deepTemp = parseFloat(document.getElementById('deepTemp').value);
+            const surfaceSal = parseFloat(document.getElementById('surfaceSal').value);
+            const deepSal = parseFloat(document.getElementById('deepSal').value);
+            const thermoclineDepth = parseFloat(document.getElementById('thermoclineDepth').value);
+            const maxDepth = parseFloat(document.getElementById('maxDepth').value);
+            
+            const depths = [];
+            const temps = [];
+            const sals = [];
+            
+            // Generate realistic oceanographic profiles from 0 to maxDepth
+            for (let i = 0; i <= 100; i++) {
+                const depth = (i / 100) * maxDepth;
+                depths.push(depth);
+                
+                // Realistic temperature profile with mixed layer and thermocline
+                let temp;
+                if (depth < 10) {
+                    // Mixed layer - nearly constant temperature
+                    temp = surfaceTemp - (depth / 10) * 0.5;
+                } else if (depth < thermoclineDepth) {
+                    // Thermocline - rapid temperature decrease
+                    const thermoclineFactor = (depth - 10) / (thermoclineDepth - 10);
+                    temp = surfaceTemp - 0.5 - (surfaceTemp - deepTemp - 0.5) * Math.pow(thermoclineFactor, 1.5);
+                } else {
+                    // Deep water - gradual temperature decrease
+                    const deepFactor = (depth - thermoclineDepth) / (maxDepth - thermoclineDepth);
+                    temp = deepTemp + (surfaceTemp - deepTemp) * 0.1 * Math.exp(-deepFactor * 3);
+                }
+                temps.push(temp);
+                
+                // Realistic salinity profile
+                let sal;
+                if (depth < 20) {
+                    // Surface mixed layer
+                    sal = surfaceSal;
+                } else if (depth < thermoclineDepth + 20) {
+                    // Halocline
+                    const haloclineFactor = (depth - 20) / (thermoclineDepth);
+                    sal = surfaceSal + (deepSal - surfaceSal) * Math.tanh(haloclineFactor * 2);
+                } else {
+                    // Deep water
+                    sal = deepSal;
+                }
+                sals.push(sal);
+            }
+            
+            currentData = {
+                depths: depths,
+                temperatures: temps,
+                salinities: sals
+            };
+            
+            updateProfileChart();
+        }
+        
+        function parseManualData() {
+            const depthText = document.getElementById('depthData').value.trim();
+            const tempText = document.getElementById('tempData').value.trim();
+            const salText = document.getElementById('salData').value.trim();
+            
+            if (!depthText || !tempText || !salText) {
+                alert('Please fill in all manual data fields');
+                return false;
+            }
+            
+            const depths = depthText.split('\n').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            const temps = tempText.split('\n').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            const sals = salText.split('\n').map(x => parseFloat(x.trim())).filter(x => !isNaN(x));
+            
+            if (depths.length !== temps.length || temps.length !== sals.length) {
+                alert('All data arrays must have the same length');
+                return false;
+            }
+            
+            currentData = {
+                depths: depths,
+                temperatures: temps,
+                salinities: sals
+            };
+            
+            return true;
+        }
+        
+        function calculateBruntVaisala(temps, sals, depths) {
+            const g = 9.81; // m/s²
+            const alpha = 2e-4; // thermal expansion coefficient (K^-1)
+            const beta = 7.6e-4; // haline contraction coefficient (PSU^-1)
+            
+            const nsq = [];
+            const nsqDepths = [];
+            
+            for (let i = 1; i < depths.length - 1; i++) {
+                const dz = depths[i+1] - depths[i-1];
+                const dT_dz = (temps[i+1] - temps[i-1]) / dz;
+                const dS_dz = (sals[i+1] - sals[i-1]) / dz;
+                
+                // N² = g * (α * (-dT/dz) + β * (dS/dz))
+                const n2 = g * (alpha * (-dT_dz) + beta * dS_dz);
+                nsq.push(Math.max(n2, 1e-6)); // Prevent negative values
+                nsqDepths.push(depths[i]);
+            }
+            
+            return { nsq, nsqDepths };
+        }
+        
+        function calculateVerticalModes(nsq, nsqDepths, nmodes) {
+            const n = nsq.length;
+            const H = nsqDepths[nsqDepths.length - 1]; // Total depth
+            const modes = [];
+            const phaseSpeeds = [];
+            const rossby = [];
+            
+            // Calculate average N² for mode calculations
+            const avgN2 = nsq.reduce((a, b) => a + b, 0) / nsq.length;
+            const avgN = Math.sqrt(avgN2);
+            
+            for (let mode = 0; mode < nmodes; mode++) {
+                const phi = [];
+                
+                if (mode === 0) {
+                    // Barotropic mode (mode 0) - uniform structure
+                    for (let i = 0; i < n; i++) {
+                        phi.push(1.0);
+                    }
+                    const c0 = Math.sqrt(9.81 * H); // Shallow water speed
+                    phaseSpeeds.push(c0);
+                    rossby.push(c0 / (1e-4)); // f ~ 1e-4 s^-1 at mid-latitudes
+                } else {
+                    // Baroclinic modes - oscillating structure
+                    for (let i = 0; i < n; i++) {
+                        const z_norm = nsqDepths[i] / H;
+                        const amplitude = Math.sin(Math.PI * mode * z_norm) * Math.exp(-z_norm * 0.2);
+                        phi.push(amplitude);
+                    }
+                    
+                    // Phase speed for baroclinic modes
+                    const cn = (avgN * H) / (Math.PI * mode);
+                    phaseSpeeds.push(cn);
+                    rossby.push(cn / (1e-4));
+                }
+                
+                modes.push(phi);
+            }
+            
+            return { modes, phaseSpeeds, rossby };
+        }
+        
+        function calculateModes() {
+            const source = document.getElementById('dataSource').value;
+            
+            if (source === 'synthetic') {
+                generateSynthetic();
+            } else {
+                if (!parseManualData()) return;
+            }
+            
+            const nmodes = parseInt(document.getElementById('nmodes').value);
+            
+            // Calculate Brunt-Väisälä frequency
+            const { nsq, nsqDepths } = calculateBruntVaisala(
+                currentData.temperatures, 
+                currentData.salinities, 
+                currentData.depths
+            );
+            
+            // Calculate vertical modes
+            const { modes, phaseSpeeds, rossby } = calculateVerticalModes(nsq, nsqDepths, nmodes);
+            
+            currentData.nsq = nsq;
+            currentData.nsqDepths = nsqDepths;
+            currentData.modes = modes;
+            currentData.phaseSpeeds = phaseSpeeds;
+            currentData.rossby = rossby;
+            
+            updateAllCharts();
+            displayModeResults();
+        }
+        
+        function updateProfileChart() {
+            const tempTrace = {
+                x: currentData.temperatures,
+                y: currentData.depths,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Temperature (°C)',
+                line: { color: 'red', width: 3 },
+                marker: { size: 4 },
+                xaxis: 'x'
+            };
+            
+            const salTrace = {
+                x: currentData.salinities,
+                y: currentData.depths,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'Salinity (PSU)',
+                line: { color: 'blue', width: 3 },
+                marker: { size: 4 },
+                xaxis: 'x2'
+            };
+            
+            const layout = {
+                title: 'Temperature and Salinity Profiles',
+                xaxis: {
+                    title: 'Temperature (°C)',
+                    side: 'bottom',
+                    color: 'red'
+                },
+                xaxis2: {
+                    title: 'Salinity (PSU)',
+                    side: 'top',
+                    overlaying: 'x',
+                    color: 'blue'
+                },
+                yaxis: {
+                    title: 'Depth (m)',
+                    autorange: 'reversed'
+                },
+                showlegend: true,
+                height: 450
+            };
+            
+            Plotly.newPlot('profileChart', [tempTrace, salTrace], layout);
+        }
+        
+        function updateNsqChart() {
+            if (!currentData.nsq) return;
+            
+            const trace = {
+                x: currentData.nsq,
+                y: currentData.nsqDepths,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: 'N² (s⁻²)',
+                line: { color: 'green', width: 3 },
+                marker: { size: 4 },
+                fill: 'tozeroy',
+                fillcolor: 'rgba(0,255,0,0.1)'
+            };
+            
+            const layout = {
+                title: 'Brunt-Väisälä Frequency Squared (N²)',
+                xaxis: {
+                    title: 'N² (s⁻²)',
+                    type: 'log'
+                },
+                yaxis: {
+                    title: 'Depth (m)',
+                    autorange: 'reversed'
+                },
+                height: 450
+            };
+            
+            Plotly.newPlot('nsqChart', [trace], layout);
+        }
+        
+        function updateModesChart() {
+            if (!currentData.modes) return;
+            
+            const traces = currentData.modes.map((mode, i) => ({
+                x: mode,
+                y: currentData.nsqDepths,
+                type: 'scatter',
+                mode: 'lines+markers',
+                name: `Mode ${i + 1} (${i === 0 ? 'Barotropic' : 'Baroclinic'})`,
+                line: { width: 3 },
+                marker: { size: 4 }
+            }));
+            
+            const layout = {
+                title: 'Vertical Dynamic Mode Structures',
+                xaxis: {
+                    title: 'Mode Amplitude φₙ',
+                    zeroline: true,
+                    zerolinecolor: 'black',
+                    zerolinewidth: 2
+                },
+                yaxis: {
+                    title: 'Depth (m)',
+                    autorange: 'reversed'
+                },
+                showlegend: true,
+                height: 450
+            };
+            
+            Plotly.newPlot('modesChart', traces, layout);
+        }
+        
+        function displayModeResults() {
+            const container = document.getElementById('modeResults');
+            container.innerHTML = '';
+            
+            if (!currentData.phaseSpeeds) return;
+            
+            currentData.phaseSpeeds.forEach((speed, i) => {
+                const card = document.createElement('div');
+                card.className = 'mode-card';
+                const rossby = currentData.rossby[i] / 1000; // Convert to km
+                card.innerHTML = `
+                    <h5>Mode ${i + 1}</h5>
+                    <div class="value">${speed.toFixed(2)} m/s</div>
+                    <small>Phase Speed</small>
+                    <div class="value" style="font-size: 1rem; margin-top: 10px;">${rossby.toFixed(1)} km</div>
+                    <small>Rossby Radius</small>
+                `;
+                container.appendChild(card);
+            });
+        }
+        
+        function updateAllCharts() {
+            updateProfileChart();
+            updateNsqChart();
+            updateModesChart();
+        }
+        
+        // Initialize with synthetic data
+        window.onload = function() {
+            generateSynthetic();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d034ab8457e99f',t:'MTc1NDgzNjM3OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
