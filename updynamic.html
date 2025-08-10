@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Upwelling & Plume Dynamics Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            border-left: 4px solid #3b82f6;
+        }
+        .parameter-card {
+            transition: all 0.3s ease;
+        }
+        .parameter-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .ocean-gradient {
+            background: linear-gradient(180deg, #87ceeb 0%, #4682b4 50%, #191970 100%);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-6">
+            <h1 class="text-4xl font-bold mb-2">🌊 Coastal Upwelling & Plume Dynamics Analyzer</h1>
+            <p class="text-xl opacity-90">Evaluating plume intensity during upwelling/relaxation events and cold front fluctuations by Claudio Iturra</p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto px-6">
+            <div class="flex space-x-8 py-4">
+                <button onclick="showSection('overview')" class="nav-btn px-4 py-2 rounded-lg bg-blue-600 text-white font-medium">Overview</button>
+                <button onclick="showSection('equations')" class="nav-btn px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 font-medium">Equations</button>
+                <button onclick="showSection('parameters')" class="nav-btn px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 font-medium">Parameters</button>
+                <button onclick="showSection('calculator')" class="nav-btn px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 font-medium">Calculator</button>
+                <button onclick="showSection('analysis')" class="nav-btn px-4 py-2 rounded-lg text-gray-600 hover:bg-gray-100 font-medium">Analysis</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-6 py-8">
+        <!-- Overview Section -->
+        <div id="overview" class="section">
+            <div class="grid md:grid-cols-2 gap-8 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">🌊 Upwelling Process</h2>
+                    <div class="ocean-gradient h-48 rounded-lg mb-4 relative overflow-hidden">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-white text-center">
+                                <div class="text-sm mb-2">Wind Stress →</div>
+                                <div class="text-xs">Ekman Transport</div>
+                                <div class="text-xs">Cold Water Upwelling ↑</div>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-gray-600">Coastal upwelling occurs when wind-driven Ekman transport moves surface waters offshore, causing deep, cold, nutrient-rich water to rise to the surface.</p>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">📊 Key Processes</h2>
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                            <span class="text-gray-700">Wind-driven Ekman transport</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                            <span class="text-gray-700">Plume formation and intensity</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                            <span class="text-gray-700">Cold front fluctuations</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-4 h-4 bg-purple-500 rounded-full"></div>
+                            <span class="text-gray-700">Relaxation event dynamics</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Equations Section -->
+        <div id="equations" class="section hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">📐 Fundamental Equations</h2>
+            
+            <div class="grid gap-6">
+                <!-- Ekman Transport -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4">Ekman Transport</h3>
+                    <div class="equation p-4 rounded-lg mb-4">
+                        <div class="text-center text-lg">
+                            <strong>M<sub>E</sub> = τ / (ρ × f)</strong>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2 text-center">
+                            Where: M<sub>E</sub> = Ekman transport, τ = wind stress, ρ = water density, f = Coriolis parameter
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wind Stress -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4">Wind Stress</h3>
+                    <div class="equation p-4 rounded-lg mb-4">
+                        <div class="text-center text-lg">
+                            <strong>τ = ρ<sub>air</sub> × C<sub>D</sub> × U<sub>10</sub>²</strong>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2 text-center">
+                            Where: ρ<sub>air</sub> = air density, C<sub>D</sub> = drag coefficient, U<sub>10</sub> = wind speed at 10m
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upwelling Velocity -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4">Upwelling Velocity</h3>
+                    <div class="equation p-4 rounded-lg mb-4">
+                        <div class="text-center text-lg">
+                            <strong>w = (1/ρ) × (∂τ/∂x) / f</strong>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2 text-center">
+                            Where: w = vertical velocity, ∂τ/∂x = alongshore wind stress gradient
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coriolis Parameter -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4">Coriolis Parameter</h3>
+                    <div class="equation p-4 rounded-lg mb-4">
+                        <div class="text-center text-lg">
+                            <strong>f = 2Ω sin(φ)</strong>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2 text-center">
+                            Where: Ω = Earth's rotation rate (7.27 × 10⁻⁵ rad/s), φ = latitude
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plume Intensity Index -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4">Plume Intensity Index</h3>
+                    <div class="equation p-4 rounded-lg mb-4">
+                        <div class="text-center text-lg">
+                            <strong>PII = (ΔT × A × w) / (t<sub>mix</sub>)</strong>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2 text-center">
+                            Where: ΔT = temperature difference, A = plume area, w = upwelling velocity, t<sub>mix</sub> = mixing time
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parameters Section -->
+        <div id="parameters" class="section hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">⚙️ Key Parameters</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Physical Parameters -->
+                <div class="parameter-card bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-blue-600 mb-4">🌊 Physical Parameters</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Water Density (ρ)</span>
+                            <span class="font-medium">1025 kg/m³</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Air Density (ρ<sub>air</sub>)</span>
+                            <span class="font-medium">1.225 kg/m³</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Drag Coefficient (C<sub>D</sub>)</span>
+                            <span class="font-medium">0.0013</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Earth's Rotation (Ω)</span>
+                            <span class="font-medium">7.27×10⁻⁵ rad/s</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Environmental Parameters -->
+                <div class="parameter-card bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-green-600 mb-4">🌍 Environmental</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Latitude (φ)</span>
+                            <span class="font-medium">Variable</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Wind Speed (U<sub>10</sub>)</span>
+                            <span class="font-medium">m/s</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Temperature Diff (ΔT)</span>
+                            <span class="font-medium">°C</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Mixed Layer Depth</span>
+                            <span class="font-medium">m</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Temporal Parameters -->
+                <div class="parameter-card bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-purple-600 mb-4">⏱️ Temporal</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Upwelling Duration</span>
+                            <span class="font-medium">hours/days</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Relaxation Period</span>
+                            <span class="font-medium">hours/days</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Mixing Time (t<sub>mix</sub>)</span>
+                            <span class="font-medium">hours</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Wind Event Frequency</span>
+                            <span class="font-medium">events/month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculator Section -->
+        <div id="calculator" class="section hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">🧮 Upwelling Calculator</h2>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Input Parameters -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-6">Input Parameters</h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Wind Speed (m/s)</label>
+                            <input type="number" id="windSpeed" value="10" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Latitude (degrees)</label>
+                            <input type="number" id="latitude" value="45" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Temperature Difference (°C)</label>
+                            <input type="number" id="tempDiff" value="5" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Plume Area (km²)</label>
+                            <input type="number" id="plumeArea" value="100" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Mixing Time (hours)</label>
+                            <input type="number" id="mixingTime" value="12" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        </div>
+                        
+                        <button onclick="calculateUpwelling()" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium">
+                            Calculate Upwelling Parameters
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Results -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-green-600 mb-6">Calculated Results</h3>
+                    
+                    <div id="results" class="space-y-4">
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600">Coriolis Parameter (f)</div>
+                            <div id="coriolisResult" class="text-lg font-bold text-blue-600">-</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600">Wind Stress (N/m²)</div>
+                            <div id="windStressResult" class="text-lg font-bold text-blue-600">-</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600">Ekman Transport (m²/s)</div>
+                            <div id="ekmanResult" class="text-lg font-bold text-blue-600">-</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600">Upwelling Velocity (m/day)</div>
+                            <div id="upwellingResult" class="text-lg font-bold text-blue-600">-</div>
+                        </div>
+                        
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <div class="text-sm text-gray-600">Plume Intensity Index</div>
+                            <div id="plumeResult" class="text-lg font-bold text-green-600">-</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div id="analysis" class="section hidden">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8">📈 Wind Event Analysis</h2>
+            
+            <div class="grid gap-8">
+                <!-- Wind Pattern Simulator -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-blue-600 mb-4">Wind Pattern Simulator</h3>
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Simulation Type</label>
+                        <select id="simulationType" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="upwelling">Upwelling Event</option>
+                            <option value="relaxation">Relaxation Event</option>
+                            <option value="multiple">Multiple Wind Events</option>
+                        </select>
+                    </div>
+                    <button onclick="runSimulation()" class="bg-green-600 text-white py-2 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium">
+                        Run Simulation
+                    </button>
+                    <div class="mt-6">
+                        <canvas id="windChart" width="400" height="200"></canvas>
+                    </div>
+                </div>
+
+                <!-- Cold Front Analysis -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-xl font-bold text-purple-600 mb-4">Cold Front Fluctuation Analysis</h3>
+                    <div class="grid md:grid-cols-3 gap-4 mb-6">
+                        <div class="text-center p-4 bg-blue-50 rounded-lg">
+                            <div class="text-2xl font-bold text-blue-600" id="frontIntensity">-</div>
+                            <div class="text-sm text-gray-600">Front Intensity</div>
+                        </div>
+                        <div class="text-center p-4 bg-green-50 rounded-lg">
+                            <div class="text-2xl font-bold text-green-600" id="plumeStrength">-</div>
+                            <div class="text-sm text-gray-600">Plume Strength</div>
+                        </div>
+                        <div class="text-center p-4 bg-red-50 rounded-lg">
+                            <div class="text-2xl font-bold text-red-600" id="eventDuration">-</div>
+                            <div class="text-sm text-gray-600">Event Duration (hrs)</div>
+                        </div>
+                    </div>
+                    <canvas id="temperatureChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let windChart, temperatureChart;
+
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.remove('hidden');
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-600', 'text-white');
+                btn.classList.add('text-gray-600', 'hover:bg-gray-100');
+            });
+            
+            event.target.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            event.target.classList.add('bg-blue-600', 'text-white');
+        }
+
+        function calculateUpwelling() {
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const tempDiff = parseFloat(document.getElementById('tempDiff').value);
+            const plumeArea = parseFloat(document.getElementById('plumeArea').value);
+            const mixingTime = parseFloat(document.getElementById('mixingTime').value);
+
+            // Constants
+            const rhoAir = 1.225; // kg/m³
+            const rhoWater = 1025; // kg/m³
+            const dragCoeff = 0.0013;
+            const omega = 7.27e-5; // rad/s
+
+            // Calculate Coriolis parameter
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+            
+            // Calculate wind stress
+            const windStress = rhoAir * dragCoeff * Math.pow(windSpeed, 2);
+            
+            // Calculate Ekman transport
+            const ekmanTransport = windStress / (rhoWater * f);
+            
+            // Calculate upwelling velocity (simplified)
+            const upwellingVelocity = (windStress / (rhoWater * f)) * 86400; // m/day
+            
+            // Calculate Plume Intensity Index
+            const plumeIntensity = (tempDiff * plumeArea * Math.abs(upwellingVelocity)) / mixingTime;
+
+            // Display results
+            document.getElementById('coriolisResult').textContent = f.toExponential(3) + ' s⁻¹';
+            document.getElementById('windStressResult').textContent = windStress.toFixed(4) + ' N/m²';
+            document.getElementById('ekmanResult').textContent = ekmanTransport.toFixed(4) + ' m²/s';
+            document.getElementById('upwellingResult').textContent = Math.abs(upwellingVelocity).toFixed(2) + ' m/day';
+            document.getElementById('plumeResult').textContent = plumeIntensity.toFixed(2);
+        }
+
+        function runSimulation() {
+            const simulationType = document.getElementById('simulationType').value;
+            
+            // Generate sample data based on simulation type
+            let labels, windData, tempData;
+            
+            if (simulationType === 'upwelling') {
+                labels = Array.from({length: 24}, (_, i) => i + 'h');
+                windData = labels.map((_, i) => 8 + 4 * Math.sin(i * 0.3) + Math.random() * 2);
+                tempData = labels.map((_, i) => 15 - 3 * Math.sin(i * 0.3 + 1) + Math.random());
+            } else if (simulationType === 'relaxation') {
+                labels = Array.from({length: 24}, (_, i) => i + 'h');
+                windData = labels.map((_, i) => 12 - i * 0.4 + Math.random() * 1.5);
+                tempData = labels.map((_, i) => 12 + i * 0.3 + Math.random());
+            } else {
+                labels = Array.from({length: 48}, (_, i) => i + 'h');
+                windData = labels.map((_, i) => 6 + 6 * Math.sin(i * 0.15) + 3 * Math.sin(i * 0.4) + Math.random() * 2);
+                tempData = labels.map((_, i) => 14 - 2 * Math.sin(i * 0.15 + 1) - 1.5 * Math.sin(i * 0.4 + 0.5) + Math.random());
+            }
+
+            // Update charts
+            updateWindChart(labels, windData);
+            updateTemperatureChart(labels, tempData);
+            
+            // Update analysis metrics
+            document.getElementById('frontIntensity').textContent = (Math.max(...tempData) - Math.min(...tempData)).toFixed(1) + '°C';
+            document.getElementById('plumeStrength').textContent = (Math.max(...windData) * 0.8).toFixed(1);
+            document.getElementById('eventDuration').textContent = labels.length;
+        }
+
+        function updateWindChart(labels, data) {
+            const ctx = document.getElementById('windChart').getContext('2d');
+            
+            if (windChart) {
+                windChart.destroy();
+            }
+            
+            windChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Wind Speed (m/s)',
+                        data: data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Wind Speed Over Time'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Wind Speed (m/s)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateTemperatureChart(labels, data) {
+            const ctx = document.getElementById('temperatureChart').getContext('2d');
+            
+            if (temperatureChart) {
+                temperatureChart.destroy();
+            }
+            
+            temperatureChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Sea Surface Temperature (°C)',
+                        data: data,
+                        borderColor: '#dc2626',
+                        backgroundColor: 'rgba(220, 38, 38, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Cold Front Temperature Fluctuations'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Temperature (°C)'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Initialize with default calculation
+        window.onload = function() {
+            calculateUpwelling();
+            runSimulation();
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96cb32b5064c88b1',t:'MTc1NDc4Mzg3MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
