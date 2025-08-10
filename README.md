@@ -1,5 +1,7 @@
 # claudio-iturra.github.io
 
+### These are some projects I’ve been working on during my graduate education at the University of Concepción. 
+
 [Biogeochemical Model](https://claudio-iturra.github.io/biomodel.html)
 
 [Buoy Trajectory(experimental)](https://claudio-iturra.github.io/buoysim.html)
