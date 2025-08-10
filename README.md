@@ -1,6 +1,6 @@
 # claudio-iturra.github.io
 
-### These are some projects I’ve been working on during my graduate education at the University of Concepción. 
+- These are some projects I’ve been working on during my graduate education at the University of Concepción. 
 
 [biogeochemical processes in coastal waters](https://claudio-iturra.github.io/biomodel.html)
 	
