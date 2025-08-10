@@ -10,7 +10,7 @@
 
 [CH₄ Analyzer](https://claudio-iturra.github.io/ch4.html)
 
-[Link text Here](https://claudio-iturra.github.io/coastalmodel.html)
+[Convert wind direction and speed to U/V components](https://claudio-iturra.github.io/winddir_rot.html)
 
 [Link text Here](https://claudio-iturra.github.io/corr.html)
 
