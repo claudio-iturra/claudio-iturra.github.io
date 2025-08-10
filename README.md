@@ -1,12 +1,9 @@
 # claudio-iturra.github.io
 
-[Link text Here](https://claudio-iturra.github.io/biomodel.html)
-
-[Link text Here](https://claudio-iturra.github.io/buoysim.html)
-
-[Link text Here](https://claudio-iturra.github.io/cellcount.html)
-
-[Link text Here](https://claudio-iturra.github.io/ch4.html)
+[Biogeochemical Model](https://claudio-iturra.github.io/biomodel.html)
+[Buoy Trajectory(experimental)](https://claudio-iturra.github.io/buoysim.html)
+[Cell Counter Pro](https://claudio-iturra.github.io/cellcount.html)
+[CH₄ Analyzer](https://claudio-iturra.github.io/ch4.html)
 
 [Link text Here](https://claudio-iturra.github.io/coastalmodel.html)
 
