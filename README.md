@@ -105,3 +105,5 @@
 51) [parameters affecting diel vertical migration (experimental)](https://claudio-iturra.github.io/vertical_migration.html)
 
 52) [basic linear marine mammals detection (experimental-future SIM AGI model)](https://claudio-iturra.github.io/basic_mammal.html)
+
+53) [ekman dynamics](https://claudio-iturra.github.io/ekman.html)
