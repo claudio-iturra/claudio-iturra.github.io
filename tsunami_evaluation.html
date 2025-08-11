@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tsunami Wave Numerical Evaluation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .header h1 {
+            color: #1e3c72;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card h2 {
+            color: #1e3c72;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2a5298 0%, #1e3c72 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(42, 82, 152, 0.3);
+        }
+
+        .results {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .result-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #2a5298;
+        }
+
+        .equation-display {
+            background: #e8f4f8;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            border: 1px solid #b3d9e6;
+        }
+
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .danger {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .equations-section {
+            grid-column: 1 / -1;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            margin-bottom: 30px;
+        }
+
+        .equation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .equation-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Tsunami Wave Numerical Evaluation System</h1>
+            <p>Advanced oceanographic modeling for tsunami prediction and coastal impact assessment by Claudio Iturra</p>
+        </div>
+
+        <div class="equations-section">
+            <h2>📐 Fundamental Tsunami Equations</h2>
+            <div class="equation-grid">
+                <div class="equation-display">
+                    <strong>Shallow Water Wave Speed:</strong><br>
+                    c = √(g × h)<br>
+                    <small>where g = 9.81 m/s², h = water depth (m)</small>
+                </div>
+                <div class="equation-display">
+                    <strong>Travel Time:</strong><br>
+                    t = d / c<br>
+                    <small>where d = distance (m), c = wave speed (m/s)</small>
+                </div>
+                <div class="equation-display">
+                    <strong>Wave Height Amplification:</strong><br>
+                    H₂ = H₁ × (h₁/h₂)^0.25<br>
+                    <small>Green's Law for shoaling waves</small>
+                </div>
+                <div class="equation-display">
+                    <strong>Moment Magnitude:</strong><br>
+                    Mw = (2/3) × log₁₀(M₀) - 10.7<br>
+                    <small>where M₀ = seismic moment (N⋅m)</small>
+                </div>
+                <div class="equation-display">
+                    <strong>Initial Wave Height:</strong><br>
+                    η₀ = D × (L/W) × sin(θ)<br>
+                    <small>where D = displacement, L = length, W = width, θ = dip angle</small>
+                </div>
+                <div class="equation-display">
+                    <strong>Haversine Distance:</strong><br>
+                    d = 2R × arcsin(√(sin²(Δφ/2) + cos(φ₁)cos(φ₂)sin²(Δλ/2)))<br>
+                    <small>Great circle distance between coordinates</small>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <div class="card">
+                <h2>🌍 Earthquake Parameters</h2>
+                <div class="input-group">
+                    <label>Earthquake Magnitude (Mw)</label>
+                    <input type="number" id="magnitude" step="0.1" min="5" max="10" value="8.5">
+                </div>
+                <div class="input-group">
+                    <label>Epicenter Latitude (°)</label>
+                    <input type="number" id="epi-lat" step="0.0001" min="-90" max="90" value="38.2963">
+                </div>
+                <div class="input-group">
+                    <label>Epicenter Longitude (°)</label>
+                    <input type="number" id="epi-lon" step="0.0001" min="-180" max="180" value="142.3730">
+                </div>
+                <div class="input-group">
+                    <label>Focal Depth (km)</label>
+                    <input type="number" id="depth" step="1" min="0" max="700" value="32">
+                </div>
+                <div class="input-group">
+                    <label>Fault Length (km)</label>
+                    <input type="number" id="fault-length" step="1" min="10" max="1000" value="500">
+                </div>
+                <div class="input-group">
+                    <label>Fault Width (km)</label>
+                    <input type="number" id="fault-width" step="1" min="10" max="200" value="150">
+                </div>
+                <div class="input-group">
+                    <label>Average Displacement (m)</label>
+                    <input type="number" id="displacement" step="0.1" min="0.1" max="50" value="15">
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🏖️ Target Coast Parameters</h2>
+                <div class="input-group">
+                    <label>Coast Latitude (°)</label>
+                    <input type="number" id="coast-lat" step="0.0001" min="-90" max="90" value="35.6762">
+                </div>
+                <div class="input-group">
+                    <label>Coast Longitude (°)</label>
+                    <input type="number" id="coast-lon" step="0.0001" min="-180" max="180" value="139.6503">
+                </div>
+                <div class="input-group">
+                    <label>Average Ocean Depth (m)</label>
+                    <input type="number" id="ocean-depth" step="100" min="100" max="11000" value="4000">
+                </div>
+                <div class="input-group">
+                    <label>Coastal Depth (m)</label>
+                    <input type="number" id="coastal-depth" step="1" min="1" max="100" value="20">
+                </div>
+                <div class="input-group">
+                    <label>Continental Shelf Width (km)</label>
+                    <input type="number" id="shelf-width" step="1" min="1" max="500" value="50">
+                </div>
+                <div class="input-group">
+                    <label>Coastal Slope (degrees)</label>
+                    <input type="number" id="coastal-slope" step="0.1" min="0.1" max="45" value="2.5">
+                </div>
+                <div class="input-group">
+                    <label>Bathymetry Profile</label>
+                    <select id="bathymetry">
+                        <option value="uniform">Uniform Depth</option>
+                        <option value="continental">Continental Shelf</option>
+                        <option value="abyssal">Abyssal Plain</option>
+                        <option value="ridge">Mid-Ocean Ridge</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="text-align: center; margin-bottom: 30px;">
+            <button class="btn" onclick="calculateTsunami()">🧮 Calculate Tsunami Parameters</button>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <h2>📊 Tsunami Evaluation Results</h2>
+            <div id="results-content"></div>
+        </div>
+    </div>
+
+    <script>
+        function toRadians(degrees) {
+            return degrees * (Math.PI / 180);
+        }
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371000; // Earth's radius in meters
+            const φ1 = toRadians(lat1);
+            const φ2 = toRadians(lat2);
+            const Δφ = toRadians(lat2 - lat1);
+            const Δλ = toRadians(lon2 - lon1);
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        function calculateSeismicMoment(magnitude) {
+            // M₀ = 10^(1.5 * Mw + 9.1) N⋅m
+            return Math.pow(10, 1.5 * magnitude + 9.1);
+        }
+
+        function calculateInitialWaveHeight(displacement, length, width, magnitude) {
+            // Simplified initial wave height based on fault parameters
+            const dipAngle = 15; // Typical subduction zone dip angle in degrees
+            const sinDip = Math.sin(toRadians(dipAngle));
+            
+            // η₀ = D × (L/W) × sin(θ) × scaling factor
+            const scalingFactor = Math.pow(10, (magnitude - 7) * 0.5);
+            return displacement * (length / width) * sinDip * scalingFactor * 0.1;
+        }
+
+        function calculateWaveSpeed(depth) {
+            // c = √(g × h) where g = 9.81 m/s²
+            return Math.sqrt(9.81 * depth);
+        }
+
+        function calculateAmplification(initialHeight, deepDepth, shallowDepth) {
+            // Green's Law: H₂ = H₁ × (h₁/h₂)^0.25
+            return initialHeight * Math.pow(deepDepth / shallowDepth, 0.25);
+        }
+
+        function calculateRunup(waveHeight, coastalSlope, bathymetry) {
+            // Simplified runup calculation
+            let runupFactor = 1.5; // Base runup factor
+            
+            // Adjust for coastal slope
+            runupFactor *= (1 + Math.sin(toRadians(coastalSlope)) * 2);
+            
+            // Adjust for bathymetry
+            switch(bathymetry) {
+                case 'continental':
+                    runupFactor *= 1.3;
+                    break;
+                case 'abyssal':
+                    runupFactor *= 0.8;
+                    break;
+                case 'ridge':
+                    runupFactor *= 1.1;
+                    break;
+                default:
+                    runupFactor *= 1.0;
+            }
+            
+            return waveHeight * runupFactor;
+        }
+
+        function getEarthquakeGrade(magnitude) {
+            if (magnitude < 6.0) return { grade: "Minor", color: "#28a745", description: "Generally not felt, but recorded" };
+            if (magnitude < 7.0) return { grade: "Light", color: "#ffc107", description: "Felt by many, slight damage" };
+            if (magnitude < 8.0) return { grade: "Moderate", color: "#fd7e14", description: "Considerable damage in populated areas" };
+            if (magnitude < 9.0) return { grade: "Strong", color: "#dc3545", description: "Major damage, tsunamigenic potential" };
+            return { grade: "Great", color: "#6f42c1", description: "Devastating damage, major tsunami risk" };
+        }
+
+        function getTsunamiThreat(waveHeight, runup) {
+            if (runup < 0.5) return { level: "Minimal", color: "#28a745", action: "No action required" };
+            if (runup < 2.0) return { level: "Minor", color: "#ffc107", action: "Stay alert, avoid beaches" };
+            if (runup < 5.0) return { level: "Moderate", color: "#fd7e14", action: "Evacuate coastal areas" };
+            if (runup < 10.0) return { level: "Major", color: "#dc3545", action: "Immediate evacuation required" };
+            return { level: "Extreme", color: "#6f42c1", action: "Catastrophic threat - full evacuation" };
+        }
+
+        function calculateTsunami() {
+            // Get input values
+            const magnitude = parseFloat(document.getElementById('magnitude').value);
+            const epiLat = parseFloat(document.getElementById('epi-lat').value);
+            const epiLon = parseFloat(document.getElementById('epi-lon').value);
+            const depth = parseFloat(document.getElementById('depth').value) * 1000; // Convert to meters
+            const faultLength = parseFloat(document.getElementById('fault-length').value) * 1000; // Convert to meters
+            const faultWidth = parseFloat(document.getElementById('fault-width').value) * 1000; // Convert to meters
+            const displacement = parseFloat(document.getElementById('displacement').value);
+            
+            const coastLat = parseFloat(document.getElementById('coast-lat').value);
+            const coastLon = parseFloat(document.getElementById('coast-lon').value);
+            const oceanDepth = parseFloat(document.getElementById('ocean-depth').value);
+            const coastalDepth = parseFloat(document.getElementById('coastal-depth').value);
+            const shelfWidth = parseFloat(document.getElementById('shelf-width').value) * 1000; // Convert to meters
+            const coastalSlope = parseFloat(document.getElementById('coastal-slope').value);
+            const bathymetry = document.getElementById('bathymetry').value;
+
+            // Calculations
+            const distance = haversineDistance(epiLat, epiLon, coastLat, coastLon);
+            const seismicMoment = calculateSeismicMoment(magnitude);
+            const initialWaveHeight = calculateInitialWaveHeight(displacement, faultLength, faultWidth, magnitude);
+            const deepWaterSpeed = calculateWaveSpeed(oceanDepth);
+            const shallowWaterSpeed = calculateWaveSpeed(coastalDepth);
+            const travelTime = distance / deepWaterSpeed;
+            const amplifiedHeight = calculateAmplification(initialWaveHeight, oceanDepth, coastalDepth);
+            const runupHeight = calculateRunup(amplifiedHeight, coastalSlope, bathymetry);
+            
+            const earthquakeGrade = getEarthquakeGrade(magnitude);
+            const tsunamiThreat = getTsunamiThreat(amplifiedHeight, runupHeight);
+
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            const resultsContent = document.getElementById('results-content');
+            
+            resultsContent.innerHTML = `
+                <div class="result-item">
+                    <h3>🌍 Earthquake Classification</h3>
+                    <p><strong>Magnitude:</strong> ${magnitude} Mw</p>
+                    <p><strong>Grade:</strong> <span style="color: ${earthquakeGrade.color}; font-weight: bold;">${earthquakeGrade.grade}</span></p>
+                    <p><strong>Description:</strong> ${earthquakeGrade.description}</p>
+                    <p><strong>Seismic Moment:</strong> ${seismicMoment.toExponential(2)} N⋅m</p>
+                </div>
+
+                <div class="result-item">
+                    <h3>📏 Distance & Geometry</h3>
+                    <p><strong>Distance to Coast:</strong> ${(distance / 1000).toFixed(1)} km</p>
+                    <p><strong>Fault Dimensions:</strong> ${(faultLength / 1000).toFixed(0)} × ${(faultWidth / 1000).toFixed(0)} km</p>
+                    <p><strong>Average Displacement:</strong> ${displacement} m</p>
+                    <p><strong>Focal Depth:</strong> ${(depth / 1000).toFixed(0)} km</p>
+                </div>
+
+                <div class="result-item">
+                    <h3>🌊 Wave Characteristics</h3>
+                    <p><strong>Initial Wave Height:</strong> ${initialWaveHeight.toFixed(2)} m</p>
+                    <p><strong>Deep Water Speed:</strong> ${deepWaterSpeed.toFixed(0)} m/s (${(deepWaterSpeed * 3.6).toFixed(0)} km/h)</p>
+                    <p><strong>Shallow Water Speed:</strong> ${shallowWaterSpeed.toFixed(0)} m/s (${(shallowWaterSpeed * 3.6).toFixed(0)} km/h)</p>
+                    <p><strong>Wave Period:</strong> ${Math.sqrt(faultLength / 9.81).toFixed(0)} seconds</p>
+                </div>
+
+                <div class="result-item">
+                    <h3>⏱️ Arrival Time</h3>
+                    <p><strong>Travel Time:</strong> ${Math.floor(travelTime / 3600)}h ${Math.floor((travelTime % 3600) / 60)}m ${Math.floor(travelTime % 60)}s</p>
+                    <p><strong>Total Time:</strong> ${(travelTime / 3600).toFixed(2)} hours</p>
+                    <div class="equation-display">
+                        Travel Time = Distance ÷ Wave Speed<br>
+                        ${(travelTime / 3600).toFixed(2)} hours = ${(distance / 1000).toFixed(1)} km ÷ ${(deepWaterSpeed * 3.6).toFixed(0)} km/h
+                    </div>
+                </div>
+
+                <div class="result-item">
+                    <h3>🏖️ Coastal Impact</h3>
+                    <p><strong>Amplified Wave Height:</strong> ${amplifiedHeight.toFixed(2)} m</p>
+                    <p><strong>Estimated Runup:</strong> ${runupHeight.toFixed(2)} m</p>
+                    <p><strong>Inundation Distance:</strong> ${(runupHeight * 100 / Math.tan(toRadians(coastalSlope))).toFixed(0)} m inland</p>
+                    <div class="equation-display">
+                        Amplification Factor = (${oceanDepth}m ÷ ${coastalDepth}m)^0.25 = ${Math.pow(oceanDepth / coastalDepth, 0.25).toFixed(2)}
+                    </div>
+                </div>
+
+                <div class="result-item" style="border-left-color: ${tsunamiThreat.color};">
+                    <h3>⚠️ Tsunami Threat Assessment</h3>
+                    <p><strong>Threat Level:</strong> <span style="color: ${tsunamiThreat.color}; font-weight: bold; font-size: 1.2em;">${tsunamiThreat.level}</span></p>
+                    <p><strong>Recommended Action:</strong> ${tsunamiThreat.action}</p>
+                    ${tsunamiThreat.level === 'Major' || tsunamiThreat.level === 'Extreme' ? 
+                        '<div class="danger"><strong>DANGER:</strong> This tsunami poses a significant threat to life and property. Immediate evacuation of coastal areas is recommended.</div>' : 
+                        tsunamiThreat.level === 'Moderate' ? 
+                        '<div class="warning"><strong>WARNING:</strong> Dangerous currents and waves possible. Stay away from beaches and harbors.</div>' : 
+                        ''
+                    }
+                </div>
+
+                <div class="result-item">
+                    <h3>🌊 Oceanographic Factors</h3>
+                    <p><strong>Bathymetry Profile:</strong> ${bathymetry.charAt(0).toUpperCase() + bathymetry.slice(1)}</p>
+                    <p><strong>Continental Shelf Width:</strong> ${(shelfWidth / 1000).toFixed(0)} km</p>
+                    <p><strong>Coastal Slope:</strong> ${coastalSlope}°</p>
+                    <p><strong>Shoaling Factor:</strong> ${(Math.pow(oceanDepth / coastalDepth, 0.25)).toFixed(2)}</p>
+                </div>
+
+                <div class="result-item">
+                    <h3>📐 Applied Equations Summary</h3>
+                    <div class="equation-display">
+                        <strong>Key Calculations Used:</strong><br>
+                        • Haversine Distance: ${(distance / 1000).toFixed(1)} km<br>
+                        • Wave Speed: c = √(9.81 × ${oceanDepth}) = ${deepWaterSpeed.toFixed(0)} m/s<br>
+                        • Green's Law Amplification: ${amplifiedHeight.toFixed(2)} m<br>
+                        • Seismic Moment: M₀ = 10^(1.5×${magnitude}+9.1) = ${seismicMoment.toExponential(2)} N⋅m<br>
+                        • Travel Time: t = ${(distance/1000).toFixed(1)}km ÷ ${(deepWaterSpeed*3.6).toFixed(0)}km/h = ${(travelTime/3600).toFixed(2)}h
+                    </div>
+                </div>
+            `;
+
+            resultsDiv.style.display = 'block';
+            resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Initialize with sample calculation
+        window.addEventListener('load', function() {
+            // Auto-calculate with default values after a short delay
+            setTimeout(calculateTsunami, 1000);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96da165ef2b988ab',t:'MTc1NDkzOTk5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
