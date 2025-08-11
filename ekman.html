@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekman Dynamics in Coastal Oceans</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 300;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.2em;
+            margin: 10px 0 0 0;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.95);
+            margin-bottom: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .section-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px 30px;
+            font-size: 1.4em;
+            font-weight: 500;
+        }
+        
+        .section-content {
+            padding: 30px;
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .parameter-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .parameter-card h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .equation-box {
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        
+        .code-container {
+            background: #1e1e1e;
+            border-radius: 10px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .code-header {
+            background: #333;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9em;
+            border-bottom: 1px solid #555;
+        }
+        
+        pre {
+            margin: 0 !important;
+            padding: 20px !important;
+            background: #1e1e1e !important;
+        }
+        
+        .example-data {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: #ecf0f1;
+            border-radius: 10px 10px 0 0;
+            overflow: hidden;
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            background: #bdc3c7;
+            color: #2c3e50;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1em;
+        }
+        
+        .nav-tab.active {
+            background: #3498db;
+            color: white;
+        }
+        
+        .nav-tab:hover {
+            background: #34495e;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            padding: 30px;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .calculator {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+        
+        .input-group input:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .result {
+            background: #d5f4e6;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #27ae60;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .parameter-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Ekman Dynamics in Coastal Oceans</h1>
+            <p>Comprehensive analysis of wind-driven ocean currents and coastal upwelling</p>
+        </div>
+
+        <div class="section">
+            <div class="nav-tabs">
+                <button class="nav-tab active" onclick="showTab('theory')">Theory & Parameters</button>
+                <button class="nav-tab" onclick="showTab('equations')">Equations</button>
+                <button class="nav-tab" onclick="showTab('python')">Python Code</button>
+                <button class="nav-tab" onclick="showTab('calculator')">Interactive Calculator</button>
+                <button class="nav-tab" onclick="showTab('spiral')">Ekman Spiral Plot</button>
+            </div>
+
+            <div id="theory" class="tab-content active">
+                <h2>Ekman Dynamics Theory</h2>
+                <p>Ekman dynamics describes the motion of ocean water driven by wind stress, accounting for the Coriolis effect. In coastal regions, this creates complex circulation patterns including upwelling and downwelling.</p>
+
+                <h3>Key Parameters</h3>
+                <div class="parameter-grid">
+                    <div class="parameter-card">
+                        <h4>Wind Stress (τ)</h4>
+                        <p><strong>Units:</strong> N/m² or Pa</p>
+                        <p><strong>Description:</strong> Force per unit area exerted by wind on the ocean surface</p>
+                        <p><strong>Formula:</strong> τ = ρ_air × C_d × U₁₀²</p>
+                    </div>
+
+                    <div class="parameter-card">
+                        <h4>Coriolis Parameter (f)</h4>
+                        <p><strong>Units:</strong> s⁻¹</p>
+                        <p><strong>Description:</strong> Effect of Earth's rotation on moving fluids</p>
+                        <p><strong>Formula:</strong> f = 2Ω sin(φ)</p>
+                    </div>
+
+                    <div class="parameter-card">
+                        <h4>Ekman Depth (D_E)</h4>
+                        <p><strong>Units:</strong> m</p>
+                        <p><strong>Description:</strong> Depth over which wind influence extends</p>
+                        <p><strong>Formula:</strong> D_E = π√(2A_z/f)</p>
+                    </div>
+
+                    <div class="parameter-card">
+                        <h4>Mixed Layer Depth (MLD)</h4>
+                        <p><strong>Units:</strong> m</p>
+                        <p><strong>Description:</strong> Depth of the well-mixed surface layer</p>
+                        <p><strong>Typical Range:</strong> 10-200 m</p>
+                    </div>
+
+                    <div class="parameter-card">
+                        <h4>Eddy Viscosity (A_z)</h4>
+                        <p><strong>Units:</strong> m²/s</p>
+                        <p><strong>Description:</strong> Vertical mixing coefficient</p>
+                        <p><strong>Typical Range:</strong> 0.01-0.1 m²/s</p>
+                    </div>
+
+                    <div class="parameter-card">
+                        <h4>Ekman Transport (M_E)</h4>
+                        <p><strong>Units:</strong> m²/s</p>
+                        <p><strong>Description:</strong> Net horizontal transport in Ekman layer</p>
+                        <p><strong>Direction:</strong> 90° to the right of wind (NH)</p>
+                    </div>
+                </div>
+
+                <div class="example-data">
+                    <h4>📊 Typical Coastal Ocean Values</h4>
+                    <ul>
+                        <li><strong>Wind Speed:</strong> 5-15 m/s (coastal regions)</li>
+                        <li><strong>Wind Stress:</strong> 0.05-0.3 N/m²</li>
+                        <li><strong>Coriolis Parameter:</strong> 1×10⁻⁴ s⁻¹ (mid-latitudes)</li>
+                        <li><strong>Mixed Layer Depth:</strong> 20-100 m (seasonal variation)</li>
+                        <li><strong>Ekman Depth:</strong> 50-200 m</li>
+                        <li><strong>Upwelling Velocity:</strong> 1-10 m/day</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="equations" class="tab-content">
+                <h2>Fundamental Equations</h2>
+
+                <h3>1. Wind Stress Calculation</h3>
+                <div class="equation-box">
+                    $$\vec{\tau} = \rho_{air} C_d |\vec{U}_{10}| \vec{U}_{10}$$
+                </div>
+                <p>Where: ρ_air = 1.225 kg/m³, C_d = 1.2×10⁻³ (drag coefficient), U₁₀ = wind speed at 10m</p>
+
+                <h3>2. Coriolis Parameter</h3>
+                <div class="equation-box">
+                    $$f = 2\Omega \sin(\phi)$$
+                </div>
+                <p>Where: Ω = 7.27×10⁻⁵ rad/s (Earth's rotation), φ = latitude</p>
+
+                <h3>3. Ekman Spiral Equations</h3>
+                <div class="equation-box">
+                    $$\frac{\partial u}{\partial t} - fv = \frac{1}{\rho} \frac{\partial \tau_x}{\partial z} + A_z \frac{\partial^2 u}{\partial z^2}$$
+                    $$\frac{\partial v}{\partial t} + fu = \frac{1}{\rho} \frac{\partial \tau_y}{\partial z} + A_z \frac{\partial^2 v}{\partial z^2}$$
+                </div>
+
+                <h3>4. Ekman Transport</h3>
+                <div class="equation-box">
+                    $$M_x = \frac{\tau_y}{\rho f}, \quad M_y = -\frac{\tau_x}{\rho f}$$
+                </div>
+
+                <h3>5. Ekman Depth</h3>
+                <div class="equation-box">
+                    $$D_E = \pi \sqrt{\frac{2A_z}{f}}$$
+                </div>
+
+                <h3>6. Coastal Upwelling Velocity</h3>
+                <div class="equation-box">
+                    $$w = \frac{\tau_{\parallel}}{\rho f L}$$
+                </div>
+                <p>Where: τ_∥ = alongshore wind stress, L = cross-shore length scale</p>
+
+                <h3>7. Ekman Pumping</h3>
+                <div class="equation-box">
+                    $$w_E = \frac{1}{\rho f} \left( \frac{\partial \tau_y}{\partial x} - \frac{\partial \tau_x}{\partial y} \right)$$
+                </div>
+            </div>
+
+            <div id="python" class="tab-content">
+                <h2>Python Implementation</h2>
+
+                <div class="code-container">
+                    <div class="code-header">Complete Ekman Dynamics Calculator</div>
+                    <pre><code class="language-python">import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+import pandas as pd
+
+class EkmanDynamics:
+    """
+    Comprehensive Ekman dynamics calculator for coastal oceans
+    """
+    
+    def __init__(self):
+        # Physical constants
+        self.rho_air = 1.225  # kg/m³
+        self.rho_water = 1025  # kg/m³
+        self.omega = 7.27e-5  # rad/s (Earth's rotation)
+        self.cd = 1.2e-3  # drag coefficient
+        
+    def wind_stress(self, u10, v10=0):
+        """
+        Calculate wind stress from 10m wind speed
+        
+        Parameters:
+        u10, v10: wind components at 10m height (m/s)
+        
+        Returns:
+        tau_x, tau_y: wind stress components (N/m²)
+        """
+        wind_speed = np.sqrt(u10**2 + v10**2)
+        tau_x = self.rho_air * self.cd * wind_speed * u10
+        tau_y = self.rho_air * self.cd * wind_speed * v10
+        return tau_x, tau_y
+    
+    def coriolis_parameter(self, latitude):
+        """
+        Calculate Coriolis parameter
+        
+        Parameters:
+        latitude: latitude in degrees
+        
+        Returns:
+        f: Coriolis parameter (s⁻¹)
+        """
+        return 2 * self.omega * np.sin(np.radians(latitude))
+    
+    def ekman_depth(self, Az, f):
+        """
+        Calculate Ekman depth
+        
+        Parameters:
+        Az: vertical eddy viscosity (m²/s)
+        f: Coriolis parameter (s⁻¹)
+        
+        Returns:
+        DE: Ekman depth (m)
+        """
+        return np.pi * np.sqrt(2 * Az / abs(f))
+    
+    def ekman_transport(self, tau_x, tau_y, f):
+        """
+        Calculate Ekman transport
+        
+        Parameters:
+        tau_x, tau_y: wind stress components (N/m²)
+        f: Coriolis parameter (s⁻¹)
+        
+        Returns:
+        Mx, My: Ekman transport components (m²/s)
+        """
+        Mx = tau_y / (self.rho_water * f)
+        My = -tau_x / (self.rho_water * f)
+        return Mx, My
+    
+    def ekman_spiral(self, z, tau_x, tau_y, f, Az):
+        """
+        Calculate Ekman spiral velocity profile
+        
+        Parameters:
+        z: depth array (m, negative downward)
+        tau_x, tau_y: surface wind stress (N/m²)
+        f: Coriolis parameter (s⁻¹)
+        Az: vertical eddy viscosity (m²/s)
+        
+        Returns:
+        u, v: velocity components (m/s)
+        """
+        # Ekman depth scale
+        delta = np.sqrt(2 * Az / abs(f))
+        
+        # Surface velocity components
+        u0 = tau_x / (self.rho_water * f * delta)
+        v0 = tau_y / (self.rho_water * f * delta)
+        
+        # Ekman spiral solution
+        exp_factor = np.exp(z / delta)
+        cos_factor = np.cos(z / delta)
+        sin_factor = np.sin(z / delta)
+        
+        if f > 0:  # Northern Hemisphere
+            u = u0 * exp_factor * cos_factor
+            v = v0 * exp_factor * sin_factor
+        else:  # Southern Hemisphere
+            u = u0 * exp_factor * cos_factor
+            v = -v0 * exp_factor * sin_factor
+            
+        return u, v
+    
+    def coastal_upwelling_velocity(self, tau_alongshore, f, L=50000):
+        """
+        Calculate coastal upwelling velocity
+        
+        Parameters:
+        tau_alongshore: alongshore wind stress (N/m²)
+        f: Coriolis parameter (s⁻¹)
+        L: cross-shore length scale (m)
+        
+        Returns:
+        w: upwelling velocity (m/s)
+        """
+        return tau_alongshore / (self.rho_water * f * L)
+
+# Example with real oceanographic data
+def example_california_coast():
+    """
+    Example calculation for California coast upwelling
+    """
+    ekman = EkmanDynamics()
+    
+    # Real data from California coast (summer upwelling season)
+    print("🌊 California Coast Upwelling Analysis")
+    print("=" * 50)
+    
+    # Location: Monterey Bay (36.6°N, 121.9°W)
+    latitude = 36.6
+    
+    # Typical summer conditions
+    wind_speed = 8.0  # m/s (northwesterly)
+    wind_direction = 315  # degrees (from NW)
+    
+    # Convert wind to components
+    u10 = wind_speed * np.cos(np.radians(wind_direction - 90))
+    v10 = wind_speed * np.sin(np.radians(wind_direction - 90))
+    
+    # Calculate wind stress
+    tau_x, tau_y = ekman.wind_stress(u10, v10)
+    
+    # Coriolis parameter
+    f = ekman.coriolis_parameter(latitude)
+    
+    # Typical values
+    Az = 0.05  # m²/s
+    mixed_layer_depth = 30  # m
+    
+    # Calculations
+    DE = ekman.ekman_depth(Az, f)
+    Mx, My = ekman.ekman_transport(tau_x, tau_y, f)
+    
+    # Alongshore wind stress (positive = upwelling favorable)
+    tau_alongshore = -tau_y  # Northward wind creates upwelling
+    w_upwelling = ekman.coastal_upwelling_velocity(tau_alongshore, f)
+    
+    # Results
+    print(f"Wind Speed: {wind_speed:.1f} m/s from {wind_direction}°")
+    print(f"Wind Stress: τx = {tau_x:.4f}, τy = {tau_y:.4f} N/m²")
+    print(f"Coriolis Parameter: f = {f:.2e} s⁻¹")
+    print(f"Ekman Depth: {DE:.1f} m")
+    print(f"Mixed Layer Depth: {mixed_layer_depth} m")
+    print(f"Ekman Transport: Mx = {Mx:.3f}, My = {My:.3f} m²/s")
+    print(f"Upwelling Velocity: {w_upwelling*86400:.2f} m/day")
+    
+    # Create Ekman spiral plot
+    z = np.linspace(0, -200, 100)
+    u, v = ekman.ekman_spiral(z, tau_x, tau_y, f, Az)
+    
+    return {
+        'depth': z,
+        'u_velocity': u,
+        'v_velocity': v,
+        'ekman_depth': DE,
+        'upwelling_velocity': w_upwelling * 86400,  # m/day
+        'ekman_transport': (Mx, My)
+    }
+
+def example_peru_coast():
+    """
+    Example calculation for Peru coast upwelling
+    """
+    ekman = EkmanDynamics()
+    
+    print("\n🌊 Peru Coast Upwelling Analysis")
+    print("=" * 50)
+    
+    # Location: Off Lima, Peru (12°S, 77°W)
+    latitude = -12.0  # Southern Hemisphere
+    
+    # Typical trade wind conditions
+    wind_speed = 6.5  # m/s (southeasterly)
+    wind_direction = 135  # degrees (from SE)
+    
+    # Convert to components
+    u10 = wind_speed * np.cos(np.radians(wind_direction - 90))
+    v10 = wind_speed * np.sin(np.radians(wind_direction - 90))
+    
+    # Calculations
+    tau_x, tau_y = ekman.wind_stress(u10, v10)
+    f = ekman.coriolis_parameter(latitude)
+    
+    Az = 0.03  # m²/s (lower mixing)
+    DE = ekman.ekman_depth(Az, f)
+    Mx, My = ekman.ekman_transport(tau_x, tau_y, f)
+    
+    # For Southern Hemisphere, southward wind creates upwelling
+    tau_alongshore = tau_y
+    w_upwelling = ekman.coastal_upwelling_velocity(tau_alongshore, f)
+    
+    print(f"Wind Speed: {wind_speed:.1f} m/s from {wind_direction}°")
+    print(f"Wind Stress: τx = {tau_x:.4f}, τy = {tau_y:.4f} N/m²")
+    print(f"Coriolis Parameter: f = {f:.2e} s⁻¹")
+    print(f"Ekman Depth: {DE:.1f} m")
+    print(f"Ekman Transport: Mx = {Mx:.3f}, My = {My:.3f} m²/s")
+    print(f"Upwelling Velocity: {w_upwelling*86400:.2f} m/day")
+
+def seasonal_analysis():
+    """
+    Analyze seasonal variations in Ekman dynamics
+    """
+    ekman = EkmanDynamics()
+    
+    print("\n📅 Seasonal Ekman Dynamics Analysis")
+    print("=" * 50)
+    
+    # Monthly data for California coast
+    months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+              'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    
+    # Typical monthly wind speeds (m/s) and MLD (m)
+    wind_speeds = [5.2, 5.8, 6.5, 7.2, 8.1, 8.8, 
+                   9.2, 8.9, 7.8, 6.9, 5.9, 5.1]
+    mld_values = [85, 95, 75, 55, 35, 25, 
+                  20, 22, 30, 45, 65, 80]
+    
+    latitude = 36.6
+    f = ekman.coriolis_parameter(latitude)
+    
+    results = []
+    for i, (month, ws, mld) in enumerate(zip(months, wind_speeds, mld_values)):
+        # Assume northwesterly winds (upwelling favorable)
+        u10 = ws * np.cos(np.radians(315 - 90))
+        v10 = ws * np.sin(np.radians(315 - 90))
+        
+        tau_x, tau_y = ekman.wind_stress(u10, v10)
+        tau_alongshore = -tau_y
+        w_upwelling = ekman.coastal_upwelling_velocity(tau_alongshore, f)
+        
+        results.append({
+            'Month': month,
+            'Wind_Speed': ws,
+            'MLD': mld,
+            'Upwelling_Velocity': w_upwelling * 86400,
+            'Wind_Stress': np.sqrt(tau_x**2 + tau_y**2)
+        })
+    
+    df = pd.DataFrame(results)
+    print(df.to_string(index=False, float_format='%.2f'))
+
+# Run examples
+if __name__ == "__main__":
+    # California coast example
+    ca_results = example_california_coast()
+    
+    # Peru coast example
+    example_peru_coast()
+    
+    # Seasonal analysis
+    seasonal_analysis()
+    
+    print("\n✅ Analysis complete! Check the results above.")
+    print("💡 Tip: Positive upwelling velocity indicates water rising to surface")
+    print("🌊 Typical upwelling rates: 1-10 m/day in active upwelling regions")</code></pre>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">Advanced Visualization Code</div>
+                    <pre><code class="language-python">import matplotlib.pyplot as plt
+import numpy as np
+
+def plot_ekman_spiral(depth, u, v, title="Ekman Spiral"):
+    """
+    Plot Ekman spiral velocity profile
+    """
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 5))
+    
+    # Velocity profiles
+    ax1.plot(u, depth, 'b-', linewidth=2, label='u (eastward)')
+    ax1.plot(v, depth, 'r-', linewidth=2, label='v (northward)')
+    ax1.set_xlabel('Velocity (m/s)')
+    ax1.set_ylabel('Depth (m)')
+    ax1.set_title('Velocity Profiles')
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+    
+    # Hodograph (spiral view)
+    ax2.plot(u, v, 'g-', linewidth=2)
+    ax2.plot(u[0], v[0], 'ro', markersize=8, label='Surface')
+    ax2.plot(u[-1], v[-1], 'bo', markersize=8, label='Deep')
+    ax2.set_xlabel('u velocity (m/s)')
+    ax2.set_ylabel('v velocity (m/s)')
+    ax2.set_title('Hodograph (Spiral View)')
+    ax2.legend()
+    ax2.grid(True, alpha=0.3)
+    ax2.axis('equal')
+    
+    # Speed profile
+    speed = np.sqrt(u**2 + v**2)
+    ax3.plot(speed, depth, 'purple', linewidth=2)
+    ax3.set_xlabel('Speed (m/s)')
+    ax3.set_ylabel('Depth (m)')
+    ax3.set_title('Speed Profile')
+    ax3.grid(True, alpha=0.3)
+    
+    plt.suptitle(title, fontsize=16)
+    plt.tight_layout()
+    plt.show()
+
+def plot_seasonal_upwelling():
+    """
+    Plot seasonal upwelling patterns
+    """
+    months = np.arange(1, 13)
+    upwelling = [2.1, 2.8, 3.9, 5.2, 7.1, 8.9, 
+                 9.8, 9.2, 7.5, 5.8, 3.9, 2.5]
+    
+    plt.figure(figsize=(12, 6))
+    plt.plot(months, upwelling, 'o-', linewidth=3, markersize=8, color='steelblue')
+    plt.fill_between(months, upwelling, alpha=0.3, color='lightblue')
+    plt.xlabel('Month')
+    plt.ylabel('Upwelling Velocity (m/day)')
+    plt.title('Seasonal Upwelling Cycle - California Coast')
+    plt.xticks(months, ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'])
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    plt.show()
+
+# Example usage:
+# ca_results = example_california_coast()
+# plot_ekman_spiral(ca_results['depth'], ca_results['u_velocity'], 
+#                   ca_results['v_velocity'], "California Coast Ekman Spiral")</code></pre>
+                </div>
+            </div>
+
+            <div id="calculator" class="tab-content">
+                <h2>Interactive Ekman Calculator</h2>
+                <p>Calculate Ekman dynamics parameters using real oceanographic values:</p>
+
+                <div class="calculator">
+                    <div class="input-group">
+                        <label for="windSpeed">Wind Speed (m/s):</label>
+                        <input type="number" id="windSpeed" value="8.0" step="0.1" min="0" max="50">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="windDirection">Wind Direction (degrees from North):</label>
+                        <input type="number" id="windDirection" value="315" step="1" min="0" max="360">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="latitude">Latitude (degrees):</label>
+                        <input type="number" id="latitude" value="36.6" step="0.1" min="-90" max="90">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="eddyViscosity">Eddy Viscosity (m²/s):</label>
+                        <input type="number" id="eddyViscosity" value="0.05" step="0.01" min="0.001" max="1">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="mixedLayerDepth">Mixed Layer Depth (m):</label>
+                        <input type="number" id="mixedLayerDepth" value="30" step="1" min="1" max="500">
+                    </div>
+
+                    <button class="calculate-btn" onclick="calculateEkman()">Calculate Ekman Parameters</button>
+
+                    <div id="results" class="result" style="display: none;">
+                        <!-- Results will be displayed here -->
+                    </div>
+                </div>
+
+                <div class="example-data">
+                    <h4>🌍 Pre-set Locations</h4>
+                    <button onclick="setLocation('california')" style="margin: 5px; padding: 8px 15px; background: #3498db; color: white; border: none; border-radius: 5px; cursor: pointer;">California Coast</button>
+                    <button onclick="setLocation('peru')" style="margin: 5px; padding: 8px 15px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">Peru Coast</button>
+                    <button onclick="setLocation('canary')" style="margin: 5px; padding: 8px 15px; background: #f39c12; color: white; border: none; border-radius: 5px; cursor: pointer;">Canary Islands</button>
+                    <button onclick="setLocation('benguela')" style="margin: 5px; padding: 8px 15px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer;">Benguela System</button>
+                </div>
+            </div>
+
+            <div id="spiral" class="tab-content">
+                <h2>Interactive Ekman Spiral Visualization</h2>
+                <p>Explore the 3D Ekman spiral at latitude -36° (Southern Hemisphere) with interactive Plotly visualization:</p>
+
+                <div class="calculator">
+                    <h3>🌊 Spiral Parameters</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div class="input-group">
+                            <label for="spiralWindSpeed">Wind Speed (m/s):</label>
+                            <input type="number" id="spiralWindSpeed" value="10.0" step="0.5" min="1" max="25">
+                        </div>
+                        <div class="input-group">
+                            <label for="spiralWindDir">Wind Direction (°):</label>
+                            <input type="number" id="spiralWindDir" value="270" step="15" min="0" max="360">
+                        </div>
+                        <div class="input-group">
+                            <label for="spiralViscosity">Eddy Viscosity (m²/s):</label>
+                            <input type="number" id="spiralViscosity" value="0.05" step="0.01" min="0.01" max="0.2">
+                        </div>
+                        <div class="input-group">
+                            <label for="maxDepth">Max Depth (m):</label>
+                            <input type="number" id="maxDepth" value="200" step="10" min="50" max="500">
+                        </div>
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="plotEkmanSpiral()">Generate Ekman Spiral</button>
+                </div>
+
+                <div id="spiralPlot" style="width: 100%; height: 600px; margin: 20px 0;"></div>
+                
+                <div id="spiralResults" class="result" style="display: none;">
+                    <!-- Spiral calculation results will be displayed here -->
+                </div>
+
+                <div class="example-data">
+                    <h4>📊 Understanding the Ekman Spiral</h4>
+                    <ul>
+                        <li><strong>Surface Current:</strong> Flows 45° to the left of wind (Southern Hemisphere)</li>
+                        <li><strong>Spiral Structure:</strong> Current direction rotates clockwise with depth</li>
+                        <li><strong>Velocity Decay:</strong> Current speed decreases exponentially with depth</li>
+                        <li><strong>Net Transport:</strong> 90° to the left of wind direction (Southern Hemisphere)</li>
+                        <li><strong>Ekman Depth:</strong> Depth where current is ~4% of surface value</li>
+                    </ul>
+                </div>
+
+                <div class="code-container">
+                    <div class="code-header">Python Code for Ekman Spiral at -36° Latitude</div>
+                    <pre><code class="language-python">import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+def ekman_spiral_southern_hemisphere():
+    """
+    Calculate and plot Ekman spiral for latitude -36° (Southern Hemisphere)
+    Example: Off Argentina coast or Southern Ocean
+    """
+    
+    # Parameters for latitude -36°
+    latitude = -36.0  # degrees
+    wind_speed = 10.0  # m/s
+    wind_direction = 270  # degrees (westerly wind)
+    Az = 0.05  # m²/s (eddy viscosity)
+    
+    # Physical constants
+    rho_air = 1.225  # kg/m³
+    rho_water = 1025  # kg/m³
+    omega = 7.27e-5  # rad/s
+    cd = 1.2e-3  # drag coefficient
+    
+    # Calculate Coriolis parameter (negative in SH)
+    f = 2 * omega * np.sin(np.radians(latitude))
+    print(f"Coriolis parameter f = {f:.2e} s⁻¹")
+    
+    # Wind stress calculation
+    u_wind = wind_speed * np.cos(np.radians(wind_direction - 90))
+    v_wind = wind_speed * np.sin(np.radians(wind_direction - 90))
+    
+    tau_x = rho_air * cd * wind_speed * u_wind
+    tau_y = rho_air * cd * wind_speed * v_wind
+    
+    print(f"Wind stress: τx = {tau_x:.4f}, τy = {tau_y:.4f} N/m²")
+    
+    # Ekman depth scale
+    delta = np.sqrt(2 * Az / abs(f))
+    ekman_depth = np.pi * delta
+    
+    print(f"Ekman depth scale δ = {delta:.1f} m")
+    print(f"Ekman depth DE = {ekman_depth:.1f} m")
+    
+    # Depth array (negative downward)
+    z = np.linspace(0, -300, 150)
+    
+    # Surface velocity components
+    u0 = tau_x / (rho_water * abs(f) * delta)
+    v0 = tau_y / (rho_water * abs(f) * delta)
+    
+    print(f"Surface velocity: u0 = {u0:.3f}, v0 = {v0:.3f} m/s")
+    
+    # Ekman spiral solution for Southern Hemisphere
+    exp_factor = np.exp(z / delta)
+    cos_factor = np.cos(z / delta)
+    sin_factor = np.sin(z / delta)
+    
+    # Southern Hemisphere: clockwise rotation with depth
+    u = u0 * exp_factor * cos_factor
+    v = -v0 * exp_factor * sin_factor  # Note the negative sign for SH
+    
+    # Calculate current direction and speed
+    current_speed = np.sqrt(u**2 + v**2)
+    current_direction = np.degrees(np.arctan2(v, u))
+    
+    # Surface current direction (45° to left of wind in SH)
+    surface_current_dir = current_direction[0]
+    wind_current_angle = surface_current_dir - wind_direction
+    if wind_current_angle > 180:
+        wind_current_angle -= 360
+    elif wind_current_angle < -180:
+        wind_current_angle += 360
+    
+    print(f"Surface current direction: {surface_current_dir:.1f}°")
+    print(f"Angle relative to wind: {wind_current_angle:.1f}°")
+    
+    return z, u, v, current_speed, current_direction, ekman_depth
+
+def create_3d_spiral_plot(z, u, v):
+    """
+    Create interactive 3D Ekman spiral plot using Plotly
+    """
+    
+    # Create subplots
+    fig = make_subplots(
+        rows=2, cols=2,
+        subplot_titles=('3D Ekman Spiral', 'Velocity Profiles', 
+                       'Hodograph (Plan View)', 'Current Speed vs Depth'),
+        specs=[[{"type": "scene", "colspan": 2}, None],
+               [{"type": "xy"}, {"type": "xy"}]],
+        vertical_spacing=0.08
+    )
+    
+    # 3D Spiral plot
+    fig.add_trace(
+        go.Scatter3d(
+            x=u, y=v, z=z,
+            mode='lines+markers',
+            line=dict(color=z, colorscale='Viridis', width=6),
+            marker=dict(size=3, color=z, colorscale='Viridis'),
+            name='Ekman Spiral',
+            hovertemplate='<b>Depth:</b> %{z:.1f} m<br>' +
+                         '<b>u velocity:</b> %{x:.3f} m/s<br>' +
+                         '<b>v velocity:</b> %{y:.3f} m/s<extra></extra>'
+        ),
+        row=1, col=1
+    )
+    
+    # Add surface and deep markers
+    fig.add_trace(
+        go.Scatter3d(
+            x=[u[0]], y=[v[0]], z=[z[0]],
+            mode='markers',
+            marker=dict(size=10, color='red'),
+            name='Surface',
+            showlegend=False
+        ),
+        row=1, col=1
+    )
+    
+    fig.add_trace(
+        go.Scatter3d(
+            x=[u[-1]], y=[v[-1]], z=[z[-1]],
+            mode='markers',
+            marker=dict(size=8, color='blue'),
+            name='Deep',
+            showlegend=False
+        ),
+        row=1, col=1
+    )
+    
+    # Velocity profiles
+    fig.add_trace(
+        go.Scatter(x=u, y=z, mode='lines', name='u (eastward)', 
+                  line=dict(color='blue', width=3)),
+        row=2, col=1
+    )
+    fig.add_trace(
+        go.Scatter(x=v, y=z, mode='lines', name='v (northward)', 
+                  line=dict(color='red', width=3)),
+        row=2, col=1
+    )
+    
+    # Hodograph
+    fig.add_trace(
+        go.Scatter(x=u, y=v, mode='lines+markers', name='Hodograph',
+                  line=dict(color='green', width=3),
+                  marker=dict(size=4, color=z, colorscale='Plasma')),
+        row=2, col=2
+    )
+    
+    # Add surface and deep points to hodograph
+    fig.add_trace(
+        go.Scatter(x=[u[0]], y=[v[0]], mode='markers', name='Surface',
+                  marker=dict(size=12, color='red', symbol='star')),
+        row=2, col=2
+    )
+    fig.add_trace(
+        go.Scatter(x=[u[-1]], y=[v[-1]], mode='markers', name='Deep',
+                  marker=dict(size=10, color='blue', symbol='circle')),
+        row=2, col=2
+    )
+    
+    # Update layout
+    fig.update_layout(
+        title='Ekman Spiral Analysis - Latitude -36° (Southern Hemisphere)',
+        height=800,
+        showlegend=True
+    )
+    
+    # Update 3D scene
+    fig.update_scenes(
+        xaxis_title='u velocity (m/s)',
+        yaxis_title='v velocity (m/s)',
+        zaxis_title='Depth (m)',
+        camera=dict(eye=dict(x=1.5, y=1.5, z=0.5))
+    )
+    
+    # Update 2D subplots
+    fig.update_xaxes(title_text='Velocity (m/s)', row=2, col=1)
+    fig.update_yaxes(title_text='Depth (m)', row=2, col=1)
+    
+    fig.update_xaxes(title_text='u velocity (m/s)', row=2, col=2)
+    fig.update_yaxes(title_text='v velocity (m/s)', row=2, col=2)
+    
+    return fig
+
+# Run the analysis
+if __name__ == "__main__":
+    print("🌊 Ekman Spiral Analysis for Latitude -36°")
+    print("=" * 50)
+    
+    z, u, v, speed, direction, ekman_depth = ekman_spiral_southern_hemisphere()
+    
+    # Create and show the plot
+    fig = create_3d_spiral_plot(z, u, v)
+    fig.show()
+    
+    print(f"\n📊 Key Results:")
+    print(f"Ekman depth: {ekman_depth:.1f} m")
+    print(f"Surface current speed: {speed[0]:.3f} m/s")
+    print(f"Current at Ekman depth: {speed[int(len(speed)*0.63)]:.3f} m/s")
+    print(f"Deep current (300m): {speed[-1]:.4f} m/s")</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function calculateEkman() {
+            // Get input values
+            const windSpeed = parseFloat(document.getElementById('windSpeed').value);
+            const windDirection = parseFloat(document.getElementById('windDirection').value);
+            const latitude = parseFloat(document.getElementById('latitude').value);
+            const Az = parseFloat(document.getElementById('eddyViscosity').value);
+            const mld = parseFloat(document.getElementById('mixedLayerDepth').value);
+
+            // Physical constants
+            const rho_air = 1.225;
+            const rho_water = 1025;
+            const omega = 7.27e-5;
+            const cd = 1.2e-3;
+
+            // Convert wind to components
+            const u10 = windSpeed * Math.cos((windDirection - 90) * Math.PI / 180);
+            const v10 = windSpeed * Math.sin((windDirection - 90) * Math.PI / 180);
+
+            // Calculate wind stress
+            const tau_x = rho_air * cd * windSpeed * u10;
+            const tau_y = rho_air * cd * windSpeed * v10;
+            const tau_magnitude = Math.sqrt(tau_x * tau_x + tau_y * tau_y);
+
+            // Coriolis parameter
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+
+            // Ekman depth
+            const DE = Math.PI * Math.sqrt(2 * Az / Math.abs(f));
+
+            // Ekman transport
+            const Mx = tau_y / (rho_water * f);
+            const My = -tau_x / (rho_water * f);
+            const transport_magnitude = Math.sqrt(Mx * Mx + My * My);
+
+            // Upwelling velocity (assuming alongshore wind stress)
+            const tau_alongshore = latitude > 0 ? -tau_y : tau_y; // NH: northward wind, SH: southward wind
+            const L = 50000; // 50 km cross-shore scale
+            const w_upwelling = tau_alongshore / (rho_water * f * L) * 86400; // m/day
+
+            // Display results
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <h3>🧮 Calculation Results</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div>
+                        <strong>Wind Stress:</strong><br>
+                        τ = ${tau_magnitude.toFixed(4)} N/m²<br>
+                        τₓ = ${tau_x.toFixed(4)} N/m²<br>
+                        τᵧ = ${tau_y.toFixed(4)} N/m²
+                    </div>
+                    <div>
+                        <strong>Coriolis Parameter:</strong><br>
+                        f = ${f.toExponential(2)} s⁻¹
+                    </div>
+                    <div>
+                        <strong>Ekman Depth:</strong><br>
+                        Dₑ = ${DE.toFixed(1)} m
+                    </div>
+                    <div>
+                        <strong>Ekman Transport:</strong><br>
+                        |M| = ${transport_magnitude.toFixed(3)} m²/s<br>
+                        Mₓ = ${Mx.toFixed(3)} m²/s<br>
+                        Mᵧ = ${My.toFixed(3)} m²/s
+                    </div>
+                    <div>
+                        <strong>Upwelling Velocity:</strong><br>
+                        w = ${w_upwelling.toFixed(2)} m/day<br>
+                        ${w_upwelling > 0 ? '⬆️ Upwelling' : '⬇️ Downwelling'}
+                    </div>
+                    <div>
+                        <strong>Layer Comparison:</strong><br>
+                        MLD/Dₑ = ${(mld/DE).toFixed(2)}<br>
+                        ${mld < DE ? '✅ MLD < Ekman Depth' : '⚠️ MLD > Ekman Depth'}
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #e8f4fd; border-radius: 5px;">
+                    <strong>💡 Interpretation:</strong><br>
+                    ${getInterpretation(w_upwelling, mld/DE, transport_magnitude)}
+                </div>
+            `;
+        }
+
+        function getInterpretation(upwelling, mld_ratio, transport) {
+            let interpretation = "";
+            
+            if (Math.abs(upwelling) > 5) {
+                interpretation += "Strong upwelling/downwelling conditions. ";
+            } else if (Math.abs(upwelling) > 2) {
+                interpretation += "Moderate upwelling/downwelling. ";
+            } else {
+                interpretation += "Weak vertical motion. ";
+            }
+
+            if (mld_ratio < 0.5) {
+                interpretation += "Mixed layer is much shallower than Ekman depth - strong surface response to wind. ";
+            } else if (mld_ratio > 1.5) {
+                interpretation += "Mixed layer extends below Ekman depth - reduced wind influence. ";
+            }
+
+            if (transport > 1) {
+                interpretation += "High Ekman transport - significant cross-shore water movement.";
+            } else {
+                interpretation += "Moderate Ekman transport.";
+            }
+
+            return interpretation;
+        }
+
+        function setLocation(location) {
+            const locations = {
+                california: {
+                    windSpeed: 8.0,
+                    windDirection: 315,
+                    latitude: 36.6,
+                    eddyViscosity: 0.05,
+                    mixedLayerDepth: 30
+                },
+                peru: {
+                    windSpeed: 6.5,
+                    windDirection: 135,
+                    latitude: -12.0,
+                    eddyViscosity: 0.03,
+                    mixedLayerDepth: 25
+                },
+                canary: {
+                    windSpeed: 7.2,
+                    windDirection: 45,
+                    latitude: 28.0,
+                    eddyViscosity: 0.04,
+                    mixedLayerDepth: 35
+                },
+                benguela: {
+                    windSpeed: 5.8,
+                    windDirection: 180,
+                    latitude: -25.0,
+                    eddyViscosity: 0.035,
+                    mixedLayerDepth: 40
+                }
+            };
+
+            const loc = locations[location];
+            document.getElementById('windSpeed').value = loc.windSpeed;
+            document.getElementById('windDirection').value = loc.windDirection;
+            document.getElementById('latitude').value = loc.latitude;
+            document.getElementById('eddyViscosity').value = loc.eddyViscosity;
+            document.getElementById('mixedLayerDepth').value = loc.mixedLayerDepth;
+
+            // Auto-calculate
+            calculateEkman();
+        }
+
+        function plotEkmanSpiral() {
+            // Get spiral parameters
+            const windSpeed = parseFloat(document.getElementById('spiralWindSpeed').value);
+            const windDirection = parseFloat(document.getElementById('spiralWindDir').value);
+            const Az = parseFloat(document.getElementById('spiralViscosity').value);
+            const maxDepth = parseFloat(document.getElementById('maxDepth').value);
+
+            // Fixed latitude for Southern Hemisphere
+            const latitude = -36.0;
+
+            // Physical constants
+            const rho_air = 1.225;
+            const rho_water = 1025;
+            const omega = 7.27e-5;
+            const cd = 1.2e-3;
+
+            // Calculate Coriolis parameter (negative in SH)
+            const f = 2 * omega * Math.sin(latitude * Math.PI / 180);
+
+            // Wind components
+            const u_wind = windSpeed * Math.cos((windDirection - 90) * Math.PI / 180);
+            const v_wind = windSpeed * Math.sin((windDirection - 90) * Math.PI / 180);
+
+            // Wind stress
+            const tau_x = rho_air * cd * windSpeed * u_wind;
+            const tau_y = rho_air * cd * windSpeed * v_wind;
+
+            // Ekman depth scale
+            const delta = Math.sqrt(2 * Az / Math.abs(f));
+            const ekman_depth = Math.PI * delta;
+
+            // Surface velocity components
+            const u0 = tau_x / (rho_water * Math.abs(f) * delta);
+            const v0 = tau_y / (rho_water * Math.abs(f) * delta);
+
+            // Create depth array
+            const numPoints = 100;
+            const z = [];
+            const u = [];
+            const v = [];
+            const speed = [];
+
+            for (let i = 0; i < numPoints; i++) {
+                const depth = -i * maxDepth / (numPoints - 1);
+                z.push(depth);
+
+                // Ekman spiral solution for Southern Hemisphere
+                const exp_factor = Math.exp(depth / delta);
+                const cos_factor = Math.cos(depth / delta);
+                const sin_factor = Math.sin(depth / delta);
+
+                // Southern Hemisphere: clockwise rotation with depth
+                const u_vel = u0 * exp_factor * cos_factor;
+                const v_vel = -v0 * exp_factor * sin_factor; // Note negative sign for SH
+
+                u.push(u_vel);
+                v.push(v_vel);
+                speed.push(Math.sqrt(u_vel * u_vel + v_vel * v_vel));
+            }
+
+            // Create 3D spiral plot
+            const spiral_trace = {
+                x: u,
+                y: v,
+                z: z,
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                line: {
+                    color: z,
+                    colorscale: 'Viridis',
+                    width: 8
+                },
+                marker: {
+                    size: 3,
+                    color: z,
+                    colorscale: 'Viridis'
+                },
+                name: 'Ekman Spiral',
+                hovertemplate: '<b>Depth:</b> %{z:.1f} m<br>' +
+                              '<b>u velocity:</b> %{x:.3f} m/s<br>' +
+                              '<b>v velocity:</b> %{y:.3f} m/s<extra></extra>'
+            };
+
+            // Surface marker
+            const surface_trace = {
+                x: [u[0]],
+                y: [v[0]],
+                z: [z[0]],
+                type: 'scatter3d',
+                mode: 'markers',
+                marker: {
+                    size: 12,
+                    color: 'red',
+                    symbol: 'diamond'
+                },
+                name: 'Surface',
+                hovertemplate: '<b>Surface Current</b><br>' +
+                              'Speed: ' + speed[0].toFixed(3) + ' m/s<extra></extra>'
+            };
+
+            // Deep marker
+            const deep_trace = {
+                x: [u[u.length-1]],
+                y: [v[v.length-1]],
+                z: [z[z.length-1]],
+                type: 'scatter3d',
+                mode: 'markers',
+                marker: {
+                    size: 10,
+                    color: 'blue',
+                    symbol: 'circle'
+                },
+                name: 'Deep',
+                hovertemplate: '<b>Deep Current</b><br>' +
+                              'Speed: ' + speed[speed.length-1].toFixed(4) + ' m/s<extra></extra>'
+            };
+
+            // Wind vector at surface (scaled for visibility)
+            const wind_scale = 0.02;
+            const wind_trace = {
+                x: [0, u_wind * wind_scale],
+                y: [0, v_wind * wind_scale],
+                z: [10, 10],
+                type: 'scatter3d',
+                mode: 'lines+markers',
+                line: {
+                    color: 'orange',
+                    width: 10
+                },
+                marker: {
+                    size: [6, 10],
+                    color: 'orange'
+                },
+                name: 'Wind Direction',
+                hovertemplate: '<b>Wind Vector</b><br>' +
+                              'Speed: ' + windSpeed + ' m/s<br>' +
+                              'Direction: ' + windDirection + '°<extra></extra>'
+            };
+
+            const layout = {
+                title: {
+                    text: '🌊 3D Ekman Spiral - Latitude -36° (Southern Hemisphere)',
+                    font: { size: 18 }
+                },
+                scene: {
+                    xaxis: { title: 'u velocity (m/s)' },
+                    yaxis: { title: 'v velocity (m/s)' },
+                    zaxis: { title: 'Depth (m)' },
+                    camera: {
+                        eye: { x: 1.5, y: 1.5, z: 0.5 }
+                    },
+                    aspectmode: 'manual',
+                    aspectratio: { x: 1, y: 1, z: 2 }
+                },
+                showlegend: true,
+                legend: {
+                    x: 0.02,
+                    y: 0.98
+                }
+            };
+
+            const config = {
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToRemove: ['pan2d', 'lasso2d']
+            };
+
+            Plotly.newPlot('spiralPlot', [spiral_trace, surface_trace, deep_trace, wind_trace], layout, config);
+
+            // Display results
+            const surface_direction = Math.atan2(v[0], u[0]) * 180 / Math.PI;
+            let wind_current_angle = surface_direction - windDirection;
+            if (wind_current_angle > 180) wind_current_angle -= 360;
+            if (wind_current_angle < -180) wind_current_angle += 360;
+
+            const ekman_index = Math.floor(numPoints * 0.63); // Approximate Ekman depth index
+            
+            const resultsDiv = document.getElementById('spiralResults');
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = `
+                <h3>🌀 Ekman Spiral Analysis Results</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                    <div>
+                        <strong>Physical Parameters:</strong><br>
+                        Latitude: ${latitude}° (Southern Hemisphere)<br>
+                        Coriolis parameter: ${f.toExponential(2)} s⁻¹<br>
+                        Ekman depth: ${ekman_depth.toFixed(1)} m<br>
+                        Depth scale δ: ${delta.toFixed(1)} m
+                    </div>
+                    <div>
+                        <strong>Wind Forcing:</strong><br>
+                        Wind speed: ${windSpeed} m/s<br>
+                        Wind direction: ${windDirection}°<br>
+                        Wind stress: ${Math.sqrt(tau_x*tau_x + tau_y*tau_y).toFixed(4)} N/m²
+                    </div>
+                    <div>
+                        <strong>Surface Current:</strong><br>
+                        Speed: ${speed[0].toFixed(3)} m/s<br>
+                        Direction: ${surface_direction.toFixed(1)}°<br>
+                        Angle to wind: ${wind_current_angle.toFixed(1)}°<br>
+                        ${Math.abs(wind_current_angle + 45) < 10 ? '✅ ~45° left of wind (SH)' : '⚠️ Deviation from theory'}
+                    </div>
+                    <div>
+                        <strong>Depth Variation:</strong><br>
+                        At Ekman depth: ${speed[ekman_index].toFixed(3)} m/s<br>
+                        At ${maxDepth}m: ${speed[speed.length-1].toFixed(4)} m/s<br>
+                        Decay ratio: ${(speed[speed.length-1]/speed[0]*100).toFixed(1)}%
+                    </div>
+                </div>
+                <div style="margin-top: 15px; padding: 10px; background: #e8f4fd; border-radius: 5px;">
+                    <strong>🧭 Southern Hemisphere Characteristics:</strong><br>
+                    • Surface current flows ~45° to the LEFT of wind direction<br>
+                    • Current direction rotates CLOCKWISE with increasing depth<br>
+                    • Net Ekman transport is 90° to the LEFT of wind<br>
+                    • Current speed decreases exponentially with depth (e^(-z/δ))
+                </div>
+            `;
+        }
+
+        // Initialize with California coast values
+        window.onload = function() {
+            setLocation('california');
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d3c622c5a8e9ac',t:'MTc1NDg3Mzc5NS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
