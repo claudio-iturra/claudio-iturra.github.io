@@ -38,7 +38,7 @@
 
 18) [stuarine Circulation Evaluator](https://claudio-iturra.github.io/estuarine.html)
 
-19) [advanced signal filter processing (*paste your data)](https://claudio-iturra.github.io/filters.html)
+19) [advanced signal filter processing (*paste your data)](https://claudio-iturra.github.io/filters.html) [alternative (*paste your data)](https://claudio-iturra.github.io/filterX.html)
 
 20) [Harmful Algal Bloom Analysis](https://claudio-iturra.github.io/habcalculator.html)
 
