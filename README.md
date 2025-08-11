@@ -108,4 +108,4 @@
 
 53) [ekman dynamics](https://claudio-iturra.github.io/ekman.html)
 
-54) [Singular Value Decomposition](https://claudio-iturra.github.io/svd.html)
+54) [singular Value Decomposition](https://claudio-iturra.github.io/svd.html)
