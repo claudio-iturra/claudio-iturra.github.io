@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocean Guardian - Protecting Our Blue Planet</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #2c3e50;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 0;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2980b9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: #2c3e50;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: #2980b9;
+        }
+
+        main {
+            margin-top: 80px;
+        }
+
+        .hero {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                        radial-gradient(circle at center, #3498db, #2980b9);
+            color: white;
+            text-align: center;
+            padding: 6rem 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 20"><path d="M0,10 Q25,0 50,10 T100,10 V20 H0 Z" fill="rgba(255,255,255,0.1)"/></svg>') repeat-x;
+            animation: wave 3s ease-in-out infinite;
+        }
+
+        @keyframes wave {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(-50px); }
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button {
+            background: #e74c3c;
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button:hover {
+            background: #c0392b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+
+        .section {
+            padding: 4rem 0;
+            background: white;
+            margin: 2rem 0;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .section h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: #2980b9;
+            position: relative;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: #3498db;
+            border-radius: 2px;
+        }
+
+        .ideas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .idea-card {
+            background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #3498db;
+        }
+
+        .idea-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .idea-card h3 {
+            color: #2980b9;
+            margin-bottom: 1rem;
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .idea-card p {
+            color: #5a6c7d;
+            line-height: 1.6;
+        }
+
+        .stats {
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            border-radius: 20px;
+            margin: 2rem 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+        }
+
+        .stat-item {
+            padding: 1rem;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #3498db;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            margin-top: 0.5rem;
+        }
+
+        .action-section {
+            background: linear-gradient(135deg, #27ae60, #2ecc71);
+            color: white;
+            text-align: center;
+            padding: 4rem 0;
+            border-radius: 20px;
+            margin: 2rem 0;
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 1rem 2rem;
+            border: 2px solid white;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .action-btn:hover {
+            background: white;
+            color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem 0;
+            border-radius: 20px 20px 0 0;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu {
+                display: block;
+                background: none;
+                border: none;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .ideas-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .ocean-icon {
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="container">
+            <div class="logo">
+                <span class="ocean-icon">🌊</span>
+                Ocean Guardian
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#solutions">Solutions</a></li>
+                <li><a href="#wildlife">Wildlife</a></li>
+                <li><a href="#action">Take Action</a></li>
+            </ul>
+            <button class="mobile-menu">☰</button>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="hero">
+            <div class="container">
+                <h1>Protecting Our Ocean 🌊</h1>
+                <p>Innovative solutions to clean our seas, reduce pollution, and protect marine life by Claudio Iturra</p>
+                <a href="#solutions" class="cta-button">Explore Solutions</a>
+            </div>
+        </section>
+
+        <div class="container">
+            <section id="solutions" class="section">
+                <h2>🔬 Innovative Ocean Cleaning Solutions</h2>
+                <div class="ideas-grid">
+                    <div class="idea-card">
+                        <h3>🗑️ Ocean Cleanup Arrays</h3>
+                        <p>Massive floating systems that use ocean currents to collect plastic waste. These passive cleanup systems can remove tons of plastic from ocean gyres without harming marine life.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🤖 Autonomous Cleanup Drones</h3>
+                        <p>AI-powered underwater and surface drones that identify, collect, and sort ocean debris. They can work 24/7 and reach areas too dangerous for human divers.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🧬 Plastic-Eating Bacteria</h3>
+                        <p>Genetically engineered microorganisms that can break down plastic waste into harmless compounds, offering a biological solution to plastic pollution.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🌊 Bubble Barriers</h3>
+                        <p>Innovative systems that create curtains of bubbles to prevent plastic waste from rivers entering the ocean, capturing debris before it reaches marine environments.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🔄 Ocean Plastic Recycling Ships</h3>
+                        <p>Mobile processing vessels that collect ocean plastic and convert it into useful products like fuel, building materials, or new plastic items right at sea.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🌱 Seaweed Farming</h3>
+                        <p>Large-scale cultivation of seaweed that absorbs CO2, reduces ocean acidity, and provides sustainable alternatives to plastic packaging.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section">
+                <h2>🏭 Pollution Reduction Strategies</h2>
+                <div class="ideas-grid">
+                    <div class="idea-card">
+                        <h3>⚡ Green Shipping Technology</h3>
+                        <p>Wind-powered cargo ships, electric ferries, and hydrogen fuel cells to reduce maritime emissions and oil spills from shipping industry.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🏭 Industrial Waste Monitoring</h3>
+                        <p>Real-time satellite and sensor networks that track industrial discharge, ensuring companies comply with environmental regulations.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🌾 Sustainable Agriculture</h3>
+                        <p>Precision farming techniques that reduce fertilizer runoff, preventing harmful algal blooms and dead zones in coastal waters.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>♻️ Circular Economy Models</h3>
+                        <p>Zero-waste manufacturing processes and product designs that eliminate single-use plastics and reduce overall waste production.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🌊 Wetland Restoration</h3>
+                        <p>Rebuilding coastal wetlands that act as natural filters, removing pollutants before they reach the ocean while providing habitat for wildlife.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🔬 Microplastic Filters</h3>
+                        <p>Advanced filtration systems for washing machines and wastewater treatment plants to capture microplastics before they enter waterways.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="wildlife" class="section">
+                <h2>🐋 Marine Life Protection Initiatives</h2>
+                <div class="ideas-grid">
+                    <div class="idea-card">
+                        <h3>🏞️ Marine Protected Areas</h3>
+                        <p>Expanding no-fishing zones and creating underwater national parks where marine ecosystems can recover and thrive without human interference.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🐢 Wildlife Rescue Networks</h3>
+                        <p>Global networks of rescue centers, rehabilitation facilities, and volunteer programs dedicated to saving injured marine animals from pollution.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🪸 Coral Reef Restoration</h3>
+                        <p>3D-printed reef structures, coral gardening, and assisted evolution programs to help coral reefs adapt to climate change and recover from bleaching.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🐟 Sustainable Fishing Practices</h3>
+                        <p>Smart fishing gear that reduces bycatch, seasonal fishing restrictions, and aquaculture systems that don't harm wild fish populations.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>📡 Animal Tracking Technology</h3>
+                        <p>GPS tags, underwater cameras, and acoustic monitoring to study migration patterns and protect critical habitats for marine species.</p>
+                    </div>
+                    <div class="idea-card">
+                        <h3>🌊 Noise Pollution Reduction</h3>
+                        <p>Quieter ship engines, regulated shipping lanes, and underwater sound barriers to protect marine mammals from harmful noise pollution.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="stats">
+                <div class="container">
+                    <h2>Ocean Crisis by the Numbers</h2>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-number">8M</span>
+                            <div class="stat-label">Tons of plastic enter oceans yearly</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">50%</span>
+                            <div class="stat-label">Of coral reefs have been lost</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">90%</span>
+                            <div class="stat-label">Of large fish populations depleted</div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-number">1M</span>
+                            <div class="stat-label">Marine animals die from plastic yearly</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="action" class="action-section">
+                <div class="container">
+                    <h2>🌟 Take Action Today</h2>
+                    <p>Every action counts in protecting our ocean. Here's how you can make a difference:</p>
+                    <div class="action-buttons">
+                        <a href="#" class="action-btn" onclick="showActionModal('reduce')">🔄 Reduce Plastic Use</a>
+                        <a href="#" class="action-btn" onclick="showActionModal('volunteer')">🤝 Volunteer for Cleanups</a>
+                        <a href="#" class="action-btn" onclick="showActionModal('support')">💚 Support Ocean Organizations</a>
+                        <a href="#" class="action-btn" onclick="showActionModal('educate')">📚 Educate Others</a>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 Ocean Guardian. Together, we can save our blue planet. 🌊💙</p>
+            <p>Every wave of change starts with a single drop of action.</p>
+        </div>
+    </footer>
+
+    <!-- Action Modal -->
+    <div id="actionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; justify-content: center; align-items: center;">
+        <div style="background: white; padding: 2rem; border-radius: 20px; max-width: 500px; margin: 20px; max-height: 80vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 id="modalTitle" style="color: #2980b9; margin: 0;"></h3>
+                <button onclick="closeActionModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+            <button onclick="closeActionModal()" style="background: #3498db; color: white; border: none; padding: 0.8rem 2rem; border-radius: 25px; cursor: pointer; margin-top: 1rem; width: 100%;">Got it!</button>
+        </div>
+    </div>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Action modal functionality
+        const actionContent = {
+            reduce: {
+                title: "🔄 Reduce Plastic Use",
+                content: `
+                    <p><strong>Simple ways to reduce plastic in your daily life:</strong></p>
+                    <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                        <li>Use reusable water bottles and coffee cups</li>
+                        <li>Bring your own bags when shopping</li>
+                        <li>Choose products with minimal packaging</li>
+                        <li>Use bamboo or metal straws instead of plastic</li>
+                        <li>Buy in bulk to reduce packaging waste</li>
+                        <li>Choose bar soap over liquid soap in plastic bottles</li>
+                    </ul>
+                    <p>Small changes in your routine can prevent hundreds of plastic items from entering the ocean each year!</p>
+                `
+            },
+            volunteer: {
+                title: "🤝 Volunteer for Cleanups",
+                content: `
+                    <p><strong>Join local ocean and beach cleanup efforts:</strong></p>
+                    <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                        <li>Search for local beach cleanup events in your area</li>
+                        <li>Organize cleanup events with friends and family</li>
+                        <li>Join organizations like Surfrider Foundation or Ocean Conservancy</li>
+                        <li>Participate in river cleanups to prevent waste reaching oceans</li>
+                        <li>Document and report the trash you collect for research</li>
+                        <li>Adopt a local beach or waterway for regular maintenance</li>
+                    </ul>
+                    <p>Every piece of trash removed makes a difference for marine life!</p>
+                `
+            },
+            support: {
+                title: "💚 Support Ocean Organizations",
+                content: `
+                    <p><strong>Organizations making a real impact:</strong></p>
+                    <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                        <li><strong>The Ocean Cleanup:</strong> Developing technology to remove plastic from oceans</li>
+                        <li><strong>Sea Shepherd:</strong> Direct action marine conservation</li>
+                        <li><strong>Ocean Conservancy:</strong> Science-based solutions for ocean health</li>
+                        <li><strong>Coral Restoration Foundation:</strong> Restoring coral reefs</li>
+                        <li><strong>Surfrider Foundation:</strong> Protecting oceans and beaches</li>
+                        <li><strong>Marine Conservation Institute:</strong> Creating marine protected areas</li>
+                    </ul>
+                    <p>Your donations and support help fund research, cleanup efforts, and policy changes!</p>
+                `
+            },
+            educate: {
+                title: "📚 Educate Others",
+                content: `
+                    <p><strong>Spread awareness about ocean conservation:</strong></p>
+                    <ul style="margin: 1rem 0; padding-left: 1.5rem;">
+                        <li>Share ocean conservation content on social media</li>
+                        <li>Talk to friends and family about marine pollution</li>
+                        <li>Support documentaries about ocean health</li>
+                        <li>Teach children about marine ecosystems</li>
+                        <li>Write to local representatives about environmental policies</li>
+                        <li>Choose sustainable seafood and explain your choices</li>
+                    </ul>
+                    <p>Education creates a ripple effect - one informed person can influence many others!</p>
+                `
+            }
+        };
+
+        function showActionModal(action) {
+            const modal = document.getElementById('actionModal');
+            const title = document.getElementById('modalTitle');
+            const content = document.getElementById('modalContent');
+            
+            title.textContent = actionContent[action].title;
+            content.innerHTML = actionContent[action].content;
+            
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeActionModal() {
+            const modal = document.getElementById('actionModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('actionModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeActionModal();
+            }
+        });
+
+        // Mobile menu toggle
+        document.querySelector('.mobile-menu').addEventListener('click', function() {
+            const navLinks = document.querySelector('.nav-links');
+            if (navLinks.style.display === 'flex') {
+                navLinks.style.display = 'none';
+            } else {
+                navLinks.style.display = 'flex';
+                navLinks.style.flexDirection = 'column';
+                navLinks.style.position = 'absolute';
+                navLinks.style.top = '100%';
+                navLinks.style.left = '0';
+                navLinks.style.right = '0';
+                navLinks.style.background = 'white';
+                navLinks.style.padding = '1rem';
+                navLinks.style.boxShadow = '0 2px 10px rgba(0,0,0,0.1)';
+            }
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.background = 'rgba(255, 255, 255, 0.98)';
+            } else {
+                header.style.background = 'rgba(255, 255, 255, 0.95)';
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96da1ccd75cd88ac',t:'MTc1NDk0MDI1OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
