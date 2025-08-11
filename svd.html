@@ -203,7 +203,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>Time Series SVD Analysis (Experimental)</h1>
+            <h1>Time Series SVD Analysis Experimental</h1>
             <p>Singular Value Decomposition for Time Series Mode Extraction by Claudio Iturra</p>
         </div>
         
@@ -367,49 +367,172 @@
         }
         
         function performCustomSVD(matrix) {
-            // Simplified SVD implementation
             const m = matrix.length;
             const n = matrix[0].length;
             
-            // Compute covariance matrix
+            // Center the data
+            const means = [];
+            for (let j = 0; j < n; j++) {
+                let sum = 0;
+                for (let i = 0; i < m; i++) {
+                    sum += matrix[i][j];
+                }
+                means[j] = sum / m;
+            }
+            
+            const centeredMatrix = [];
+            for (let i = 0; i < m; i++) {
+                centeredMatrix[i] = [];
+                for (let j = 0; j < n; j++) {
+                    centeredMatrix[i][j] = matrix[i][j] - means[j];
+                }
+            }
+            
+            // Compute covariance matrix C = X^T * X
             const cov = [];
             for (let i = 0; i < n; i++) {
                 cov[i] = [];
                 for (let j = 0; j < n; j++) {
                     let sum = 0;
                     for (let k = 0; k < m; k++) {
-                        sum += matrix[k][i] * matrix[k][j];
+                        sum += centeredMatrix[k][i] * centeredMatrix[k][j];
                     }
-                    cov[i][j] = sum / m;
+                    cov[i][j] = sum;
                 }
             }
             
-            // Compute eigenvalues and eigenvectors (simplified)
-            const singularValues = [];
-            const modes = [];
-            
-            // Extract first few modes (simplified approach)
-            const numModes = Math.min(10, n);
+            // Power iteration to find eigenvalues and eigenvectors
+            const numModes = Math.min(8, n);
+            const eigenvalues = [];
+            const eigenvectors = [];
             
             for (let mode = 0; mode < numModes; mode++) {
-                const modeData = [];
-                const variance = Math.random() * (1 - mode * 0.1); // Decreasing variance
-                
-                for (let i = 0; i < m; i++) {
-                    let value = 0;
-                    for (let j = 0; j < n; j++) {
-                        value += matrix[i][j] * Math.cos(2 * Math.PI * mode * j / n);
-                    }
-                    modeData.push(value * variance);
+                // Initialize random vector
+                let v = [];
+                for (let i = 0; i < n; i++) {
+                    v[i] = Math.random() - 0.5;
                 }
                 
-                modes.push(modeData);
-                singularValues.push(Math.sqrt(variance * m));
+                // Power iteration
+                for (let iter = 0; iter < 100; iter++) {
+                    // Multiply by covariance matrix
+                    const newV = [];
+                    for (let i = 0; i < n; i++) {
+                        let sum = 0;
+                        for (let j = 0; j < n; j++) {
+                            sum += cov[i][j] * v[j];
+                        }
+                        newV[i] = sum;
+                    }
+                    
+                    // Orthogonalize against previous eigenvectors
+                    for (let prev = 0; prev < eigenvectors.length; prev++) {
+                        let dot = 0;
+                        for (let i = 0; i < n; i++) {
+                            dot += newV[i] * eigenvectors[prev][i];
+                        }
+                        for (let i = 0; i < n; i++) {
+                            newV[i] -= dot * eigenvectors[prev][i];
+                        }
+                    }
+                    
+                    // Normalize
+                    let norm = 0;
+                    for (let i = 0; i < n; i++) {
+                        norm += newV[i] * newV[i];
+                    }
+                    norm = Math.sqrt(norm);
+                    
+                    if (norm < 1e-10) break;
+                    
+                    for (let i = 0; i < n; i++) {
+                        newV[i] /= norm;
+                    }
+                    
+                    v = newV;
+                }
+                
+                // Compute eigenvalue
+                let eigenvalue = 0;
+                for (let i = 0; i < n; i++) {
+                    let sum = 0;
+                    for (let j = 0; j < n; j++) {
+                        sum += cov[i][j] * v[j];
+                    }
+                    eigenvalue += v[i] * sum;
+                }
+                
+                if (eigenvalue > 1e-10) {
+                    eigenvalues.push(eigenvalue);
+                    eigenvectors.push([...v]);
+                }
+            }
+            
+            // Sort by eigenvalue (descending)
+            const indices = eigenvalues.map((_, i) => i);
+            indices.sort((a, b) => eigenvalues[b] - eigenvalues[a]);
+            
+            const sortedEigenvalues = indices.map(i => eigenvalues[i]);
+            const sortedEigenvectors = indices.map(i => eigenvectors[i]);
+            
+            // Compute modes using proper SVD reconstruction
+            const modes = [];
+            const singularValues = [];
+            const originalLength = matrix.length + n - 1; // Original time series length
+            
+            for (let mode = 0; mode < sortedEigenvalues.length; mode++) {
+                const eigenvalue = sortedEigenvalues[mode];
+                const eigenvector = sortedEigenvectors[mode];
+                
+                // Project data onto eigenvector to get temporal coefficients
+                const temporalCoeffs = [];
+                for (let i = 0; i < m; i++) {
+                    let projection = 0;
+                    for (let j = 0; j < n; j++) {
+                        projection += centeredMatrix[i][j] * eigenvector[j];
+                    }
+                    temporalCoeffs.push(projection);
+                }
+                
+                // Reconstruct mode time series using diagonal averaging (Hankel to Toeplitz)
+                const modeTimeSeries = new Array(originalLength).fill(0);
+                const counts = new Array(originalLength).fill(0);
+                
+                for (let i = 0; i < m; i++) {
+                    for (let j = 0; j < n; j++) {
+                        const timeIndex = i + j;
+                        if (timeIndex < originalLength) {
+                            // Reconstruct using outer product of temporal and spatial components
+                            const reconstructedValue = temporalCoeffs[i] * eigenvector[j];
+                            modeTimeSeries[timeIndex] += reconstructedValue;
+                            counts[timeIndex]++;
+                        }
+                    }
+                }
+                
+                // Average over all contributions to each time point
+                for (let t = 0; t < originalLength; t++) {
+                    if (counts[t] > 0) {
+                        modeTimeSeries[t] /= counts[t];
+                    }
+                }
+                
+                // Scale by singular value
+                const singularValue = Math.sqrt(eigenvalue);
+                for (let t = 0; t < originalLength; t++) {
+                    modeTimeSeries[t] *= singularValue;
+                }
+                
+                modes.push(modeTimeSeries);
+                singularValues.push(singularValue);
             }
             
             return {
                 singularValues: singularValues,
-                modes: modes
+                modes: modes,
+                totalVariance: sortedEigenvalues.reduce((a, b) => a + b, 0),
+                eigenvectors: sortedEigenvectors,
+                eigenvalues: sortedEigenvalues
             };
         }
         
@@ -423,12 +546,24 @@
             // Display singular values
             const svInfo = document.createElement('div');
             svInfo.className = 'mode-info';
+            const totalVariance = svd.totalVariance;
+            const cumulativeVariance = [];
+            let cumSum = 0;
+            
+            for (let i = 0; i < singularValues.length; i++) {
+                const eigenvalue = singularValues[i] * singularValues[i];
+                cumSum += eigenvalue;
+                cumulativeVariance.push((cumSum * 100 / totalVariance).toFixed(1));
+            }
+            
             svInfo.innerHTML = `
                 <h3>SVD Analysis Results</h3>
                 <p><strong>Original time series length:</strong> ${originalData.length} points</p>
                 <p><strong>Embedding window size:</strong> ${windowSize}</p>
                 <p><strong>Number of modes extracted:</strong> ${modes.length}</p>
                 <p><strong>Temporal resolution:</strong> ${temporalRes} hours</p>
+                <p><strong>Total variance:</strong> ${totalVariance.toFixed(4)}</p>
+                <p><strong>First 3 modes explain:</strong> ${cumulativeVariance[2] || 'N/A'}% of total variance</p>
             `;
             resultsDiv.appendChild(svInfo);
             
@@ -487,10 +622,15 @@
             // Mode info
             const modeInfo = document.createElement('div');
             modeInfo.className = 'mode-info';
+            const totalVariance = svdResults?.svd.totalVariance || 1;
+            const eigenvalue = singularValue * singularValue;
+            const variancePercent = (eigenvalue * 100 / totalVariance).toFixed(2);
+            
             modeInfo.innerHTML = `
                 <h3>Mode ${modeNumber}</h3>
                 <p><strong>Singular Value:</strong> ${singularValue.toFixed(4)}</p>
-                <p><strong>Variance Explained:</strong> ${(singularValue * 100 / (svdResults?.svd.singularValues.reduce((a,b) => a+b, 0) || 1)).toFixed(2)}%</p>
+                <p><strong>Eigenvalue:</strong> ${eigenvalue.toFixed(4)}</p>
+                <p><strong>Variance Explained:</strong> ${variancePercent}%</p>
             `;
             resultsDiv.appendChild(modeInfo);
             
@@ -611,5 +751,5 @@
             loadExample();
         };
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d96f96e50e88b2',t:'MTc1NDkzMzE2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d99ab551d28937',t:'MTc1NDkzNDkzMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
