@@ -107,3 +107,5 @@
 52) [basic linear marine mammals detection (experimental-future SIM AGI model)](https://claudio-iturra.github.io/basic_mammal.html)
 
 53) [ekman dynamics](https://claudio-iturra.github.io/ekman.html)
+
+54) [Singular Value Decomposition](https://claudio-iturra.github.io/svd.html)
