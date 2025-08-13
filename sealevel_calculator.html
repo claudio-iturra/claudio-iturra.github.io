@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sea Level Rise Parameter Evaluation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+        
+        h1 {
+            color: #1e3c72;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .tab-btn {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+        
+        .tab-btn:hover {
+            background: #1e3c72;
+            transform: translateY(-2px);
+        }
+        
+        .tab-btn.active {
+            background: #ff6b35;
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .parameter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .parameter-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #2a5298;
+        }
+        
+        .parameter-card h3 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+        
+        .equation-box {
+            background: #e8f4f8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #17a2b8;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .citation {
+            background: #fff3cd;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-size: 0.9em;
+            border-left: 3px solid #ffc107;
+        }
+        
+        .input-group {
+            margin: 15px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #1e3c72;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #2a5298;
+        }
+        
+        .calculate-btn {
+            background: linear-gradient(45deg, #ff6b35, #f7931e);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 20px 0;
+        }
+        
+        .calculate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+        }
+        
+        .result-box {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .scenario-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            height: 400px;
+            position: relative;
+        }
+        
+        .chart-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .tab-btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌊 Sea Level Rise Parameter Evaluation System</h1>
+            <p class="subtitle">Comprehensive Analysis of Atmospheric and Oceanographic Factors by Claudio Iturra</p>
+            <div class="nav-tabs">
+                <button class="tab-btn active" onclick="showTab('overview')">Overview</button>
+                <button class="tab-btn" onclick="showTab('thermal')">Thermal Expansion</button>
+                <button class="tab-btn" onclick="showTab('ice')">Ice Mass Loss</button>
+                <button class="tab-btn" onclick="showTab('atmospheric')">Atmospheric</button>
+                <button class="tab-btn" onclick="showTab('oceanic')">Oceanic</button>
+                <button class="tab-btn" onclick="showTab('calculator')">Calculator</button>
+                <button class="tab-btn" onclick="showTab('scenarios')">Future Scenarios</button>
+            </div>
+        </header>
+
+        <!-- Overview Tab -->
+        <div id="overview" class="tab-content active">
+            <h2>🔬 Sea Level Rise: Key Parameters Overview</h2>
+            <p>Sea level rise is driven by multiple interconnected atmospheric and oceanographic processes. This system evaluates the primary contributors based on current scientific research.</p>
+            
+            <div class="parameter-grid">
+                <div class="parameter-card">
+                    <h3>🌡️ Thermal Expansion</h3>
+                    <p>Ocean water expands as it warms, contributing ~40% of current sea level rise.</p>
+                    <div class="citation">
+                        <strong>Reference:</strong> Church, J.A. et al. (2013). Sea Level Change. In: Climate Change 2013: The Physical Science Basis. IPCC AR5.
+                    </div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>🧊 Ice Sheet Mass Loss</h3>
+                    <p>Greenland and Antarctic ice sheet melting contributes ~35% of sea level rise.</p>
+                    <div class="citation">
+                        <strong>Reference:</strong> Shepherd, A. et al. (2018). Mass balance of the Antarctic Ice Sheet from 1992 to 2017. Nature, 558, 219-222.
+                    </div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>🏔️ Glacier Mass Loss</h3>
+                    <p>Mountain glaciers and ice caps contribute ~20% of current sea level rise.</p>
+                    <div class="citation">
+                        <strong>Reference:</strong> Zemp, M. et al. (2019). Global glacier mass changes and their contributions to sea-level rise from 1961 to 2016. Nature, 568, 382-386.
+                    </div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>🌊 Ocean Dynamics</h3>
+                    <p>Changes in ocean circulation patterns affect regional sea level variations.</p>
+                    <div class="citation">
+                        <strong>Reference:</strong> Stammer, D. et al. (2013). Causes for contemporary regional sea level changes. Annual Review of Marine Science, 5, 21-46.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Thermal Expansion Tab -->
+        <div id="thermal" class="tab-content">
+            <h2>🌡️ Thermal Expansion Analysis</h2>
+            
+            <div class="parameter-card">
+                <h3>Thermal Expansion Coefficient</h3>
+                <p>The volumetric expansion of seawater due to temperature increase follows:</p>
+                
+                <div class="equation-box">
+                    <strong>ΔV/V = α × ΔT</strong><br>
+                    Where:<br>
+                    • ΔV/V = fractional volume change<br>
+                    • α = thermal expansion coefficient (~2.1 × 10⁻⁴ /°C for seawater)<br>
+                    • ΔT = temperature change (°C)
+                </div>
+                
+                <div class="citation">
+                    <strong>Reference:</strong> Millero, F.J. & Poisson, A. (1981). International one-atmosphere equation of state of seawater. Deep Sea Research, 28A, 625-629.
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>Sea Level Rise from Thermal Expansion</h3>
+                
+                <div class="equation-box">
+                    <strong>SLR_thermal = ∫₀ʰ α(T,S,P) × ΔT(z) dz</strong><br>
+                    Where:<br>
+                    • h = ocean depth<br>
+                    • α(T,S,P) = expansion coefficient (function of temperature, salinity, pressure)<br>
+                    • ΔT(z) = temperature change at depth z
+                </div>
+                
+                <p><strong>Example:</strong> For a 1°C warming of the upper 2000m ocean layer:</p>
+                <div class="equation-box">
+                    SLR = 2.1 × 10⁻⁴ × 1°C × 2000m = 0.42m = 42cm
+                </div>
+                
+                <div class="citation">
+                    <strong>Reference:</strong> Levitus, S. et al. (2012). World ocean heat content and thermosteric sea level change (0–2000 m), 1955–2010. Geophysical Research Letters, 39, L10603.
+                </div>
+            </div>
+        </div>
+
+        <!-- Ice Mass Loss Tab -->
+        <div id="ice" class="tab-content">
+            <h2>🧊 Ice Mass Loss Contributions</h2>
+            
+            <div class="parameter-card">
+                <h3>Ice Sheet Mass Balance</h3>
+                
+                <div class="equation-box">
+                    <strong>dM/dt = SMB - D</strong><br>
+                    Where:<br>
+                    • dM/dt = rate of mass change<br>
+                    • SMB = Surface Mass Balance (accumulation - ablation)<br>
+                    • D = Dynamic discharge (ice flow to ocean)
+                </div>
+                
+                <div class="citation">
+                    <strong>Reference:</strong> Rignot, E. et al. (2019). Four decades of Antarctic Ice Sheet mass balance from 1979–2017. PNAS, 116(4), 1095-1103.
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>Sea Level Equivalent</h3>
+                
+                <div class="equation-box">
+                    <strong>SLE = (ΔM × ρ_ice) / (ρ_water × A_ocean)</strong><br>
+                    Where:<br>
+                    • ΔM = mass change (kg)<br>
+                    • ρ_ice = ice density (~917 kg/m³)<br>
+                    • ρ_water = seawater density (~1025 kg/m³)<br>
+                    • A_ocean = ocean surface area (3.61 × 10¹⁴ m²)
+                </div>
+                
+                <p><strong>Example:</strong> Greenland ice sheet potential contribution:</p>
+                <div class="equation-box">
+                    Total Greenland SLE = 7.4 meters<br>
+                    Current rate: ~0.7mm/year (280 Gt/year mass loss)
+                </div>
+                
+                <div class="citation">
+                    <strong>Reference:</strong> Mouginot, J. et al. (2019). Forty-six years of Greenland Ice Sheet mass balance from 1972 to 2018. PNAS, 116(19), 9239-9244.
+                </div>
+            </div>
+        </div>
+
+        <!-- Atmospheric Tab -->
+        <div id="atmospheric" class="tab-content">
+            <h2>🌤️ Atmospheric Parameters</h2>
+            
+            <div class="parameter-card">
+                <h3>Radiative Forcing</h3>
+                
+                <div class="equation-box">
+                    <strong>ΔF = α × ln(C/C₀)</strong><br>
+                    Where:<br>
+                    • ΔF = radiative forcing (W/m²)<br>
+                    • α = 5.35 W/m² (for CO₂)<br>
+                    • C = current CO₂ concentration<br>
+                    • C₀ = reference concentration (280 ppm)
+                </div>
+                
+                <div class="citation">
+                    <strong>Reference:</strong> Myhre, G. et al. (2013). Anthropogenic and Natural Radiative Forcing. In: Climate Change 2013: The Physical Science Basis. IPCC AR5.
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>Temperature Response</h3>
+                
+                <div class="equation-box">
+                    <strong>ΔT = λ × ΔF</strong><br>
+                    Where:<br>
+                    • ΔT = temperature change (°C)<br>
+                    • λ = climate sensitivity parameter (~0.8 °C/(W/m²))<br>
+                    • ΔF = radiative forcing (W/m²)
+                </div>
+                
+                <p><strong>Example:</strong> Current CO₂ levels (~420 ppm):</p>
+                <div class="equation-box">
+                    ΔF = 5.35 × ln(420/280) = 2.4 W/m²<br>
+                    ΔT = 0.8 × 2.4 = 1.9°C potential warming
+                </div>
+            </div>
+        </div>
+
+        <!-- Oceanic Tab -->
+        <div id="oceanic" class="tab-content">
+            <h2>🌊 Oceanic Parameters</h2>
+            
+            <div class="parameter-card">
+                <h3>Ocean Heat Content</h3>
+                
+                <div class="equation-box">
+                    <strong>OHC = ∫∫∫ ρ × Cp × T dV</strong><br>
+                    Where:<br>
+                    • ρ = seawater density (kg/m³)<br>
+                    • Cp = specific heat capacity (~4000 J/kg/°C)<br>
+                    • T = temperature (°C)<br>
+                    • dV = volume element
+                </div>
+                
+                <div class="citation">
+                    <strong>Reference:</strong> Cheng, L. et al. (2020). Record-setting ocean warmth continued in 2019. Advances in Atmospheric Sciences, 37, 137-142.
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>Steric Sea Level</h3>
+                
+                <div class="equation-box">
+                    <strong>η_steric = ∫₀ʰ (1/ρ - 1/ρ₀) dz</strong><br>
+                    Where:<br>
+                    • η_steric = steric height change<br>
+                    • ρ = in-situ density<br>
+                    • ρ₀ = reference density<br>
+                    • h = integration depth
+                </div>
+                
+                <p><strong>Components:</strong></p>
+                <div class="equation-box">
+                    η_steric = η_thermosteric + η_halosteric<br>
+                    (thermal + salinity effects)
+                </div>
+            </div>
+        </div>
+
+        <!-- Calculator Tab -->
+        <div id="calculator" class="tab-content">
+            <h2>🧮 Sea Level Rise Calculator</h2>
+            
+            <div class="parameter-grid">
+                <div class="parameter-card">
+                    <h3>Thermal Expansion Calculator</h3>
+                    
+                    <div class="input-group">
+                        <label>Temperature Change (°C):</label>
+                        <input type="number" id="tempChange" value="1.0" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Ocean Depth (m):</label>
+                        <input type="number" id="oceanDepth" value="2000" step="100">
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateThermal()">Calculate Thermal Expansion</button>
+                    
+                    <div id="thermalResult" class="result-box" style="display:none;">
+                        <h4>Results:</h4>
+                        <p id="thermalOutput"></p>
+                    </div>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>Ice Mass Loss Calculator</h3>
+                    
+                    <div class="input-group">
+                        <label>Mass Loss Rate (Gt/year):</label>
+                        <input type="number" id="massLoss" value="280" step="10">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Time Period (years):</label>
+                        <input type="number" id="timePeriod" value="10" step="1">
+                    </div>
+                    
+                    <button class="calculate-btn" onclick="calculateIceLoss()">Calculate Ice Contribution</button>
+                    
+                    <div id="iceResult" class="result-box" style="display:none;">
+                        <h4>Results:</h4>
+                        <p id="iceOutput"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="parameter-card">
+                <h3>Combined Sea Level Rise</h3>
+                
+                <div class="input-group">
+                    <label>CO₂ Concentration (ppm):</label>
+                    <input type="number" id="co2Conc" value="420" step="10">
+                </div>
+                
+                <div class="input-group">
+                    <label>Time Horizon (years):</label>
+                    <input type="number" id="timeHorizon" value="50" step="10">
+                </div>
+                
+                <button class="calculate-btn" onclick="calculateCombined()">Calculate Total SLR</button>
+                
+                <div id="combinedResult" class="result-box" style="display:none;">
+                    <h4>Combined Results:</h4>
+                    <p id="combinedOutput"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Future Scenarios Tab -->
+        <div id="scenarios" class="tab-content">
+            <h2>🔮 Future Sea Level Rise Scenarios</h2>
+            
+            <div class="scenario-grid">
+                <div class="scenario-card">
+                    <h3>RCP2.6 (Low Emissions)</h3>
+                    <h4>2100: 0.43m (0.29-0.59m)</h4>
+                    <p>Strong mitigation scenario with peak warming ~1.5°C</p>
+                </div>
+                
+                <div class="scenario-card">
+                    <h3>RCP4.5 (Moderate)</h3>
+                    <h4>2100: 0.84m (0.62-1.11m)</h4>
+                    <p>Stabilization scenario with ~2.5°C warming</p>
+                </div>
+                
+                <div class="scenario-card">
+                    <h3>RCP8.5 (High Emissions)</h3>
+                    <h4>2100: 1.10m (0.79-1.46m)</h4>
+                    <p>High emissions with ~4°C warming</p>
+                </div>
+            </div>
+            
+            <div class="citation">
+                <strong>Reference:</strong> Oppenheimer, M. et al. (2019). Sea Level Rise and Implications for Low-Lying Islands, Coasts and Communities. In: IPCC Special Report on Ocean and Cryosphere (SROCC).
+            </div>
+            
+            <div class="parameter-card">
+                <h3>Scenario Parameters</h3>
+                
+                <div class="input-group">
+                    <label>Emission Scenario:</label>
+                    <select id="emissionScenario">
+                        <option value="rcp26">RCP2.6 (Low)</option>
+                        <option value="rcp45">RCP4.5 (Moderate)</option>
+                        <option value="rcp85">RCP8.5 (High)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>Target Year:</label>
+                    <input type="number" id="targetYear" value="2100" min="2025" max="2150" step="5">
+                </div>
+                
+                <div class="input-group">
+                    <label>Include Ice Sheet Uncertainty:</label>
+                    <select id="iceUncertainty">
+                        <option value="false">Standard Projection</option>
+                        <option value="true">Include Ice Sheet Instability</option>
+                    </select>
+                </div>
+                
+                <button class="calculate-btn" onclick="generateScenario()">Generate Scenario</button>
+                
+                <div id="scenarioResult" class="result-box" style="display:none;">
+                    <h4>Projected Sea Level Rise:</h4>
+                    <p id="scenarioOutput"></p>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <div class="chart-placeholder" id="scenarioChart">
+                    📊 Interactive Scenario Chart<br>
+                    <small>Shows projected sea level rise over time</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab and activate button
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // Thermal expansion calculation
+        function calculateThermal() {
+            const tempChange = parseFloat(document.getElementById('tempChange').value);
+            const oceanDepth = parseFloat(document.getElementById('oceanDepth').value);
+            
+            // Thermal expansion coefficient for seawater
+            const alpha = 2.1e-4; // per °C
+            
+            // Calculate sea level rise
+            const slr = alpha * tempChange * oceanDepth;
+            const slrCm = slr * 100; // convert to cm
+            
+            document.getElementById('thermalResult').style.display = 'block';
+            document.getElementById('thermalOutput').innerHTML = `
+                <strong>Thermal Expansion Results:</strong><br>
+                • Temperature change: ${tempChange}°C<br>
+                • Ocean depth considered: ${oceanDepth}m<br>
+                • Thermal expansion coefficient: ${alpha} /°C<br>
+                • <strong>Sea level rise: ${slrCm.toFixed(1)}cm (${slr.toFixed(3)}m)</strong><br>
+                <em>Note: This is a simplified calculation. Actual thermal expansion varies with depth, salinity, and pressure.</em>
+            `;
+        }
+        
+        // Ice mass loss calculation
+        function calculateIceLoss() {
+            const massLoss = parseFloat(document.getElementById('massLoss').value); // Gt/year
+            const timePeriod = parseFloat(document.getElementById('timePeriod').value);
+            
+            // Constants
+            const rhoIce = 917; // kg/m³
+            const rhoWater = 1025; // kg/m³
+            const oceanArea = 3.61e14; // m²
+            
+            // Calculate total mass loss
+            const totalMassLoss = massLoss * timePeriod * 1e12; // convert Gt to kg
+            
+            // Calculate sea level equivalent
+            const sle = (totalMassLoss * rhoIce) / (rhoWater * oceanArea);
+            const sleCm = sle * 100;
+            
+            document.getElementById('iceResult').style.display = 'block';
+            document.getElementById('iceOutput').innerHTML = `
+                <strong>Ice Mass Loss Results:</strong><br>
+                • Mass loss rate: ${massLoss} Gt/year<br>
+                • Time period: ${timePeriod} years<br>
+                • Total mass loss: ${(massLoss * timePeriod).toFixed(0)} Gt<br>
+                • <strong>Sea level contribution: ${sleCm.toFixed(1)}cm (${sle.toFixed(3)}m)</strong><br>
+                <em>Based on ice-to-water density conversion and global ocean area.</em>
+            `;
+        }
+        
+        // Combined calculation
+        function calculateCombined() {
+            const co2Conc = parseFloat(document.getElementById('co2Conc').value);
+            const timeHorizon = parseFloat(document.getElementById('timeHorizon').value);
+            
+            // Radiative forcing calculation
+            const co2Ref = 280; // ppm
+            const alpha = 5.35; // W/m²
+            const deltaF = alpha * Math.log(co2Conc / co2Ref);
+            
+            // Temperature response
+            const lambda = 0.8; // °C/(W/m²)
+            const deltaT = lambda * deltaF;
+            
+            // Thermal expansion (simplified)
+            const thermalSLR = 0.2 * deltaT; // ~20cm per °C (empirical)
+            
+            // Ice contribution (simplified)
+            const iceSLR = 0.15 * deltaT * (timeHorizon / 50); // scaled by time
+            
+            // Total SLR
+            const totalSLR = thermalSLR + iceSLR;
+            
+            document.getElementById('combinedResult').style.display = 'block';
+            document.getElementById('combinedOutput').innerHTML = `
+                <strong>Combined Sea Level Rise Projection:</strong><br>
+                • CO₂ concentration: ${co2Conc} ppm<br>
+                • Radiative forcing: ${deltaF.toFixed(2)} W/m²<br>
+                • Temperature increase: ${deltaT.toFixed(2)}°C<br>
+                • Thermal expansion: ${(thermalSLR * 100).toFixed(1)}cm<br>
+                • Ice contribution: ${(iceSLR * 100).toFixed(1)}cm<br>
+                • <strong>Total SLR by ${2024 + timeHorizon}: ${(totalSLR * 100).toFixed(1)}cm</strong><br>
+                <em>Simplified model for demonstration. Actual projections require complex climate models.</em>
+            `;
+        }
+        
+        // Scenario generation
+        function generateScenario() {
+            const scenario = document.getElementById('emissionScenario').value;
+            const targetYear = parseInt(document.getElementById('targetYear').value);
+            const includeIce = document.getElementById('iceUncertainty').value === 'true';
+            
+            const yearsFromNow = targetYear - 2024;
+            
+            // Scenario parameters (simplified)
+            const scenarios = {
+                rcp26: { warming: 1.5, slrRate: 0.8 }, // cm/decade
+                rcp45: { warming: 2.5, slrRate: 1.5 },
+                rcp85: { warming: 4.0, slrRate: 2.2 }
+            };
+            
+            const params = scenarios[scenario];
+            let baseSLR = (params.slrRate * yearsFromNow) / 10; // cm
+            
+            // Add ice sheet uncertainty
+            if (includeIce) {
+                baseSLR *= 1.5; // 50% increase for potential ice sheet instability
+            }
+            
+            const uncertainty = baseSLR * 0.3; // ±30% uncertainty
+            
+            document.getElementById('scenarioResult').style.display = 'block';
+            document.getElementById('scenarioOutput').innerHTML = `
+                <strong>Sea Level Rise Projection for ${targetYear}:</strong><br>
+                • Emission scenario: ${scenario.toUpperCase()}<br>
+                • Expected warming: ${params.warming}°C<br>
+                • <strong>Projected SLR: ${baseSLR.toFixed(0)}cm (${(baseSLR/100).toFixed(2)}m)</strong><br>
+                • Uncertainty range: ${(baseSLR - uncertainty).toFixed(0)}cm to ${(baseSLR + uncertainty).toFixed(0)}cm<br>
+                • Ice sheet uncertainty: ${includeIce ? 'Included' : 'Not included'}<br>
+                <em>Based on IPCC projections and current research trends.</em>
+            `;
+            
+            // Update chart placeholder
+            document.getElementById('scenarioChart').innerHTML = `
+                📊 Scenario Visualization<br>
+                <strong>${scenario.toUpperCase()}: ${baseSLR.toFixed(0)}cm by ${targetYear}</strong><br>
+                <div style="background: linear-gradient(to right, #4CAF50 0%, #FF9800 50%, #F44336 100%); height: 20px; border-radius: 10px; margin: 10px 0;"></div>
+                <small>Green: Low risk | Orange: Moderate risk | Red: High risk</small>
+            `;
+        }
+        
+        // Initialize with some example calculations
+        window.onload = function() {
+            // Auto-calculate thermal expansion example
+            setTimeout(() => {
+                if (document.getElementById('overview').classList.contains('active')) {
+                    // Show a welcome message or initial calculation
+                    console.log('Sea Level Rise Parameter Evaluation System loaded');
+                }
+            }, 1000);
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96e8d49fa2a588ae',t:'MTc1NTA5NDU4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
