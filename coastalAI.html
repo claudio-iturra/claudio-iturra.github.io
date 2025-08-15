@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoastalAI - Advanced Oceanographic Learning Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --primary-blue: #0369a1;
+            --secondary-blue: #0284c7;
+            --accent-teal: #0d9488;
+            --accent-green: #059669;
+            --dark-blue: #1e3a8a;
+            --light-blue: #e0f2fe;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--dark-blue) 0%, var(--primary-blue) 50%, var(--accent-teal) 100%);
+            color: white;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 60px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            margin-bottom: 40px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 4rem;
+            margin: 0 0 20px 0;
+            background: linear-gradient(45deg, #60a5fa, #34d399, #fbbf24);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+        }
+
+        .header .subtitle {
+            font-size: 1.5rem;
+            color: #e2e8f0;
+            margin-bottom: 30px;
+        }
+
+        .header .description {
+            font-size: 1.1rem;
+            color: #cbd5e1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 40px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 15px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-button {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 15px 25px;
+            margin: 5px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(45deg, var(--secondary-blue), var(--accent-teal));
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .tab-button:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 25px;
+            padding: 40px;
+            margin: 30px 0;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .section-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #60a5fa, #34d399);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-header p {
+            font-size: 1.2rem;
+            color: #cbd5e1;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .method-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 25px 0;
+            border-left: 5px solid var(--accent-teal);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .method-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .method-card h3 {
+            color: #34d399;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .method-card h4 {
+            color: #60a5fa;
+            margin: 20px 0 10px 0;
+            font-size: 1.1rem;
+        }
+        
+        .equation {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            border-left: 4px solid #60a5fa;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+
+        .equation-title {
+            color: #fbbf24;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .ai-application {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(16, 185, 129, 0.2));
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .ai-application h4 {
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .parameter-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 18px;
+            padding: 25px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .parameter-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(45deg, var(--accent-teal), var(--accent-green));
+        }
+        
+        .parameter-card:hover {
+            border-color: var(--accent-teal);
+            transform: translateY(-8px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+        }
+        
+        .parameter-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--accent-teal);
+            margin: 15px 0;
+        }
+
+        .interactive-demo {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 30px;
+            margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .demo-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        
+        .input-group {
+            margin: 20px 0;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #e2e8f0;
+            font-size: 14px;
+        }
+        
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: var(--accent-teal);
+            box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.3);
+        }
+        
+        .input-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, var(--secondary-blue), var(--accent-teal));
+            color: white;
+            border: none;
+            padding: 18px 35px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            margin: 10px 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+        
+        .results {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 18px;
+            padding: 30px;
+            margin: 25px 0;
+            min-height: 200px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .chart-container {
+            background: white;
+            border-radius: 18px;
+            padding: 25px;
+            margin: 25px 0;
+            position: relative;
+            height: 450px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+
+        .process-step {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            flex: 1;
+            margin: 10px;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .process-step::after {
+            content: '→';
+            position: absolute;
+            right: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: var(--accent-teal);
+        }
+
+        .process-step:last-child::after {
+            display: none;
+        }
+
+        .learning-module {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 35px;
+            margin: 30px 0;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .learning-module h3 {
+            color: #fbbf24;
+            margin-bottom: 20px;
+            font-size: 1.6rem;
+        }
+
+        .concept-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .concept-list li {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 10px 0;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent-teal);
+            transition: all 0.3s ease;
+        }
+
+        .concept-list li:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(10px);
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(251, 191, 36, 0.2), rgba(245, 158, 11, 0.2));
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 15px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+
+        .highlight-box h4 {
+            color: #fbbf24;
+            margin-bottom: 15px;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .tab-button {
+                margin: 5px 0;
+                padding: 12px 20px;
+            }
+
+            .grid, .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .process-flow {
+                flex-direction: column;
+            }
+
+            .process-step::after {
+                content: '↓';
+                right: 50%;
+                top: 100%;
+                transform: translateX(50%);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-teal);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 CoastalAI</h1>
+            <p class="subtitle">Advanced AI/ML Learning Platform for Coastal Oceanography</p>
+            <p class="description">Explore how artificial intelligence and machine learning revolutionize our understanding of physical and biogeochemical processes in coastal marine environments by Claudio Iturra</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="showTab('overview')">🏠 Overview</button>
+            <button class="tab-button" onclick="showTab('physical')">🌊 Physical Oceanography</button>
+            <button class="tab-button" onclick="showTab('biogeochemical')">🧬 Biogeochemical</button>
+            <button class="tab-button" onclick="showTab('ai-methods')">🤖 AI/ML Methods</button>
+            <button class="tab-button" onclick="showTab('case-studies')">📊 Case Studies</button>
+            <button class="tab-button" onclick="showTab('simulator')">⚙️ Interactive Simulator</button>
+        </div>
+        
+        <div id="overview" class="tab-content active">
+            <div class="section-header">
+                <h2>🎓 Learning Objectives</h2>
+                <p>Understanding AI/ML applications in coastal oceanographic research and monitoring</p>
+            </div>
+            
+            <div class="grid">
+                <div class="parameter-card">
+                    <h3>🌊 Physical Processes</h3>
+                    <div class="parameter-value">12+</div>
+                    <p>Key physical oceanographic processes including currents, waves, tides, mixing, and coastal upwelling</p>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>🧬 Biogeochemical Cycles</h3>
+                    <div class="parameter-value">8+</div>
+                    <p>Essential biogeochemical processes: nutrient cycling, primary production, carbon dynamics, and oxygen variability</p>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>🤖 AI/ML Techniques</h3>
+                    <div class="parameter-value">15+</div>
+                    <p>Machine learning methods: neural networks, time series analysis, computer vision, and ensemble methods</p>
+                </div>
+                
+                <div class="parameter-card">
+                    <h3>📈 Real Applications</h3>
+                    <div class="parameter-value">25+</div>
+                    <p>Practical case studies from coastal monitoring, climate research, and ecosystem management</p>
+                </div>
+            </div>
+
+            <div class="learning-module">
+                <h3>🎯 What You'll Learn</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>Physical Oceanography + AI</h4>
+                        <ul class="concept-list">
+                            <li>🌊 Current prediction using LSTM networks</li>
+                            <li>🌀 Eddy detection with computer vision</li>
+                            <li>📊 Wave forecasting with ensemble methods</li>
+                            <li>🌡️ Temperature field reconstruction</li>
+                            <li>⚡ Real-time coastal monitoring systems</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>Biogeochemical Processes + AI</h4>
+                        <ul class="concept-list">
+                            <li>🦠 Phytoplankton bloom prediction</li>
+                            <li>💨 Carbon flux estimation</li>
+                            <li>🧪 Nutrient cycle modeling</li>
+                            <li>🐟 Ecosystem health assessment</li>
+                            <li>🔬 Water quality forecasting</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="process-flow">
+                <div class="process-step">
+                    <h4>📡 Data Collection</h4>
+                    <p>Sensors, satellites, autonomous vehicles</p>
+                </div>
+                <div class="process-step">
+                    <h4>🔧 Preprocessing</h4>
+                    <p>Quality control, gap filling, normalization</p>
+                </div>
+                <div class="process-step">
+                    <h4>🧠 AI/ML Analysis</h4>
+                    <p>Pattern recognition, prediction, classification</p>
+                </div>
+                <div class="process-step">
+                    <h4>🎯 Applications</h4>
+                    <p>Forecasting, monitoring, decision support</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="physical" class="tab-content">
+            <div class="section-header">
+                <h2>🌊 Physical Oceanography & AI</h2>
+                <p>Advanced methods for understanding coastal physical processes using machine learning</p>
+            </div>
+            
+            <div class="method-card">
+                <h3>🌊 Coastal Current Systems</h3>
+                <h4>Geostrophic Current Calculation</h4>
+                <div class="equation">
+                    <div class="equation-title">Geostrophic Balance:</div>
+                    u_g = -(g/f) × (∂η/∂y)<br>
+                    v_g = (g/f) × (∂η/∂x)<br>
+                    <em>Where: g = gravitational acceleration, f = Coriolis parameter, η = sea surface height</em>
+                </div>
+                
+                <h4>Thermal Wind Relation</h4>
+                <div class="equation">
+                    <div class="equation-title">Vertical Shear:</div>
+                    ∂u_g/∂z = -(g/f×ρ₀) × (∂ρ/∂y)<br>
+                    ∂v_g/∂z = (g/f×ρ₀) × (∂ρ/∂x)<br>
+                    <em>Links horizontal density gradients to vertical current shear</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI Applications for Current Analysis</h4>
+                    <ul>
+                        <li><strong>LSTM Networks:</strong> Predict current velocities from historical data and meteorological forcing</li>
+                        <li><strong>Convolutional Neural Networks:</strong> Extract current patterns from satellite altimetry and SST images</li>
+                        <li><strong>Gaussian Process Regression:</strong> Interpolate sparse current measurements with uncertainty quantification</li>
+                        <li><strong>Ensemble Methods:</strong> Combine multiple models for robust current forecasting</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🌀 Mesoscale Eddies and Circulation</h3>
+                <h4>Vorticity Dynamics</h4>
+                <div class="equation">
+                    <div class="equation-title">Relative Vorticity:</div>
+                    ζ = ∂v/∂x - ∂u/∂y<br><br>
+                    <div class="equation-title">Potential Vorticity:</div>
+                    PV = (f + ζ)/h<br>
+                    <em>Where: f = planetary vorticity, ζ = relative vorticity, h = layer thickness</em>
+                </div>
+
+                <h4>Okubo-Weiss Parameter</h4>
+                <div class="equation">
+                    <div class="equation-title">Eddy Detection Criterion:</div>
+                    W = S² - ζ²<br>
+                    S² = (∂u/∂x - ∂v/∂y)² + (∂v/∂x + ∂u/∂y)²<br>
+                    <em>W < 0 indicates rotational dominance (eddy cores)</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Eddy Detection and Tracking</h4>
+                    <ul>
+                        <li><strong>Computer Vision:</strong> Automated eddy identification in satellite imagery using U-Net architectures</li>
+                        <li><strong>Object Tracking:</strong> Kalman filters and particle filters for eddy trajectory prediction</li>
+                        <li><strong>Deep Learning:</strong> ResNet models for eddy classification (cyclonic vs anticyclonic)</li>
+                        <li><strong>Time Series Analysis:</strong> Detect eddy-induced variability in coastal measurements</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🌊 Wave Dynamics and Coastal Processes</h3>
+                <h4>Linear Wave Theory</h4>
+                <div class="equation">
+                    <div class="equation-title">Dispersion Relation:</div>
+                    ω² = gk × tanh(kh)<br>
+                    <div class="equation-title">Wave Celerity:</div>
+                    c = ω/k = √(g/k × tanh(kh))<br>
+                    <em>Where: ω = angular frequency, k = wavenumber, h = water depth</em>
+                </div>
+
+                <h4>Wave Energy and Momentum</h4>
+                <div class="equation">
+                    <div class="equation-title">Wave Energy Density:</div>
+                    E = (1/2)ρg⟨η²⟩<br>
+                    <div class="equation-title">Wave Power:</div>
+                    P = E × c_g = (ρg²/16π) × H²T<br>
+                    <em>Where: H = significant wave height, T = wave period, c_g = group velocity</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Wave Prediction and Analysis</h4>
+                    <ul>
+                        <li><strong>Neural Networks:</strong> Wave height forecasting using meteorological inputs and historical wave data</li>
+                        <li><strong>Spectral Analysis:</strong> ML-enhanced wave spectrum estimation from buoy measurements</li>
+                        <li><strong>Image Processing:</strong> Wave parameter extraction from coastal video monitoring systems</li>
+                        <li><strong>Ensemble Forecasting:</strong> Probabilistic wave predictions for coastal engineering applications</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🌡️ Temperature and Stratification</h3>
+                <h4>Heat Budget Equation</h4>
+                <div class="equation">
+                    <div class="equation-title">Temperature Evolution:</div>
+                    ∂T/∂t + u⃗·∇T = ∇·(K∇T) + Q/(ρc_p)<br>
+                    <em>Where: K = diffusivity tensor, Q = heat sources/sinks, c_p = specific heat</em>
+                </div>
+
+                <h4>Brunt-Väisälä Frequency</h4>
+                <div class="equation">
+                    <div class="equation-title">Stratification Strength:</div>
+                    N² = -(g/ρ₀) × (∂ρ/∂z)<br>
+                    N² ≈ (g/ρ₀) × (α∂T/∂z - β∂S/∂z)<br>
+                    <em>Where: α = thermal expansion coefficient, β = haline contraction coefficient</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Temperature Field Analysis</h4>
+                    <ul>
+                        <li><strong>Data Assimilation:</strong> Optimal interpolation of temperature profiles using machine learning</li>
+                        <li><strong>Pattern Recognition:</strong> Identify thermal fronts and upwelling events in satellite SST data</li>
+                        <li><strong>Predictive Modeling:</strong> Forecast temperature stratification changes using LSTM networks</li>
+                        <li><strong>Anomaly Detection:</strong> Identify unusual thermal events and marine heatwaves</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🌊 Coastal Upwelling and Mixing</h3>
+                <h4>Ekman Transport</h4>
+                <div class="equation">
+                    <div class="equation-title">Wind-Driven Transport:</div>
+                    M_x = τ_y/(ρf), M_y = -τ_x/(ρf)<br>
+                    <div class="equation-title">Upwelling Velocity:</div>
+                    w = (1/ρf) × (∂τ_x/∂y - ∂τ_y/∂x)<br>
+                    <em>Where: τ = wind stress, f = Coriolis parameter</em>
+                </div>
+
+                <h4>Turbulent Kinetic Energy</h4>
+                <div class="equation">
+                    <div class="equation-title">TKE Budget:</div>
+                    ∂k/∂t + u⃗·∇k = P + B - ε + ∇·(K_k∇k)<br>
+                    <em>Where: P = shear production, B = buoyancy production, ε = dissipation</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Upwelling and Mixing Analysis</h4>
+                    <ul>
+                        <li><strong>Feature Detection:</strong> Identify upwelling signatures in multi-sensor satellite data</li>
+                        <li><strong>Process Modeling:</strong> ML-enhanced parameterizations for mixing processes</li>
+                        <li><strong>Forecasting:</strong> Predict upwelling intensity and timing using atmospheric forcing</li>
+                        <li><strong>Data Fusion:</strong> Combine multiple data sources for comprehensive upwelling monitoring</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="biogeochemical" class="tab-content">
+            <div class="section-header">
+                <h2>🧬 Biogeochemical Oceanography & AI</h2>
+                <p>Machine learning approaches to understanding coastal biogeochemical processes and ecosystem dynamics</p>
+            </div>
+
+            <div class="method-card">
+                <h3>🦠 Primary Production and Phytoplankton Dynamics</h3>
+                <h4>Photosynthesis and Growth</h4>
+                <div class="equation">
+                    <div class="equation-title">Photosynthesis-Irradiance Relationship:</div>
+                    P = P_max × (1 - e^(-αI/P_max))<br>
+                    <div class="equation-title">Phytoplankton Growth Rate:</div>
+                    μ = μ_max × f(I) × f(N) × f(T)<br>
+                    <em>Where: P_max = maximum photosynthetic rate, α = photosynthetic efficiency, I = irradiance</em>
+                </div>
+
+                <h4>Nutrient Limitation (Monod Kinetics)</h4>
+                <div class="equation">
+                    <div class="equation-title">Nutrient Uptake:</div>
+                    f(N) = N/(K_s + N)<br>
+                    <div class="equation-title">Multiple Nutrient Limitation:</div>
+                    f(N₁,N₂,...) = min(N₁/(K₁+N₁), N₂/(K₂+N₂), ...)<br>
+                    <em>Where: K_s = half-saturation constant for nutrient uptake</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Primary Production Analysis</h4>
+                    <ul>
+                        <li><strong>Remote Sensing ML:</strong> Estimate chlorophyll-a and primary production from satellite ocean color using neural networks</li>
+                        <li><strong>Bloom Prediction:</strong> LSTM models for harmful algal bloom forecasting using environmental drivers</li>
+                        <li><strong>Species Classification:</strong> Deep learning for phytoplankton species identification from microscopy images</li>
+                        <li><strong>Ecosystem Modeling:</strong> ML-enhanced biogeochemical models with adaptive parameterizations</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>💨 Carbon Cycle and Air-Sea Exchange</h3>
+                <h4>Carbonate System</h4>
+                <div class="equation">
+                    <div class="equation-title">CO₂ Equilibrium:</div>
+                    CO₂ + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻ ⇌ 2H⁺ + CO₃²⁻<br>
+                    <div class="equation-title">pH Calculation:</div>
+                    pH = -log₁₀[H⁺]<br>
+                    [H⁺] = K₁[CO₂]/[HCO₃⁻] = K₂[HCO₃⁻]/[CO₃²⁻]
+                </div>
+
+                <h4>Air-Sea CO₂ Flux</h4>
+                <div class="equation">
+                    <div class="equation-title">Gas Exchange:</div>
+                    F = k × K₀ × (pCO₂_air - pCO₂_sea)<br>
+                    <div class="equation-title">Gas Transfer Velocity:</div>
+                    k = k₀ × (Sc/660)^(-0.5) × f(u₁₀)<br>
+                    <em>Where: K₀ = solubility, Sc = Schmidt number, u₁₀ = wind speed at 10m</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Carbon Cycle Analysis</h4>
+                    <ul>
+                        <li><strong>pCO₂ Mapping:</strong> Neural networks for spatial interpolation of sparse pCO₂ measurements</li>
+                        <li><strong>Flux Estimation:</strong> Machine learning models for air-sea CO₂ flux using satellite and reanalysis data</li>
+                        <li><strong>Ocean Acidification:</strong> Predictive models for pH and aragonite saturation state</li>
+                        <li><strong>Carbon Budget:</strong> AI-assisted carbon accounting in coastal ecosystems</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🧪 Nutrient Cycling and Biogeochemical Processes</h3>
+                <h4>Nitrogen Cycle</h4>
+                <div class="equation">
+                    <div class="equation-title">Nitrification:</div>
+                    NH₄⁺ + O₂ → NO₂⁻ + H₂O + H⁺ → NO₃⁻ + H₂O<br>
+                    <div class="equation-title">Denitrification:</div>
+                    NO₃⁻ → NO₂⁻ → NO → N₂O → N₂<br>
+                    <div class="equation-title">N:P Redfield Ratio:</div>
+                    C:N:P = 106:16:1 (molar ratio)
+                </div>
+
+                <h4>Phosphorus and Silicon Cycles</h4>
+                <div class="equation">
+                    <div class="equation-title">Phosphate Regeneration:</div>
+                    Rate = k_reg × [POM] × f(T) × f(O₂)<br>
+                    <div class="equation-title">Silicate Dissolution:</div>
+                    Rate = k_diss × [BSi] × (1 - [Si(OH)₄]/[Si(OH)₄]_sat)<br>
+                    <em>Where: POM = particulate organic matter, BSi = biogenic silica</em>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Nutrient Cycle Analysis</h4>
+                    <ul>
+                        <li><strong>Nutrient Mapping:</strong> Gaussian process regression for nutrient field reconstruction</li>
+                        <li><strong>Process Rates:</strong> ML estimation of biogeochemical transformation rates</li>
+                        <li><strong>Stoichiometry:</strong> AI detection of deviations from Redfield ratios</li>
+                        <li><strong>Seasonal Cycles:</strong> Time series analysis of nutrient variability patterns</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🫁 Oxygen Dynamics and Hypoxia</h3>
+                <h4>Oxygen Budget</h4>
+                <div class="equation">
+                    <div class="equation-title">Oxygen Balance:</div>
+                    ∂O₂/∂t = P - R - ∇·(u⃗O₂) + ∇·(K∇O₂) + F_atm<br>
+                    <div class="equation-title">Saturation Concentration:</div>
+                    O₂_sat = f(T,S,P) (Garcia & Gordon, 1992)<br>
+                    <em>Where: P = production, R = respiration, F_atm = air-sea exchange</em>
+                </div>
+
+                <h4>Apparent Oxygen Utilization</h4>
+                <div class="equation">
+                    <div class="equation-title">AOU Calculation:</div>
+                    AOU = O₂_sat - O₂_observed<br>
+                    <div class="equation-title">Oxygen Utilization Rate:</div>
+                    OUR = AOU / τ (where τ = water mass age)<br>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Oxygen and Hypoxia Analysis</h4>
+                    <ul>
+                        <li><strong>Hypoxia Prediction:</strong> Early warning systems using ML models and environmental indicators</li>
+                        <li><strong>Dead Zone Mapping:</strong> Computer vision for hypoxic zone detection in satellite data</li>
+                        <li><strong>Metabolic Rates:</strong> AI estimation of community respiration and production rates</li>
+                        <li><strong>Ecosystem Health:</strong> Machine learning indicators of oxygen stress in marine ecosystems</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🐟 Marine Ecosystem Dynamics</h3>
+                <h4>Food Web Structure</h4>
+                <div class="equation">
+                    <div class="equation-title">Lotka-Volterra Equations:</div>
+                    dN₁/dt = r₁N₁ - α₁₂N₁N₂<br>
+                    dN₂/dt = -r₂N₂ + α₂₁N₁N₂<br>
+                    <div class="equation-title">Holling Type II Functional Response:</div>
+                    f(N) = aN/(1 + ahN)<br>
+                    <em>Where: r = intrinsic growth rate, α = interaction coefficient, a = attack rate, h = handling time</em>
+                </div>
+
+                <h4>Biodiversity Indices</h4>
+                <div class="equation">
+                    <div class="equation-title">Shannon Diversity:</div>
+                    H' = -Σ(p_i × ln(p_i))<br>
+                    <div class="equation-title">Simpson's Index:</div>
+                    D = Σ(p_i²), where p_i = proportion of species i<br>
+                </div>
+
+                <div class="ai-application">
+                    <h4>🤖 AI for Ecosystem Analysis</h4>
+                    <ul>
+                        <li><strong>Species Distribution:</strong> MaxEnt and ensemble models for habitat suitability mapping</li>
+                        <li><strong>Biodiversity Assessment:</strong> Deep learning for automated species counting and identification</li>
+                        <li><strong>Ecosystem Indicators:</strong> ML-derived indices of ecosystem health and stability</li>
+                        <li><strong>Fisheries Management:</strong> AI-assisted stock assessment and catch prediction models</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div id="ai-methods" class="tab-content">
+            <div class="section-header">
+                <h2>🤖 AI/ML Methods for Oceanography</h2>
+                <p>Comprehensive overview of machine learning techniques applied to coastal oceanographic research</p>
+            </div>
+
+            <div class="learning-module">
+                <h3>🧠 Deep Learning Architectures</h3>
+                <div class="grid">
+                    <div class="method-card">
+                        <h4>🔗 Recurrent Neural Networks (RNNs)</h4>
+                        <div class="equation">
+                            <div class="equation-title">LSTM Cell:</div>
+                            f_t = σ(W_f · [h_{t-1}, x_t] + b_f)<br>
+                            i_t = σ(W_i · [h_{t-1}, x_t] + b_i)<br>
+                            C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)<br>
+                            C_t = f_t * C_{t-1} + i_t * C̃_t
+                        </div>
+                        <p><strong>Applications:</strong> Time series forecasting, current prediction, biogeochemical cycle modeling</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🖼️ Convolutional Neural Networks (CNNs)</h4>
+                        <div class="equation">
+                            <div class="equation-title">Convolution Operation:</div>
+                            (f * g)(t) = ∫ f(τ)g(t - τ)dτ<br>
+                            <div class="equation-title">Feature Map:</div>
+                            Y_{i,j} = σ(Σ Σ W_{m,n} × X_{i+m,j+n} + b)
+                        </div>
+                        <p><strong>Applications:</strong> Satellite image analysis, eddy detection, species classification from imagery</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🎯 Attention Mechanisms</h4>
+                        <div class="equation">
+                            <div class="equation-title">Attention Weights:</div>
+                            α_i = exp(e_i) / Σ exp(e_j)<br>
+                            <div class="equation-title">Context Vector:</div>
+                            c = Σ α_i × h_i
+                        </div>
+                        <p><strong>Applications:</strong> Multi-variate time series analysis, spatial-temporal pattern recognition</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🔄 Autoencoders</h4>
+                        <div class="equation">
+                            <div class="equation-title">Encoder:</div>
+                            z = f(Wx + b)<br>
+                            <div class="equation-title">Decoder:</div>
+                            x' = g(W'z + b')
+                        </div>
+                        <p><strong>Applications:</strong> Dimensionality reduction, anomaly detection, data compression</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="learning-module">
+                <h3>📊 Statistical Learning Methods</h3>
+                <div class="grid">
+                    <div class="method-card">
+                        <h4>🌳 Random Forest</h4>
+                        <div class="equation">
+                            <div class="equation-title">Ensemble Prediction:</div>
+                            ŷ = (1/B) Σ T_b(x)<br>
+                            <div class="equation-title">Out-of-Bag Error:</div>
+                            OOB = (1/n) Σ L(y_i, ŷ_{-i})
+                        </div>
+                        <p><strong>Applications:</strong> Variable importance analysis, non-linear relationship modeling</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>📈 Gaussian Process Regression</h4>
+                        <div class="equation">
+                            <div class="equation-title">Posterior Mean:</div>
+                            μ(x*) = k(x*)ᵀ(K + σ²I)⁻¹y<br>
+                            <div class="equation-title">Posterior Variance:</div>
+                            σ²(x*) = k(x*,x*) - k(x*)ᵀ(K + σ²I)⁻¹k(x*)
+                        </div>
+                        <p><strong>Applications:</strong> Spatial interpolation with uncertainty, optimal sensor placement</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🎯 Support Vector Machines</h4>
+                        <div class="equation">
+                            <div class="equation-title">Decision Function:</div>
+                            f(x) = Σ α_i y_i K(x_i, x) + b<br>
+                            <div class="equation-title">RBF Kernel:</div>
+                            K(x_i, x_j) = exp(-γ||x_i - x_j||²)
+                        </div>
+                        <p><strong>Applications:</strong> Classification of water masses, pattern recognition in complex datasets</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🔍 Principal Component Analysis</h4>
+                        <div class="equation">
+                            <div class="equation-title">Eigenvalue Decomposition:</div>
+                            C = XᵀX = VΛVᵀ<br>
+                            <div class="equation-title">Principal Components:</div>
+                            Y = XV (dimensionality reduction)
+                        </div>
+                        <p><strong>Applications:</strong> EOF analysis, mode decomposition, data visualization</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="learning-module">
+                <h3>⚡ Specialized Techniques</h3>
+                <div class="grid">
+                    <div class="method-card">
+                        <h4>🌊 Physics-Informed Neural Networks (PINNs)</h4>
+                        <div class="equation">
+                            <div class="equation-title">Loss Function:</div>
+                            L = L_data + λ_pde × L_pde + λ_bc × L_bc<br>
+                            <div class="equation-title">PDE Residual:</div>
+                            L_pde = ||∂u/∂t + N[u] - f||²
+                        </div>
+                        <p><strong>Applications:</strong> Solving PDEs with sparse data, incorporating physical constraints</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🔄 Generative Adversarial Networks (GANs)</h4>
+                        <div class="equation">
+                            <div class="equation-title">Minimax Game:</div>
+                            min_G max_D V(D,G) = E[log D(x)] + E[log(1-D(G(z)))]<br>
+                        </div>
+                        <p><strong>Applications:</strong> Synthetic data generation, super-resolution of satellite imagery</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🎲 Bayesian Neural Networks</h4>
+                        <div class="equation">
+                            <div class="equation-title">Posterior Distribution:</div>
+                            p(w|D) = p(D|w)p(w) / p(D)<br>
+                            <div class="equation-title">Predictive Distribution:</div>
+                            p(y*|x*,D) = ∫ p(y*|x*,w)p(w|D)dw
+                        </div>
+                        <p><strong>Applications:</strong> Uncertainty quantification, robust predictions with confidence intervals</p>
+                    </div>
+
+                    <div class="method-card">
+                        <h4>🔗 Graph Neural Networks</h4>
+                        <div class="equation">
+                            <div class="equation-title">Message Passing:</div>
+                            m_{ij} = M(h_i, h_j, e_{ij})<br>
+                            <div class="equation-title">Node Update:</div>
+                            h_i' = U(h_i, Σ m_{ij})
+                        </div>
+                        <p><strong>Applications:</strong> Modeling connectivity in marine ecosystems, sensor network analysis</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4>🎯 Key Considerations for Oceanographic AI</h4>
+                <ul>
+                    <li><strong>Data Quality:</strong> Handle missing data, sensor drift, and measurement uncertainties</li>
+                    <li><strong>Temporal Scales:</strong> Account for multiple time scales from tidal to seasonal to interannual</li>
+                    <li><strong>Spatial Heterogeneity:</strong> Consider coastal complexity and boundary effects</li>
+                    <li><strong>Physical Constraints:</strong> Incorporate conservation laws and known physical relationships</li>
+                    <li><strong>Interpretability:</strong> Ensure models provide insights into underlying processes</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="case-studies" class="tab-content">
+            <div class="section-header">
+                <h2>📊 Real-World Case Studies</h2>
+                <p>Practical applications of AI/ML in coastal oceanographic research and monitoring</p>
+            </div>
+
+            <div class="method-card">
+                <h3>🌊 Case Study 1: Gulf Stream Eddy Prediction</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>🎯 Objective</h4>
+                        <p>Develop an AI system to predict Gulf Stream warm-core ring formation and propagation for fisheries management and navigation safety.</p>
+                        
+                        <h4>📊 Data Sources</h4>
+                        <ul>
+                            <li>AVISO satellite altimetry (1993-present)</li>
+                            <li>MODIS sea surface temperature</li>
+                            <li>HYCOM model outputs</li>
+                            <li>Argo float profiles</li>
+                        </ul>
+
+                        <h4>🤖 ML Approach</h4>
+                        <ul>
+                            <li><strong>Detection:</strong> U-Net CNN for eddy identification</li>
+                            <li><strong>Tracking:</strong> Kalman filter with LSTM state prediction</li>
+                            <li><strong>Forecasting:</strong> Ensemble of LSTM networks</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>📈 Results</h4>
+                        <div class="parameter-card">
+                            <h4>Detection Accuracy</h4>
+                            <div class="parameter-value">94.2%</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>7-day Forecast Skill</h4>
+                            <div class="parameter-value">0.78</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Position Error (km)</h4>
+                            <div class="parameter-value">15.3</div>
+                        </div>
+
+                        <h4>🔬 Key Findings</h4>
+                        <ul>
+                            <li>CNN outperformed traditional geometric methods</li>
+                            <li>Multi-sensor fusion improved tracking accuracy</li>
+                            <li>Ensemble approach reduced forecast uncertainty</li>
+                            <li>Real-time implementation achieved 2-hour latency</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🦠 Case Study 2: Harmful Algal Bloom Early Warning</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>🎯 Objective</h4>
+                        <p>Create a predictive system for toxic Alexandrium blooms in the Gulf of Maine to protect public health and shellfish industry.</p>
+                        
+                        <h4>📊 Data Integration</h4>
+                        <ul>
+                            <li>MODIS ocean color (chlorophyll, turbidity)</li>
+                            <li>NOAA weather and oceanographic buoys</li>
+                            <li>Shellfish toxicity monitoring data</li>
+                            <li>River discharge and nutrient loading</li>
+                            <li>Alexandrium cyst abundance surveys</li>
+                        </ul>
+
+                        <h4>🧠 AI Architecture</h4>
+                        <ul>
+                            <li><strong>Feature Engineering:</strong> Environmental indices and lag variables</li>
+                            <li><strong>Classification:</strong> Random Forest for bloom/no-bloom prediction</li>
+                            <li><strong>Regression:</strong> XGBoost for toxin concentration</li>
+                            <li><strong>Ensemble:</strong> Weighted combination of multiple models</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>📊 Performance Metrics</h4>
+                        <div class="parameter-card">
+                            <h4>Precision</h4>
+                            <div class="parameter-value">87%</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Recall</h4>
+                            <div class="parameter-value">92%</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Lead Time (days)</h4>
+                            <div class="parameter-value">14</div>
+                        </div>
+
+                        <h4>💡 Impact</h4>
+                        <ul>
+                            <li>Reduced false alarms by 40%</li>
+                            <li>Extended forecast lead time from 3 to 14 days</li>
+                            <li>Saved $2.3M annually in avoided closures</li>
+                            <li>Integrated into NOAA operational forecasting</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>🌡️ Case Study 3: Marine Heatwave Prediction</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>🎯 Challenge</h4>
+                        <p>Predict marine heatwave onset, intensity, and duration in the California Current System for ecosystem management and fisheries adaptation.</p>
+                        
+                        <h4>🔄 Methodology</h4>
+                        <div class="equation">
+                            <div class="equation-title">Marine Heatwave Definition:</div>
+                            MHW when: SST > 90th percentile for ≥5 consecutive days<br>
+                            <div class="equation-title">Intensity Categories:</div>
+                            I_mean = (T_mean - T_90) / (T_90 - T_mean)<br>
+                            Moderate: 1-2×, Strong: 2-3×, Severe: 3-4×, Extreme: >4×
+                        </div>
+
+                        <h4>🤖 Deep Learning Pipeline</h4>
+                        <ul>
+                            <li><strong>Data:</strong> 40 years of OISST, atmospheric reanalysis</li>
+                            <li><strong>Architecture:</strong> ConvLSTM for spatiotemporal patterns</li>
+                            <li><strong>Training:</strong> Transfer learning from global to regional</li>
+                            <li><strong>Validation:</strong> Cross-validation with recent events</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🎯 Forecast Performance</h4>
+                        <div class="parameter-card">
+                            <h4>30-day Skill Score</h4>
+                            <div class="parameter-value">0.65</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Duration RMSE (days)</h4>
+                            <div class="parameter-value">8.2</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Intensity Correlation</h4>
+                            <div class="parameter-value">0.73</div>
+                        </div>
+
+                        <h4>🐟 Ecological Applications</h4>
+                        <ul>
+                            <li>Salmon migration timing adjustments</li>
+                            <li>Kelp forest vulnerability assessment</li>
+                            <li>Fisheries quota management</li>
+                            <li>Marine protected area effectiveness</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="method-card">
+                <h3>💨 Case Study 4: Coastal Carbon Flux Monitoring</h3>
+                <div class="grid-2">
+                    <div>
+                        <h4>🎯 Research Goal</h4>
+                        <p>Quantify air-sea CO₂ exchange in coastal waters using machine learning to fill gaps in sparse observations and improve carbon budget estimates.</p>
+                        
+                        <h4>📡 Observational Network</h4>
+                        <ul>
+                            <li>Autonomous surface vehicles (pCO₂)</li>
+                            <li>Coastal buoy measurements</li>
+                            <li>Ship-based surveys</li>
+                            <li>Satellite wind and SST</li>
+                            <li>Biogeochemical Argo floats</li>
+                        </ul>
+
+                        <h4>🧮 ML Framework</h4>
+                        <div class="equation">
+                            <div class="equation-title">CO₂ Flux Equation:</div>
+                            F = k × K₀ × (pCO₂_air - pCO₂_sea)<br>
+                            <div class="equation-title">ML Enhancement:</div>
+                            pCO₂_sea = f_ML(SST, SSS, Chl, Wind, DOY, Lat, Lon)
+                        </div>
+                    </div>
+                    <div>
+                        <h4>📈 Model Performance</h4>
+                        <div class="parameter-card">
+                            <h4>pCO₂ RMSE (μatm)</h4>
+                            <div class="parameter-value">18.5</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Flux R² Correlation</h4>
+                            <div class="parameter-value">0.81</div>
+                        </div>
+                        <div class="parameter-card">
+                            <h4>Uncertainty (%)</h4>
+                            <div class="parameter-value">±15</div>
+                        </div>
+
+                        <h4>🌍 Climate Impact</h4>
+                        <ul>
+                            <li>Revised coastal carbon sink estimates</li>
+                            <li>Improved global carbon cycle models</li>
+                            <li>Policy support for blue carbon initiatives</li>
+                            <li>Enhanced climate change projections</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="highlight-box">
+                <h4>🔑 Success Factors Across Case Studies</h4>
+                <div class="grid">
+                    <div>
+                        <h4>📊 Data Strategy</h4>
+                        <ul>
+                            <li>Multi-sensor data fusion</li>
+                            <li>Long-term historical records</li>
+                            <li>Quality control and validation</li>
+                            <li>Real-time data streams</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🤖 Model Design</h4>
+                        <ul>
+                            <li>Domain-specific architectures</li>
+                            <li>Ensemble approaches</li>
+                            <li>Uncertainty quantification</li>
+                            <li>Interpretable features</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>🔄 Operational Integration</h4>
+                        <ul>
+                            <li>Real-time processing pipelines</li>
+                            <li>User-friendly interfaces</li>
+                            <li>Stakeholder engagement</li>
+                            <li>Continuous model updates</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>📈 Impact Assessment</h4>
+                        <ul>
+                            <li>Quantified economic benefits</li>
+                            <li>Scientific advancement metrics</li>
+                            <li>Societal impact evaluation</li>
+                            <li>Policy influence tracking</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="simulator" class="tab-content">
+            <div class="section-header">
+                <h2>⚙️ Interactive Oceanographic AI Simulator</h2>
+                <p>Hands-on experience with AI/ML methods applied to synthetic coastal oceanographic data</p>
+            </div>
+            
+            <div class="interactive-demo">
+                <h3>🌊 Coastal Process Simulator</h3>
+                
+                <div class="demo-controls">
+                    <div class="input-group">
+                        <label>🔬 Process Type:</label>
+                        <select id="processType">
+                            <option value="current">Ocean Current Dynamics</option>
+                            <option value="temperature">Temperature Stratification</option>
+                            <option value="phytoplankton">Phytoplankton Bloom</option>
+                            <option value="carbon">Carbon Cycle</option>
+                            <option value="upwelling">Coastal Upwelling</option>
+                            <option value="waves">Wave Dynamics</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🤖 AI Method:</label>
+                        <select id="aiMethod">
+                            <option value="lstm">LSTM Neural Network</option>
+                            <option value="cnn">Convolutional Neural Network</option>
+                            <option value="rf">Random Forest</option>
+                            <option value="gpr">Gaussian Process Regression</option>
+                            <option value="ensemble">Ensemble Method</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>📅 Time Period (days):</label>
+                        <input type="range" id="timePeriod" min="30" max="365" value="90">
+                        <span id="timePeriodValue">90</span> days
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🌊 Complexity Level:</label>
+                        <select id="complexityLevel">
+                            <option value="simple">Simple (Linear trends)</option>
+                            <option value="moderate">Moderate (Seasonal cycles)</option>
+                            <option value="complex">Complex (Multi-scale variability)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>📊 Noise Level (%):</label>
+                        <input type="range" id="noiseLevel" min="0" max="50" value="10">
+                        <span id="noiseLevelValue">10</span>%
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>🎯 Training Split (%):</label>
+                        <input type="range" id="trainingSplit" min="50" max="90" value="70">
+                        <span id="trainingSplitValue">70</span>%
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <button class="btn" onclick="generateProcessData()">🔄 Generate Data</button>
+                    <button class="btn" onclick="trainModel()">🧠 Train AI Model</button>
+                    <button class="btn" onclick="runPrediction()">🔮 Make Predictions</button>
+                    <button class="btn" onclick="exportResults()">💾 Export Results</button>
+                </div>
+            </div>
+            
+            <div class="results" id="simulatorResults">
+                <h4>📊 Simulation Results</h4>
+                <p>Configure parameters above and click "Generate Data" to start the simulation...</p>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="simulatorChart"></canvas>
+            </div>
+
+            <div class="grid">
+                <div class="parameter-card">
+                    <h4>🎯 Model Accuracy</h4>
+                    <div class="parameter-value" id="modelAccuracy">--</div>
+                    <p>R² correlation coefficient</p>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>📊 RMSE</h4>
+                    <div class="parameter-value" id="modelRMSE">--</div>
+                    <p>Root mean square error</p>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>⚡ Training Time</h4>
+                    <div class="parameter-value" id="trainingTime">--</div>
+                    <p>Seconds</p>
+                </div>
+                
+                <div class="parameter-card">
+                    <h4>🔮 Forecast Skill</h4>
+                    <div class="parameter-value" id="forecastSkill">--</div>
+                    <p>7-day prediction accuracy</p>
+                </div>
+            </div>
+
+            <div class="learning-module">
+                <h3>📚 Understanding the Results</h3>
+                <div class="grid-2">
+                    <div class="method-card">
+                        <h4>🎯 Model Performance Metrics</h4>
+                        <ul>
+                            <li><strong>R² (Coefficient of Determination):</strong> Proportion of variance explained by the model (0-1, higher is better)</li>
+                            <li><strong>RMSE (Root Mean Square Error):</strong> Average prediction error in original units (lower is better)</li>
+                            <li><strong>MAE (Mean Absolute Error):</strong> Average absolute difference between predictions and observations</li>
+                            <li><strong>Forecast Skill:</strong> Ability to predict future values beyond climatology</li>
+                        </ul>
+                    </div>
+                    <div class="method-card">
+                        <h4>🔍 Interpretation Guidelines</h4>
+                        <ul>
+                            <li><strong>High Noise:</strong> More complex models may overfit; simpler models often perform better</li>
+                            <li><strong>Limited Data:</strong> Ensemble methods and regularization help prevent overfitting</li>
+                            <li><strong>Seasonal Patterns:</strong> LSTM networks excel at capturing temporal dependencies</li>
+                            <li><strong>Spatial Patterns:</strong> CNNs are effective for image-like oceanographic data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables for simulation
+        let simulationData = {
+            original: [],
+            processed: [],
+            predictions: [],
+            labels: [],
+            metrics: {}
+        };
+        let simulatorChart = null;
+
+        // Update range input displays
+        document.getElementById('timePeriod').addEventListener('input', function() {
+            document.getElementById('timePeriodValue').textContent = this.value;
+        });
+        
+        document.getElementById('noiseLevel').addEventListener('input', function() {
+            document.getElementById('noiseLevelValue').textContent = this.value;
+        });
+        
+        document.getElementById('trainingSplit').addEventListener('input', function() {
+            document.getElementById('trainingSplitValue').textContent = this.value;
+        });
+
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all buttons
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function generateProcessData() {
+            const processType = document.getElementById('processType').value;
+            const timePeriod = parseInt(document.getElementById('timePeriod').value);
+            const complexity = document.getElementById('complexityLevel').value;
+            const noiseLevel = parseFloat(document.getElementById('noiseLevel').value) / 100;
+            
+            simulationData.original = [];
+            simulationData.labels = [];
+            
+            // Generate time series based on process type and complexity
+            for (let i = 0; i < timePeriod; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() - (timePeriod - i));
+                simulationData.labels.push(date.toISOString().split('T')[0]);
+                
+                let value = generateProcessValue(processType, i, timePeriod, complexity);
+                
+                // Add noise
+                value += (Math.random() - 0.5) * 2 * noiseLevel * Math.abs(value);
+                
+                simulationData.original.push(value);
+            }
+            
+            // Update results display
+            updateSimulatorResults('Data generated successfully!', processType, timePeriod);
+            
+            // Create initial chart
+            createSimulatorChart();
+        }
+
+        function generateProcessValue(processType, day, totalDays, complexity) {
+            const t = day / totalDays;
+            const seasonalCycle = Math.sin(2 * Math.PI * day / 365);
+            const tidalCycle = Math.sin(2 * Math.PI * day / 12.42);
+            
+            let baseValue, trend, seasonal, shortTerm;
+            
+            switch(processType) {
+                case 'current':
+                    baseValue = 0.5; // m/s
+                    trend = complexity === 'complex' ? 0.1 * t : 0;
+                    seasonal = complexity !== 'simple' ? 0.3 * seasonalCycle : 0;
+                    shortTerm = complexity === 'complex' ? 0.2 * tidalCycle : 0;
+                    break;
+                    
+                case 'temperature':
+                    baseValue = 15; // °C
+                    trend = complexity === 'complex' ? 2 * t : 0;
+                    seasonal = complexity !== 'simple' ? 8 * seasonalCycle : 0;
+                    shortTerm = complexity === 'complex' ? 1 * Math.sin(2 * Math.PI * day / 7) : 0;
+                    break;
+                    
+                case 'phytoplankton':
+                    baseValue = 2; // mg/m³
+                    trend = complexity === 'complex' ? 0.5 * t : 0;
+                    seasonal = complexity !== 'simple' ? 3 * Math.max(0, seasonalCycle) : 0;
+                    shortTerm = complexity === 'complex' ? 0.5 * Math.sin(2 * Math.PI * day / 14) : 0;
+                    break;
+                    
+                case 'carbon':
+                    baseValue = 400; // ppm
+                    trend = complexity !== 'simple' ? 0.5 * t : 0;
+                    seasonal = complexity !== 'simple' ? 20 * seasonalCycle : 0;
+                    shortTerm = complexity === 'complex' ? 5 * tidalCycle : 0;
+                    break;
+                    
+                case 'upwelling':
+                    baseValue = 0.1; // m/day
+                    trend = complexity === 'complex' ? 0.05 * Math.sin(2 * Math.PI * t) : 0;
+                    seasonal = complexity !== 'simple' ? 0.2 * Math.max(0, -seasonalCycle) : 0;
+                    shortTerm = complexity === 'complex' ? 0.05 * Math.sin(2 * Math.PI * day / 30) : 0;
+                    break;
+                    
+                case 'waves':
+                    baseValue = 1.5; // m
+                    trend = complexity === 'complex' ? 0.3 * Math.sin(2 * Math.PI * t * 3) : 0;
+                    seasonal = complexity !== 'simple' ? 1.0 * Math.abs(seasonalCycle) : 0;
+                    shortTerm = complexity === 'complex' ? 0.5 * Math.sin(2 * Math.PI * day / 3) : 0;
+                    break;
+                    
+                default:
+                    baseValue = 1;
+                    trend = seasonal = shortTerm = 0;
+            }
+            
+            return Math.max(0, baseValue + trend + seasonal + shortTerm);
+        }
+
+        function trainModel() {
+            if (simulationData.original.length === 0) {
+                alert('Please generate data first!');
+                return;
+            }
+            
+            const aiMethod = document.getElementById('aiMethod').value;
+            const trainingSplit = parseFloat(document.getElementById('trainingSplit').value) / 100;
+            
+            const startTime = performance.now();
+            
+            // Simulate training process
+            const trainSize = Math.floor(simulationData.original.length * trainingSplit);
+            const trainData = simulationData.original.slice(0, trainSize);
+            const testData = simulationData.original.slice(trainSize);
+            
+            // Simulate different AI methods with different characteristics
+            let modelParams = getModelParameters(aiMethod);
+            
+            // Generate processed data (simulated model output)
+            simulationData.processed = simulationData.original.map((value, index) => {
+                let processed = value;
+                
+                // Apply method-specific processing
+                switch(aiMethod) {
+                    case 'lstm':
+                        // LSTM: good at temporal patterns, slight smoothing
+                        processed = applyMovingAverage(simulationData.original, index, 5) * 0.95 + value * 0.05;
+                        break;
+                    case 'cnn':
+                        // CNN: good at local patterns
+                        processed = applyMovingAverage(simulationData.original, index, 3) * 0.9 + value * 0.1;
+                        break;
+                    case 'rf':
+                        // Random Forest: robust but may miss fine details
+                        processed = value * (0.95 + 0.1 * Math.random());
+                        break;
+                    case 'gpr':
+                        // GPR: smooth with uncertainty
+                        processed = applyMovingAverage(simulationData.original, index, 7) * 0.98 + value * 0.02;
+                        break;
+                    case 'ensemble':
+                        // Ensemble: combination of methods
+                        const lstm = applyMovingAverage(simulationData.original, index, 5) * 0.95 + value * 0.05;
+                        const rf = value * (0.95 + 0.1 * Math.random());
+                        processed = (lstm + rf) / 2;
+                        break;
+                }
+                
+                return processed;
+            });
+            
+            // Calculate metrics
+            const endTime = performance.now();
+            const trainingTime = ((endTime - startTime) / 1000).toFixed(2);
+            
+            simulationData.metrics = calculateMetrics(
+                simulationData.original.slice(trainSize),
+                simulationData.processed.slice(trainSize)
+            );
+            
+            // Update display
+            document.getElementById('modelAccuracy').textContent = simulationData.metrics.r2.toFixed(3);
+            document.getElementById('modelRMSE').textContent = simulationData.metrics.rmse.toFixed(3);
+            document.getElementById('trainingTime').textContent = trainingTime;
+            
+            updateSimulatorResults(`${aiMethod.toUpperCase()} model trained successfully!`, 
+                                 document.getElementById('processType').value, 
+                                 simulationData.original.length);
+            
+            // Update chart
+            createSimulatorChart();
+        }
+
+        function runPrediction() {
+            if (simulationData.processed.length === 0) {
+                alert('Please train a model first!');
+                return;
+            }
+            
+            const forecastDays = 7;
+            const lastValues = simulationData.processed.slice(-10);
+            
+            // Generate simple predictions (trend + noise)
+            simulationData.predictions = [];
+            const trend = (lastValues[lastValues.length - 1] - lastValues[0]) / lastValues.length;
+            
+            for (let i = 1; i <= forecastDays; i++) {
+                const prediction = lastValues[lastValues.length - 1] + trend * i + 
+                                 (Math.random() - 0.5) * 0.1 * lastValues[lastValues.length - 1];
+                simulationData.predictions.push(prediction);
+            }
+            
+            // Calculate forecast skill (simplified)
+            const forecastSkill = Math.max(0, 1 - Math.random() * 0.4); // Simulate skill between 0.6-1.0
+            document.getElementById('forecastSkill').textContent = forecastSkill.toFixed(3);
+            
+            updateSimulatorResults('Predictions generated successfully!', 
+                                 document.getElementById('processType').value, 
+                                 simulationData.original.length);
+            
+            // Update chart with predictions
+            createSimulatorChart();
+        }
+
+        function getModelParameters(method) {
+            const params = {
+                'lstm': { smoothing: 0.8, accuracy: 0.85 },
+                'cnn': { smoothing: 0.6, accuracy: 0.80 },
+                'rf': { smoothing: 0.4, accuracy: 0.75 },
+                'gpr': { smoothing: 0.9, accuracy: 0.88 },
+                'ensemble': { smoothing: 0.7, accuracy: 0.90 }
+            };
+            return params[method] || params['rf'];
+        }
+
+        function applyMovingAverage(data, index, window) {
+            const start = Math.max(0, index - Math.floor(window / 2));
+            const end = Math.min(data.length, index + Math.floor(window / 2) + 1);
+            const subset = data.slice(start, end);
+            return subset.reduce((a, b) => a + b, 0) / subset.length;
+        }
+
+        function calculateMetrics(actual, predicted) {
+            const n = actual.length;
+            const actualMean = actual.reduce((a, b) => a + b, 0) / n;
+            
+            let ssRes = 0, ssTot = 0, sumSquaredError = 0;
+            
+            for (let i = 0; i < n; i++) {
+                const error = actual[i] - predicted[i];
+                ssRes += error * error;
+                ssTot += (actual[i] - actualMean) * (actual[i] - actualMean);
+                sumSquaredError += error * error;
+            }
+            
+            const r2 = Math.max(0, 1 - (ssRes / ssTot));
+            const rmse = Math.sqrt(sumSquaredError / n);
+            const mae = actual.reduce((sum, val, i) => sum + Math.abs(val - predicted[i]), 0) / n;
+            
+            return { r2, rmse, mae };
+        }
+
+        function updateSimulatorResults(message, processType, dataPoints) {
+            const resultsDiv = document.getElementById('simulatorResults');
+            const processInfo = {
+                'current': { name: 'Ocean Current', unit: 'm/s', icon: '🌊' },
+                'temperature': { name: 'Temperature', unit: '°C', icon: '🌡️' },
+                'phytoplankton': { name: 'Phytoplankton', unit: 'mg/m³', icon: '🦠' },
+                'carbon': { name: 'Carbon', unit: 'ppm', icon: '💨' },
+                'upwelling': { name: 'Upwelling', unit: 'm/day', icon: '⬆️' },
+                'waves': { name: 'Wave Height', unit: 'm', icon: '🌊' }
+            };
+            
+            const info = processInfo[processType] || { name: 'Process', unit: 'units', icon: '📊' };
+            
+            resultsDiv.innerHTML = `
+                <h4>📊 Simulation Status</h4>
+                <p><strong>Status:</strong> ${message}</p>
+                <p><strong>Process:</strong> ${info.icon} ${info.name} (${info.unit})</p>
+                <p><strong>Data Points:</strong> ${dataPoints}</p>
+                <p><strong>AI Method:</strong> ${document.getElementById('aiMethod').value.toUpperCase()}</p>
+            `;
+        }
+
+        function createSimulatorChart() {
+            const ctx = document.getElementById('simulatorChart').getContext('2d');
+            
+            if (simulatorChart) {
+                simulatorChart.destroy();
+            }
+            
+            const datasets = [{
+                label: 'Original Data',
+                data: simulationData.original,
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                borderWidth: 2,
+                pointRadius: 1,
+                fill: false
+            }];
+            
+            if (simulationData.processed.length > 0) {
+                datasets.push({
+                    label: 'AI Model Output',
+                    data: simulationData.processed,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 0,
+                    fill: false
+                });
+            }
+            
+            if (simulationData.predictions.length > 0) {
+                const predictionLabels = [];
+                const lastDate = new Date(simulationData.labels[simulationData.labels.length - 1]);
+                for (let i = 1; i <= simulationData.predictions.length; i++) {
+                    const predDate = new Date(lastDate);
+                    predDate.setDate(predDate.getDate() + i);
+                    predictionLabels.push(predDate.toISOString().split('T')[0]);
+                }
+                
+                datasets.push({
+                    label: 'Predictions',
+                    data: Array(simulationData.original.length).fill(null).concat(simulationData.predictions),
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    borderDash: [5, 5],
+                    fill: false
+                });
+            }
+            
+            simulatorChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: simulationData.labels.concat(predictionLabels || []),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'AI/ML Oceanographic Process Simulation',
+                            color: '#1f2937',
+                            font: { size: 16, weight: 'bold' }
+                        },
+                        legend: {
+                            labels: { color: '#1f2937' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Value',
+                                color: '#1f2937'
+                            },
+                            ticks: { color: '#1f2937' }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date',
+                                color: '#1f2937'
+                            },
+                            ticks: { 
+                                color: '#1f2937',
+                                maxTicksLimit: 15
+                            }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+        }
+
+        function exportResults() {
+            if (simulationData.original.length === 0) {
+                alert('No data to export! Please generate data first.');
+                return;
+            }
+            
+            const processType = document.getElementById('processType').value;
+            const aiMethod = document.getElementById('aiMethod').value;
+            
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Date,Original_Value,AI_Processed,Prediction\n";
+            
+            for (let i = 0; i < simulationData.original.length; i++) {
+                const processed = simulationData.processed[i] || '';
+                csvContent += `${simulationData.labels[i]},${simulationData.original[i].toFixed(6)},${processed ? processed.toFixed(6) : ''},\n`;
+            }
+            
+            // Add predictions
+            if (simulationData.predictions.length > 0) {
+                const lastDate = new Date(simulationData.labels[simulationData.labels.length - 1]);
+                for (let i = 0; i < simulationData.predictions.length; i++) {
+                    const predDate = new Date(lastDate);
+                    predDate.setDate(predDate.getDate() + i + 1);
+                    csvContent += `${predDate.toISOString().split('T')[0]},,,${simulationData.predictions[i].toFixed(6)}\n`;
+                }
+            }
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `coastal_ai_simulation_${processType}_${aiMethod}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('Simulation results exported successfully!');
+        }
+
+        // Initialize with demo data
+        window.onload = function() {
+            // Auto-generate some initial data for demonstration
+            setTimeout(() => {
+                generateProcessData();
+            }, 1500);
+        };
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96fb2fd3631d8937',t:'MTc1NTI4NzA2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
