@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MarkDown Pro - Notes & Presentations</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #4c51bf;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #6b7280;
+            font-size: 1.1rem;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 300px 1fr 1fr;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+        
+        .sidebar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .sidebar h3 {
+            color: #4c51bf;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+        
+        .calendar {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .date-display {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #4c51bf;
+            margin-bottom: 5px;
+        }
+        
+        .day-display {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .templates {
+            margin-bottom: 20px;
+        }
+        
+        .template-btn {
+            display: block;
+            width: 100%;
+            background: #4c51bf;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .template-btn:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+        
+        .mode-toggle {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 4px;
+            margin-bottom: 15px;
+        }
+        
+        .mode-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+        
+        .mode-btn.active {
+            background: #4c51bf;
+            color: white;
+        }
+        
+        .editor-panel, .preview-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .panel-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #4c51bf;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            background: #4c51bf;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #10b981;
+        }
+        
+        .btn-secondary:hover {
+            background: #059669;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .editor {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: none;
+            outline: none;
+            background: #fafafa;
+            transition: border-color 0.3s ease;
+        }
+        
+        .editor:focus {
+            border-color: #4c51bf;
+        }
+        
+        .preview {
+            flex: 1;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            overflow-y: auto;
+            background: white;
+            line-height: 1.7;
+        }
+        
+        .preview h1, .preview h2, .preview h3 {
+            color: #4c51bf;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        
+        .preview h1 {
+            font-size: 2rem;
+            border-bottom: 3px solid #4c51bf;
+            padding-bottom: 10px;
+        }
+        
+        .preview h2 {
+            font-size: 1.5rem;
+        }
+        
+        .preview h3 {
+            font-size: 1.2rem;
+        }
+        
+        .preview p {
+            margin-bottom: 1em;
+        }
+        
+        .preview ul, .preview ol {
+            margin-left: 2em;
+            margin-bottom: 1em;
+        }
+        
+        .preview blockquote {
+            border-left: 4px solid #4c51bf;
+            padding-left: 1em;
+            margin: 1em 0;
+            font-style: italic;
+            background: #f8fafc;
+            padding: 1em;
+            border-radius: 0 8px 8px 0;
+        }
+        
+        .preview code {
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+        }
+        
+        .preview pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+        
+        .fullscreen-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #1e293b;
+            color: white;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+        }
+        
+        .fullscreen-header {
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .fullscreen-content {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            font-size: 1.2rem;
+            line-height: 1.8;
+        }
+        
+        .fullscreen-content h1 {
+            font-size: 3rem;
+            margin-bottom: 1em;
+            text-align: center;
+            color: #60a5fa;
+        }
+        
+        .fullscreen-content h2 {
+            font-size: 2.2rem;
+            margin: 1.5em 0 0.5em 0;
+            color: #34d399;
+        }
+        
+        .slide-controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 25px;
+        }
+        
+        .slide-btn {
+            background: #4c51bf;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            
+            .sidebar {
+                order: -1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 MarkDown Pro</h1>
+            <p>Create beautiful notes and presentations with live markdown preview by Claudio Iturra</p>
+        </div>
+        
+        <div class="main-content">
+            <div class="sidebar">
+                <div class="calendar">
+                    <div class="date-display" id="currentDate"></div>
+                    <div class="day-display" id="currentDay"></div>
+                </div>
+                
+                <div class="mode-toggle">
+                    <button class="mode-btn active" onclick="setMode('notes')">📝 Notes</button>
+                    <button class="mode-btn" onclick="setMode('presentation')">🎯 Slides</button>
+                </div>
+                
+                <div class="templates">
+                    <h3>📋 Templates</h3>
+                    <button class="template-btn" onclick="loadTemplate('meeting')">Meeting Notes</button>
+                    <button class="template-btn" onclick="loadTemplate('project')">Project Plan</button>
+                    <button class="template-btn" onclick="loadTemplate('presentation')">Presentation</button>
+                    <button class="template-btn" onclick="loadTemplate('daily')">Daily Journal</button>
+                    <button class="template-btn" onclick="loadTemplate('research')">Research Notes</button>
+                </div>
+                
+                <div class="actions">
+                    <h3>⚡ Quick Actions</h3>
+                    <button class="template-btn" onclick="clearEditor()">🗑️ Clear All</button>
+                    <button class="template-btn" onclick="saveToLocal()">💾 Save Local</button>
+                    <button class="template-btn" onclick="loadFromLocal()">📂 Load Saved</button>
+                </div>
+            </div>
+            
+            <div class="editor-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">✏️ Editor</h2>
+                    <div class="action-buttons">
+                        <button class="btn" onclick="insertMarkdown('**Bold**')">B</button>
+                        <button class="btn" onclick="insertMarkdown('*Italic*')">I</button>
+                        <button class="btn" onclick="insertMarkdown('# ')">H1</button>
+                        <button class="btn" onclick="insertMarkdown('- ')">List</button>
+                    </div>
+                </div>
+                <textarea class="editor" id="editor" placeholder="Start typing your markdown here...
+
+# Welcome to MarkDown Pro! 🚀
+
+## Getting Started
+- Type markdown on the left
+- See live preview on the right
+- Use templates for quick starts
+- Export to PDF when ready
+
+### Features
+- **Live Preview** - See changes instantly
+- **Presentation Mode** - Fullscreen slides
+- **PDF Export** - Download your work
+- **Templates** - Quick start options
+- **Daily Calendar** - Date tracking
+
+> Happy writing! ✨"></textarea>
+            </div>
+            
+            <div class="preview-panel">
+                <div class="panel-header">
+                    <h2 class="panel-title">👁️ Preview</h2>
+                    <div class="action-buttons">
+                        <button class="btn btn-secondary" onclick="toggleFullscreen()">🔍 Fullscreen</button>
+                        <button class="btn btn-danger" onclick="downloadPDF()">📄 PDF</button>
+                    </div>
+                </div>
+                <div class="preview" id="preview"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="fullscreen-overlay" id="fullscreenOverlay">
+        <div class="fullscreen-header">
+            <h3>🎯 Presentation Mode</h3>
+            <button class="btn" onclick="toggleFullscreen()">✕ Exit</button>
+        </div>
+        <div class="fullscreen-content" id="fullscreenContent"></div>
+        <div class="slide-controls">
+            <button class="slide-btn" onclick="previousSlide()">← Previous</button>
+            <span id="slideCounter">1 / 1</span>
+            <button class="slide-btn" onclick="nextSlide()">Next →</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'notes';
+        let slides = [];
+        let currentSlide = 0;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCalendar();
+            updatePreview();
+            
+            // Auto-update preview as user types
+            document.getElementById('editor').addEventListener('input', updatePreview);
+        });
+        
+        function updateCalendar() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            };
+            
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            document.getElementById('currentDay').textContent = now.toLocaleDateString('en-US', {
+                weekday: 'long'
+            });
+        }
+        
+        function setMode(mode) {
+            currentMode = mode;
+            
+            // Update active button
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update preview based on mode
+            updatePreview();
+        }
+        
+        function updatePreview() {
+            const editor = document.getElementById('editor');
+            const preview = document.getElementById('preview');
+            const markdown = editor.value;
+            
+            if (currentMode === 'presentation') {
+                // Split content by ## headers for slides
+                slides = markdown.split(/(?=^## )/gm).filter(slide => slide.trim());
+                if (slides.length === 0) slides = [markdown];
+                
+                preview.innerHTML = marked.parse(slides[0] || '');
+                updateSlideCounter();
+            } else {
+                preview.innerHTML = marked.parse(markdown);
+            }
+        }
+        
+        function loadTemplate(type) {
+            const editor = document.getElementById('editor');
+            const today = new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            
+            const templates = {
+                meeting: `# Meeting Notes - ${today}
+
+## Attendees
+- 
+- 
+- 
+
+## Agenda
+1. 
+2. 
+3. 
+
+## Discussion Points
+### Topic 1
+
+
+### Topic 2
+
+
+## Action Items
+- [ ] 
+- [ ] 
+- [ ] 
+
+## Next Meeting
+**Date:** 
+**Time:** 
+**Location:** `,
+
+                project: `# Project Plan - ${today}
+
+## Project Overview
+**Project Name:** 
+**Start Date:** ${today}
+**End Date:** 
+**Project Manager:** 
+
+## Objectives
+- 
+- 
+- 
+
+## Milestones
+| Milestone | Due Date | Status |
+|-----------|----------|--------|
+|           |          |        |
+|           |          |        |
+
+## Resources Needed
+- 
+- 
+- 
+
+## Risks & Mitigation
+- **Risk:** 
+  - *Mitigation:* 
+
+## Notes
+`,
+
+                presentation: `# Presentation Title
+*${today}*
+
+---
+
+## Slide 1: Introduction
+- Welcome to the presentation
+- Overview of topics
+- Key objectives
+
+## Slide 2: Main Content
+- Point 1
+- Point 2
+- Point 3
+
+## Slide 3: Details
+### Subsection A
+Content here...
+
+### Subsection B
+More content...
+
+## Slide 4: Conclusion
+- Summary of key points
+- Next steps
+- Questions?
+
+---
+
+*Thank you for your attention!*`,
+
+                daily: `# Daily Journal - ${today}
+
+## Today's Goals
+- [ ] 
+- [ ] 
+- [ ] 
+
+## Accomplishments
+- 
+- 
+- 
+
+## Challenges
+- 
+- 
+
+## Learnings
+- 
+- 
+
+## Tomorrow's Priorities
+1. 
+2. 
+3. 
+
+## Mood: 😊
+**Energy Level:** /10
+**Productivity:** /10
+
+## Notes
+`,
+
+                research: `# Research Notes - ${today}
+
+## Topic
+**Research Question:** 
+
+## Sources
+1. **Source 1**
+   - Author: 
+   - Date: 
+   - URL: 
+   - Key Points:
+     - 
+     - 
+
+2. **Source 2**
+   - Author: 
+   - Date: 
+   - URL: 
+   - Key Points:
+     - 
+     - 
+
+## Key Findings
+- 
+- 
+- 
+
+## Quotes & Citations
+> "Quote here"
+> — Author Name
+
+## Analysis
+### Patterns
+- 
+
+### Gaps
+- 
+
+### Next Steps
+- [ ] 
+- [ ] 
+
+## Bibliography
+1. 
+2. `
+            };
+            
+            editor.value = templates[type] || '';
+            updatePreview();
+        }
+        
+        function insertMarkdown(syntax) {
+            const editor = document.getElementById('editor');
+            const start = editor.selectionStart;
+            const end = editor.selectionEnd;
+            const selectedText = editor.value.substring(start, end);
+            
+            let newText;
+            if (syntax.includes('**') || syntax.includes('*')) {
+                newText = syntax.replace(/\*+/, match => match + selectedText + match);
+            } else {
+                newText = syntax + selectedText;
+            }
+            
+            editor.value = editor.value.substring(0, start) + newText + editor.value.substring(end);
+            editor.focus();
+            editor.setSelectionRange(start + syntax.length, start + syntax.length + selectedText.length);
+            updatePreview();
+        }
+        
+        function toggleFullscreen() {
+            const overlay = document.getElementById('fullscreenOverlay');
+            const content = document.getElementById('fullscreenContent');
+            
+            if (overlay.style.display === 'flex') {
+                overlay.style.display = 'none';
+            } else {
+                overlay.style.display = 'flex';
+                
+                if (currentMode === 'presentation' && slides.length > 0) {
+                    content.innerHTML = marked.parse(slides[currentSlide] || slides[0]);
+                } else {
+                    content.innerHTML = document.getElementById('preview').innerHTML;
+                }
+                
+                updateSlideCounter();
+            }
+        }
+        
+        function previousSlide() {
+            if (currentSlide > 0) {
+                currentSlide--;
+                document.getElementById('fullscreenContent').innerHTML = marked.parse(slides[currentSlide]);
+                updateSlideCounter();
+            }
+        }
+        
+        function nextSlide() {
+            if (currentSlide < slides.length - 1) {
+                currentSlide++;
+                document.getElementById('fullscreenContent').innerHTML = marked.parse(slides[currentSlide]);
+                updateSlideCounter();
+            }
+        }
+        
+        function updateSlideCounter() {
+            const counter = document.getElementById('slideCounter');
+            if (currentMode === 'presentation' && slides.length > 0) {
+                counter.textContent = `${currentSlide + 1} / ${slides.length}`;
+            } else {
+                counter.textContent = '1 / 1';
+            }
+        }
+        
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            
+            // Get content
+            const content = document.getElementById('preview').cloneNode(true);
+            
+            // Create a temporary container for PDF generation
+            const tempDiv = document.createElement('div');
+            tempDiv.style.width = '210mm';
+            tempDiv.style.padding = '20mm';
+            tempDiv.style.fontFamily = 'Arial, sans-serif';
+            tempDiv.style.fontSize = '12px';
+            tempDiv.style.lineHeight = '1.6';
+            tempDiv.style.color = '#000';
+            tempDiv.style.background = '#fff';
+            tempDiv.appendChild(content);
+            
+            document.body.appendChild(tempDiv);
+            
+            html2canvas(tempDiv, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                let heightLeft = imgHeight;
+                
+                let position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                const filename = currentMode === 'presentation' ? 'presentation.pdf' : 'notes.pdf';
+                pdf.save(filename);
+                
+                document.body.removeChild(tempDiv);
+            });
+        }
+        
+        function clearEditor() {
+            if (confirm('Are you sure you want to clear all content?')) {
+                document.getElementById('editor').value = '';
+                updatePreview();
+            }
+        }
+        
+        function saveToLocal() {
+            const content = document.getElementById('editor').value;
+            const timestamp = new Date().toISOString();
+            localStorage.setItem('markdown_content', content);
+            localStorage.setItem('markdown_timestamp', timestamp);
+            alert('Content saved locally!');
+        }
+        
+        function loadFromLocal() {
+            const content = localStorage.getItem('markdown_content');
+            const timestamp = localStorage.getItem('markdown_timestamp');
+            
+            if (content) {
+                const date = new Date(timestamp).toLocaleString();
+                if (confirm(`Load content saved on ${date}?`)) {
+                    document.getElementById('editor').value = content;
+                    updatePreview();
+                }
+            } else {
+                alert('No saved content found!');
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'b':
+                        e.preventDefault();
+                        insertMarkdown('**Bold**');
+                        break;
+                    case 'i':
+                        e.preventDefault();
+                        insertMarkdown('*Italic*');
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        saveToLocal();
+                        break;
+                    case 'Enter':
+                        if (document.getElementById('fullscreenOverlay').style.display === 'flex') {
+                            e.preventDefault();
+                            nextSlide();
+                        }
+                        break;
+                }
+            }
+            
+            // Fullscreen navigation
+            if (document.getElementById('fullscreenOverlay').style.display === 'flex') {
+                if (e.key === 'ArrowRight' || e.key === ' ') {
+                    e.preventDefault();
+                    nextSlide();
+                } else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    previousSlide();
+                } else if (e.key === 'Escape') {
+                    e.preventDefault();
+                    toggleFullscreen();
+                }
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97133fc7702d88ac',t:'MTc1NTUzOTM4MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
