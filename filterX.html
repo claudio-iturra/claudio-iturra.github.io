@@ -1,811 +1,353 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Series Filter Analysis Tool</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-    <style>
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-        
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-        
-        .header p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        
-        .control-panel {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            height: fit-content;
-        }
-        
-        .section {
-            margin-bottom: 25px;
-        }
-        
-        .section h3 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        
-        .input-group {
-            margin-bottom: 15px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #4a5568;
-            font-weight: 500;
-        }
-        
-        .input-group input, .input-group textarea, .input-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.2s;
-        }
-        
-        .input-group input:focus, .input-group textarea:focus, .input-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-        
-        .input-group textarea {
-            height: 120px;
-            resize: vertical;
-            font-family: monospace;
-        }
-        
-        .filter-controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: transform 0.2s, box-shadow 0.2s;
-            margin: 5px;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-        }
-        
-        .btn-export {
-            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-        }
-        
-        .visualization-area {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        }
-        
-        .plot-container {
-            margin-bottom: 30px;
-        }
-        
-        .plot-container h4 {
-            color: #2d3748;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        
-        .equations-section {
-            background: white;
-            border-radius: 16px;
-            padding: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            margin-bottom: 30px;
-        }
-        
-        .equation {
-            background: #f7fafc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border-left: 4px solid #667eea;
-        }
-        
-        .equation h4 {
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-        }
-        
-        .equation-formula {
-            font-family: 'Courier New', monospace;
-            background: white;
-            padding: 10px;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 8px;
-        }
-        
-        .equation-desc {
-            color: #4a5568;
-            font-size: 0.9rem;
-        }
-        
-        .status {
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-weight: 500;
-        }
-        
-        .status.success {
-            background: #c6f6d5;
-            color: #22543d;
-            border: 1px solid #9ae6b4;
-        }
-        
-        .status.error {
-            background: #fed7d7;
-            color: #742a2a;
-            border: 1px solid #fc8181;
-        }
-        
-        @media (max-width: 1024px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Time‑Series Filters (Low/High/Band‑pass)</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fft.js@4.0.4/dist/fft.min.js"></script>
+  <style>
+    :root{
+      --bg: #0b1020; --panel:#12182b; --muted:#9aa4b2; --text:#e8edf2; --accent:#7dd3fc; --accent2:#a78bfa;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:radial-gradient(1200px 600px at 70% -10%, #1a2350, transparent), var(--bg); color:var(--text)}
+    header{padding:20px 20px 0; text-align:center}
+    h1{margin:0; font-size:clamp(22px,3vw,32px)}
+    .sub{color:var(--muted); margin-top:6px}
+    .wrap{max-width:1200px; margin:22px auto; padding:0 16px;}
+    .grid{display:grid; grid-template-columns: 1fr 1fr; gap:16px}
+    .panel{background:linear-gradient(180deg,#12182b,#0f1530); border:1px solid #273055; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .panel h2{font-size:16px; font-weight:700; letter-spacing:.4px; margin:0; padding:14px 16px; border-bottom:1px solid #223056; color:#cfe3ff}
+    .panel .content{padding:14px 16px}
+    textarea{width:100%; min-height:220px; resize:vertical; color:var(--text); background:#0e1431; border:1px solid #263057; border-radius:12px; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:8px 0}
+    .row label{font-size:13px; color:#d7e4ff}
+    input[type="number"], select{background:#0e1431; color:var(--text); border:1px solid #263057; border-radius:10px; padding:8px 10px; min-width:110px}
+    .hint{font-size:12px; color:var(--muted)}
+    .controls{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
+    button{border:1px solid #2a355f; background:linear-gradient(180deg, #1a2550, #142046); color:#e7f5ff; padding:10px 14px; border-radius:12px; font-weight:600; cursor:pointer}
+    button.primary{background:linear-gradient(180deg, #1e60a8, #144b84); border-color:#2872c7}
+    button:disabled{opacity:.5; cursor:not-allowed}
+    .stack{display:flex; flex-direction:column; gap:8px}
+    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; background:#0f1637; border:1px solid #2b3a6b; font-size:12px}
+    canvas{width:100% !important; height:420px !important}
+    .footer{color:var(--muted); text-align:center; font-size:12px; padding:16px}
+    .grid-3{display:grid; grid-template-columns: repeat(3, 1fr); gap:10px}
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:#0b1333; border:1px solid #2a3560; padding:2px 6px; border-radius:6px}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🔬 Time Series Filter Analysis</h1>
-            <p>Advanced signal processing with spectral analysis and multiple filter types by Claudio Iturra</p>
+  <header>
+    <h1>Time‑Series Filtering: Low‑pass • High‑pass • Band‑pass</h1>
+    <div class="sub">Paste your series, set sampling resolution (hours), choose a filter in HOURS (e.g., band‑pass 10–24 h), and download the result by Claudio I.</div>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+      <section class="panel">
+        <h2>1) Paste time series</h2>
+        <div class="content stack">
+          <textarea id="inputSeries" placeholder="One value per line (evenly sampled), or two columns (timestamp, value). Example:\n\n0.45\n0.41\n0.38\n...\n\n—or—\n2025-01-01T00:00, 0.45\n2025-01-01T01:00, 0.41\n2025-01-01T02:00, 0.38"></textarea>
+          <div class="row">
+            <label>Sampling resolution (Δt, hours):</label>
+            <input type="number" id="dtHours" step="0.0001" min="0.000001" value="1" />
+            <span class="hint">This is the time between successive samples.</span>
+          </div>
+          <div class="row">
+            <span class="pill">N = <span id="nCount">0</span> samples</span>
+            <span class="pill">Mean = <span id="meanVal">–</span></span>
+            <span class="pill">Std = <span id="stdVal">–</span></span>
+          </div>
         </div>
-        
-        <div class="main-content">
-            <div class="control-panel">
-                <div class="section">
-                    <h3>📊 Data Input</h3>
-                    <div class="input-group">
-                        <label for="timeSeriesData">Time Series Data (one value per line):</label>
-                        <textarea id="timeSeriesData" placeholder="1.5&#10;2.3&#10;1.8&#10;3.2&#10;2.1&#10;...">2.5
-2.8
-3.2
-3.5
-3.7
-3.8
-3.6
-3.2
-2.7
-2.1
-1.6
-1.2
-1.0
-1.1
-1.4
-1.9
-2.5
-3.1
-3.6
-4.0
-4.2
-4.1
-3.8
-3.3
-2.7
-2.0
-1.4
-1.0
-0.8
-0.9
-1.2
-1.7
-2.3
-2.9
-3.4
-3.8
-4.0
-3.9
-3.6
-3.1
-2.5
-1.8
-1.2
-0.9
-0.8
-1.0
-1.4
-2.0
-2.6
-3.2
-3.7
-4.1
-4.2
-4.0
-3.6
-3.0
-2.3
-1.6
-1.1
-0.8
-0.7
-0.9
-1.3
-1.9
-2.5
-3.1
-3.6
-4.0
-4.1
-3.9
-3.5
-2.9
-2.2
-1.5
-1.0
-0.8
-0.9
-1.2
-1.7
-2.3
-2.9
-3.4
-3.8
-4.0
-3.9
-3.6
-3.1
-2.5
-1.8
-1.2
-0.9
-0.8
-1.0
-1.4
-2.0
-2.6
-3.2
-3.7
-4.1</textarea>
-                    </div>
-                    <div class="input-group">
-                        <label for="temporalResolution">Temporal Resolution (hours):</label>
-                        <input type="number" id="temporalResolution" value="1" min="0.1" step="0.1">
-                    </div>
-                    <button class="btn" onclick="processData()">📈 Analyze Data</button>
-                </div>
-                
-                <div class="section">
-                    <h3>🔧 Filter Settings</h3>
-                    <div class="input-group">
-                        <label for="filterType">Filter Type:</label>
-                        <select id="filterType" onchange="updateFilterControls()">
-                            <option value="lowpass">Low Pass</option>
-                            <option value="highpass">High Pass</option>
-                            <option value="bandpass">Band Pass</option>
-                            <option value="bandstop">Band Stop</option>
-                        </select>
-                    </div>
-                    <div class="filter-controls">
-                        <div class="input-group" id="cutoffLowGroup">
-                            <label for="cutoffLow">Low Cutoff (hours):</label>
-                            <input type="number" id="cutoffLow" value="8" min="0.1" step="0.1">
-                        </div>
-                        <div class="input-group" id="cutoffHighGroup">
-                            <label for="cutoffHigh">High Cutoff (hours):</label>
-                            <input type="number" id="cutoffHigh" value="25" min="0.1" step="0.1">
-                        </div>
-                        <div class="input-group" id="cutoffSingleGroup" style="display: none;">
-                            <label for="cutoffSingle" id="cutoffSingleLabel">Cutoff (hours):</label>
-                            <input type="number" id="cutoffSingle" value="15" min="0.1" step="0.1">
-                        </div>
-                    </div>
-                    <button class="btn btn-secondary" onclick="applyFilter()">🔄 Apply Filter</button>
-                </div>
-                
-                <div class="section">
-                    <h3>💾 Export Options</h3>
-                    <button class="btn btn-export" onclick="exportData('csv')">📄 Export as CSV</button>
-                    <button class="btn btn-export" onclick="exportData('json')">📋 Export as JSON</button>
-                </div>
-                
-                <div id="status"></div>
-            </div>
-            
-            <div class="visualization-area">
-                <div class="plot-container">
-                    <h4>Time Series Comparison</h4>
-                    <div id="timeSeriesPlot" style="height: 400px;"></div>
-                </div>
-                
-                <div class="plot-container">
-                    <h4>Spectral Analysis</h4>
-                    <div id="spectrumPlot" style="height: 400px;"></div>
-                </div>
-            </div>
+      </section>
+
+      <section class="panel">
+        <h2>2) Filter settings (cutoffs in HOURS)</h2>
+        <div class="content stack">
+          <div class="row">
+            <label><input type="radio" name="ftype" value="low" checked> Low‑pass</label>
+            <label><input type="radio" name="ftype" value="high"> High‑pass</label>
+            <label><input type="radio" name="ftype" value="band"> Band‑pass</label>
+          </div>
+          <div id="lowHighControls" class="row">
+            <label>Cutoff period (hours):</label>
+            <input type="number" id="cutoffHours" step="0.1" min="0.0001" value="40"/>
+            <span class="hint">Low‑pass keeps periods ≥ cutoff (frequencies ≤ 1/cutoff). High‑pass keeps periods ≤ cutoff.</span>
+          </div>
+          <div id="bandControls" class="row" style="display:none">
+            <label>Band (hours):</label>
+            <input type="number" id="bandMin" step="0.1" min="0.0001" value="10"/>
+            <span>to</span>
+            <input type="number" id="bandMax" step="0.1" min="0.0001" value="24"/>
+            <span class="hint">Keeps periods between min and max (e.g., 10–24 h).</span>
+          </div>
+          <div class="controls">
+            <button class="primary" id="runBtn">Apply filter</button>
+            <button id="downloadBtn" disabled>Download filtered CSV</button>
+            <button id="clearBtn">Clear</button>
+          </div>
         </div>
-        
-        <div class="equations-section">
-            <h3>📐 Filter Equations & Theory</h3>
-            
-            <div class="equation">
-                <h4>Low Pass Filter</h4>
-                <div class="equation-formula">H(f) = 1 / (1 + (f/fc)²ⁿ)</div>
-                <div class="equation-desc">Allows frequencies below cutoff fc to pass through. Attenuates high frequencies.</div>
-            </div>
-            
-            <div class="equation">
-                <h4>High Pass Filter</h4>
-                <div class="equation-formula">H(f) = (f/fc)²ⁿ / (1 + (f/fc)²ⁿ)</div>
-                <div class="equation-desc">Allows frequencies above cutoff fc to pass through. Attenuates low frequencies.</div>
-            </div>
-            
-            <div class="equation">
-                <h4>Band Pass Filter</h4>
-                <div class="equation-formula">H(f) = ((f/fc)ⁿ) / (1 + (f/fl)²ⁿ + (fh/f)²ⁿ)</div>
-                <div class="equation-desc">Allows frequencies between fl and fh to pass. Attenuates frequencies outside this band.</div>
-            </div>
-            
-            <div class="equation">
-                <h4>Band Stop Filter</h4>
-                <div class="equation-formula">H(f) = (1 + (fh/f)²ⁿ + (f/fl)²ⁿ) / (1 + (f/fl)²ⁿ + (fh/f)²ⁿ + (f/fc)²ⁿ)</div>
-                <div class="equation-desc">Blocks frequencies between fl and fh. Allows frequencies outside this band to pass.</div>
-            </div>
-            
-            <div class="equation">
-                <h4>Fourier Transform</h4>
-                <div class="equation-formula">X(f) = ∫ x(t) * e^(-j2πft) dt</div>
-                <div class="equation-desc">Converts time domain signal to frequency domain for spectral analysis.</div>
-            </div>
-        </div>
+      </section>
     </div>
 
-    <script>
-        let originalData = [];
-        let filteredData = [];
-        let timeAxis = [];
-        let temporalRes = 1;
-        
-        function updateFilterControls() {
-            const filterType = document.getElementById('filterType').value;
-            const cutoffLowGroup = document.getElementById('cutoffLowGroup');
-            const cutoffHighGroup = document.getElementById('cutoffHighGroup');
-            const cutoffSingleGroup = document.getElementById('cutoffSingleGroup');
-            const cutoffSingleLabel = document.getElementById('cutoffSingleLabel');
-            
-            if (filterType === 'bandpass' || filterType === 'bandstop') {
-                // Band filters need two cutoff frequencies
-                cutoffLowGroup.style.display = 'block';
-                cutoffHighGroup.style.display = 'block';
-                cutoffSingleGroup.style.display = 'none';
-            } else {
-                // Low pass and high pass need only one cutoff
-                cutoffLowGroup.style.display = 'none';
-                cutoffHighGroup.style.display = 'none';
-                cutoffSingleGroup.style.display = 'block';
-                
-                if (filterType === 'lowpass') {
-                    cutoffSingleLabel.textContent = 'High Cutoff (hours):';
-                } else if (filterType === 'highpass') {
-                    cutoffSingleLabel.textContent = 'Low Cutoff (hours):';
-                }
-            }
+    <section class="panel" style="margin-top:16px">
+      <h2>3) Plot</h2>
+      <div class="content">
+        <div class="row hint">Original and filtered series are plotted below. X‑axis is sample index (0…N‑1). If you provided timestamps, they are exported but not shown on the chart.</div>
+        <canvas id="chart"></canvas>
+      </div>
+    </section>
+
+    <div class="footer">Tip: For best results, your series should be evenly sampled. The filters are applied in the frequency domain with zero‑phase (FFT ideal masks).</div>
+  </div>
+
+<script>
+  // ---------- Helpers ----------
+  const byId = (id) => document.getElementById(id);
+  const fmt = (x) => (Number.isFinite(x)? x.toFixed(4) : '–');
+
+  function parseSeries(text){
+    const lines = text.split(/\r?\n/).map(s => s.trim()).filter(s => s.length);
+    const values = [];
+    const timestamps = [];
+    for(const line of lines){
+      // Accept CSV, TSV, or whitespace; either single value or timestamp,value
+      const parts = line.split(/[\s,;\t]+/).filter(Boolean);
+      if(parts.length === 1){
+        const v = Number(parts[0]);
+        if(Number.isFinite(v)) values.push(v);
+      } else {
+        const v = Number(parts[parts.length-1]);
+        if(Number.isFinite(v)){
+          values.push(v);
+          timestamps.push(parts.slice(0, parts.length-1).join(' '));
         }
-        
-        function showStatus(message, type = 'success') {
-            const statusDiv = document.getElementById('status');
-            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
-            setTimeout(() => statusDiv.innerHTML = '', 5000);
-        }
-        
-        function processData() {
-            const dataText = document.getElementById('timeSeriesData').value.trim();
-            temporalRes = parseFloat(document.getElementById('temporalResolution').value);
-            
-            if (!dataText) {
-                showStatus('Please enter time series data', 'error');
-                return;
-            }
-            
-            try {
-                originalData = dataText.split('\n')
-                    .map(line => parseFloat(line.trim()))
-                    .filter(val => !isNaN(val));
-                
-                if (originalData.length < 3) {
-                    showStatus('Please enter at least 3 data points', 'error');
-                    return;
-                }
-                
-                timeAxis = originalData.map((_, i) => i * temporalRes);
-                filteredData = [...originalData];
-                
-                plotTimeSeries();
-                plotSpectrum();
-                showStatus(`Successfully loaded ${originalData.length} data points`);
-                
-            } catch (error) {
-                showStatus('Error processing data: ' + error.message, 'error');
-            }
-        }
-        
-        function applyFilter() {
-            if (originalData.length === 0) {
-                showStatus('Please load data first', 'error');
-                return;
-            }
-            
-            const filterType = document.getElementById('filterType').value;
-            let cutoffLow, cutoffHigh;
-            
-            if (filterType === 'bandpass' || filterType === 'bandstop') {
-                cutoffLow = parseFloat(document.getElementById('cutoffLow').value);
-                cutoffHigh = parseFloat(document.getElementById('cutoffHigh').value);
-            } else {
-                const cutoffSingle = parseFloat(document.getElementById('cutoffSingle').value);
-                if (filterType === 'lowpass') {
-                    cutoffLow = 0;
-                    cutoffHigh = cutoffSingle;
-                } else if (filterType === 'highpass') {
-                    cutoffLow = cutoffSingle;
-                    cutoffHigh = Infinity;
-                }
-            }
-            
-            try {
-                filteredData = filterTimeSeries(originalData, filterType, cutoffLow, cutoffHigh, temporalRes);
-                plotTimeSeries();
-                plotSpectrum();
-                showStatus(`${filterType.charAt(0).toUpperCase() + filterType.slice(1)} filter applied successfully`);
-            } catch (error) {
-                showStatus('Error applying filter: ' + error.message, 'error');
-            }
-        }
-        
-        function filterTimeSeries(data, filterType, cutoffLow, cutoffHigh, dt) {
-            const N = data.length;
-            const nyquist = 1 / (2 * dt);
-            
-            // Compute FFT
-            const fft = computeFFT(data);
-            
-            // Create frequency array (cycles per hour)
-            const frequencies = Array.from({length: N}, (_, i) => {
-                if (i <= N/2) {
-                    return i / (N * dt);  // Positive frequencies
-                } else {
-                    return (i - N) / (N * dt);  // Negative frequencies
-                }
-            });
-            
-            // Convert cutoff periods to frequencies (cycles per hour)
-            const fcLow = cutoffLow > 0 ? 1 / cutoffLow : 0;
-            const fcHigh = cutoffHigh > 0 ? 1 / cutoffHigh : nyquist;
-            
-            // Apply filter in frequency domain
-            const filteredFFT = fft.map((complex, i) => {
-                const freq = Math.abs(frequencies[i]);  // Use absolute frequency
-                let magnitude = 0;
-                
-                switch (filterType) {
-                    case 'lowpass':
-                        // Allow frequencies below fcHigh
-                        if (freq <= fcHigh) {
-                            magnitude = 1;
-                        } else {
-                            magnitude = 1 / (1 + Math.pow((freq / fcHigh), 4));
-                        }
-                        break;
-                        
-                    case 'highpass':
-                        // Allow frequencies above fcLow
-                        if (freq >= fcLow) {
-                            magnitude = 1;
-                        } else {
-                            magnitude = Math.pow((freq / fcLow), 2) / (1 + Math.pow((freq / fcLow), 2));
-                        }
-                        break;
-                        
-                    case 'bandpass':
-                        // Allow frequencies between fcLow and fcHigh
-                        if (freq >= fcLow && freq <= fcHigh) {
-                            magnitude = 1;
-                        } else if (freq < fcLow) {
-                            magnitude = Math.pow((freq / fcLow), 2) / (1 + Math.pow((freq / fcLow), 2));
-                        } else {
-                            magnitude = 1 / (1 + Math.pow((freq / fcHigh), 4));
-                        }
-                        break;
-                        
-                    case 'bandstop':
-                        // Block frequencies between fcLow and fcHigh
-                        if (freq >= fcLow && freq <= fcHigh) {
-                            magnitude = 1 / (1 + Math.pow(10, 2));  // Strong attenuation
-                        } else {
-                            magnitude = 1;
-                        }
-                        break;
-                }
-                
-                return {
-                    real: complex.real * magnitude,
-                    imag: complex.imag * magnitude
-                };
-            });
-            
-            return computeIFFT(filteredFFT);
-        }
-        
-        function computeFFT(data) {
-            const N = data.length;
-            const result = data.map(val => ({real: val, imag: 0}));
-            
-            // Simple DFT implementation
-            const fft = [];
-            for (let k = 0; k < N; k++) {
-                let real = 0, imag = 0;
-                for (let n = 0; n < N; n++) {
-                    const angle = -2 * Math.PI * k * n / N;
-                    real += result[n].real * Math.cos(angle) - result[n].imag * Math.sin(angle);
-                    imag += result[n].real * Math.sin(angle) + result[n].imag * Math.cos(angle);
-                }
-                fft.push({real, imag});
-            }
-            return fft;
-        }
-        
-        function computeIFFT(fftData) {
-            const N = fftData.length;
-            const result = [];
-            
-            for (let n = 0; n < N; n++) {
-                let real = 0;
-                for (let k = 0; k < N; k++) {
-                    const angle = 2 * Math.PI * k * n / N;
-                    real += fftData[k].real * Math.cos(angle) - fftData[k].imag * Math.sin(angle);
-                }
-                result.push(real / N);
-            }
-            return result;
-        }
-        
-        function plotTimeSeries() {
-            if (typeof Plotly === 'undefined') {
-                showStatus('Plotting library not loaded yet. Please wait...', 'error');
-                return;
-            }
-            
-            const originalTrace = {
-                x: timeAxis,
-                y: originalData,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Original',
-                line: {color: '#667eea', width: 2},
-                marker: {size: 4}
-            };
-            
-            const filteredTrace = {
-                x: timeAxis,
-                y: filteredData,
-                type: 'scatter',
-                mode: 'lines+markers',
-                name: 'Filtered',
-                line: {color: '#48bb78', width: 2},
-                marker: {size: 4}
-            };
-            
-            const layout = {
-                title: 'Time Series Comparison',
-                xaxis: {title: 'Time (hours)'},
-                yaxis: {title: 'Amplitude'},
-                showlegend: true,
-                margin: {t: 50, r: 50, b: 50, l: 50}
-            };
-            
-            try {
-                Plotly.newPlot('timeSeriesPlot', [originalTrace, filteredTrace], layout, {responsive: true});
-            } catch (error) {
-                showStatus('Error creating time series plot: ' + error.message, 'error');
-            }
-        }
-        
-        function plotSpectrum() {
-            if (typeof Plotly === 'undefined') {
-                showStatus('Plotting library not loaded yet. Please wait...', 'error');
-                return;
-            }
-            
-            const originalFFT = computeFFT(originalData);
-            const filteredFFT = computeFFT(filteredData);
-            
-            const N = originalData.length;
-            const nyquist = 1 / (2 * temporalRes);
-            const frequencies = Array.from({length: Math.floor(N/2)}, (_, i) => i * nyquist * 2 / N);
-            
-            const originalSpectrum = originalFFT.slice(0, Math.floor(N/2)).map(c => 
-                Math.sqrt(c.real * c.real + c.imag * c.imag)
-            );
-            
-            const filteredSpectrum = filteredFFT.slice(0, Math.floor(N/2)).map(c => 
-                Math.sqrt(c.real * c.real + c.imag * c.imag)
-            );
-            
-            // Convert frequencies to periods (hours)
-            const periods = frequencies.map(f => f > 0 ? 1/f : Infinity).filter(p => p < 1000);
-            const originalSpectrumPeriods = originalSpectrum.slice(1, periods.length + 1);
-            const filteredSpectrumPeriods = filteredSpectrum.slice(1, periods.length + 1);
-            
-            const originalSpectrumTrace = {
-                x: periods,
-                y: originalSpectrumPeriods,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Original Spectrum',
-                line: {color: '#667eea', width: 2}
-            };
-            
-            const filteredSpectrumTrace = {
-                x: periods,
-                y: filteredSpectrumPeriods,
-                type: 'scatter',
-                mode: 'lines',
-                name: 'Filtered Spectrum',
-                line: {color: '#48bb78', width: 2}
-            };
-            
-            const layout = {
-                title: 'Power Spectrum Analysis',
-                xaxis: {title: 'Period (hours)', type: 'log'},
-                yaxis: {title: 'Power Spectral Density'},
-                showlegend: true,
-                margin: {t: 50, r: 50, b: 50, l: 50}
-            };
-            
-            try {
-                Plotly.newPlot('spectrumPlot', [originalSpectrumTrace, filteredSpectrumTrace], layout, {responsive: true});
-            } catch (error) {
-                showStatus('Error creating spectrum plot: ' + error.message, 'error');
-            }
-        }
-        
-        function exportData(format) {
-            if (originalData.length === 0) {
-                showStatus('No data to export', 'error');
-                return;
-            }
-            
-            let content, filename, mimeType;
-            
-            if (format === 'csv') {
-                const headers = 'Time (hours),Original,Filtered\n';
-                const rows = timeAxis.map((t, i) => 
-                    `${t},${originalData[i]},${filteredData[i]}`
-                ).join('\n');
-                content = headers + rows;
-                filename = 'time_series_filtered.csv';
-                mimeType = 'text/csv';
-            } else if (format === 'json') {
-                const filterType = document.getElementById('filterType').value;
-                let metadata = {
-                    temporalResolution: temporalRes,
-                    filterType: filterType,
-                    exportDate: new Date().toISOString()
-                };
-                
-                if (filterType === 'bandpass' || filterType === 'bandstop') {
-                    metadata.cutoffLow = parseFloat(document.getElementById('cutoffLow').value);
-                    metadata.cutoffHigh = parseFloat(document.getElementById('cutoffHigh').value);
-                } else {
-                    metadata.cutoff = parseFloat(document.getElementById('cutoffSingle').value);
-                }
-                
-                const data = {
-                    metadata: metadata,
-                    timeSeries: timeAxis.map((t, i) => ({
-                        time: t,
-                        original: originalData[i],
-                        filtered: filteredData[i]
-                    }))
-                };
-                content = JSON.stringify(data, null, 2);
-                filename = 'time_series_filtered.json';
-                mimeType = 'application/json';
-            }
-            
-            const blob = new Blob([content], {type: mimeType});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            
-            showStatus(`Data exported as ${filename}`);
-        }
-        
-        // Initialize with sample data after Plotly loads
-        function initializeApp() {
-            if (typeof Plotly !== 'undefined' && Plotly.newPlot) {
-                processData();
-            } else {
-                console.log('Waiting for Plotly to load...');
-                setTimeout(initializeApp, 200);
-            }
-        }
-        
-        // Multiple initialization attempts
-        document.addEventListener('DOMContentLoaded', function() {
-            updateFilterControls();
-            initializeApp();
-        });
-        
-        window.addEventListener('load', function() {
-            updateFilterControls();
-            setTimeout(initializeApp, 500);
-        });
-        
-        // Fallback initialization
-        setTimeout(function() {
-            updateFilterControls();
-            if (typeof Plotly !== 'undefined') {
-                initializeApp();
-            }
-        }, 2000);
-    </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96d8eec981ba88a6',t:'MTc1NDkyNzg4OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+      }
+    }
+    return {values, timestamps};
+  }
+
+  function basicStats(arr){
+    if(!arr.length) return {mean: NaN, std: NaN};
+    const m = arr.reduce((a,b)=>a+b,0)/arr.length;
+    const v = arr.reduce((a,b)=>a+(b-m)*(b-m),0)/arr.length;
+    return {mean:m, std: Math.sqrt(v)};
+  }
+
+  function nextPow2(n){
+    return Math.pow(2, Math.ceil(Math.log2(Math.max(1,n))));
+  }
+
+  function applyFFTFilter(values, dtHours, type, params){
+    const N = values.length;
+    if(N===0) return [];
+
+    // Zero‑mean to reduce DC leakage (we add mean back after)
+    const mean = values.reduce((a,b)=>a+b,0)/N;
+    const x = Float64Array.from(values.map(v=>v-mean));
+
+    // Zero‑pad to power of two for speed
+    const M = nextPow2(N);
+    const re = new Float64Array(M);
+    const im = new Float64Array(M);
+    for(let i=0;i<N;i++) re[i]=x[i];
+
+    const ffter = new FFT(M);
+    ffter.transform(re, im, re, im); // FFT(re+ i*0) -> (re,im)
+
+    // Frequency (cycles per hour)
+    const df = 1/(M*dtHours);
+
+    // Build mask (symmetrical for negative freqs)
+    const maskRe = new Float64Array(M).fill(0);
+    const maskIm = new Float64Array(M).fill(0);
+
+    const pass = (fAbs)=>{
+      if(type==='low'){
+        const fcut = 1/params.cutoffHours; // <= fcut passes
+        return fAbs <= fcut;
+      } else if(type==='high'){
+        const fcut = 1/params.cutoffHours; // >= fcut passes
+        return fAbs >= fcut;
+      } else { // band
+        const f1 = 1/Math.max(params.maxHours, params.minHours); // lower freq bound
+        const f2 = 1/Math.min(params.maxHours, params.minHours); // upper freq bound
+        // band: f in [f1, f2]
+        return fAbs >= f1 && fAbs <= f2;
+      }
+    };
+
+    for(let k=0;k<M;k++){
+      const kShift = k<=M/2? k : M-k; // mirror for negative freqs
+      const fAbs = kShift*df;
+      const on = pass(fAbs) ? 1 : 0;
+      maskRe[k] = on; // multiply complex spectrum by real mask
+    }
+
+    // Apply mask in frequency domain
+    for(let k=0;k<M;k++){
+      re[k] *= maskRe[k];
+      im[k] *= maskRe[k];
+    }
+
+    // Inverse FFT
+    ffter.inverseTransform(re, im, re, im);
+    // Normalize (fft.js uses unnormalized forward, normalized inverse)
+
+    // Extract first N samples and add mean back (zero‑phase result)
+    const y = new Array(N);
+    for(let i=0;i<N;i++) y[i] = re[i] + mean;
+    return y;
+  }
+
+  // ---------- UI Logic ----------
+  const input = byId('inputSeries');
+  const dt = byId('dtHours');
+  const nCount = byId('nCount');
+  const meanVal = byId('meanVal');
+  const stdVal = byId('stdVal');
+  const runBtn = byId('runBtn');
+  const dlBtn = byId('downloadBtn');
+  const clearBtn = byId('clearBtn');
+
+  const cutoffHours = byId('cutoffHours');
+  const bandMin = byId('bandMin');
+  const bandMax = byId('bandMax');
+  const lowHighControls = byId('lowHighControls');
+  const bandControls = byId('bandControls');
+
+  let parsed = {values:[], timestamps:[]};
+  let filtered = [];
+  let chart;
+
+  function refreshStats(){
+    parsed = parseSeries(input.value);
+    const {mean, std} = basicStats(parsed.values);
+    nCount.textContent = parsed.values.length;
+    meanVal.textContent = fmt(mean);
+    stdVal.textContent = fmt(std);
+  }
+
+  input.addEventListener('input', refreshStats);
+  window.addEventListener('DOMContentLoaded', refreshStats);
+
+  // Toggle filter control groups
+  document.querySelectorAll('input[name="ftype"]').forEach(r=>{
+    r.addEventListener('change', ()=>{
+      const t = document.querySelector('input[name="ftype"]:checked').value;
+      lowHighControls.style.display = (t==='band') ? 'none' : 'flex';
+      bandControls.style.display = (t==='band') ? 'flex' : 'none';
+    });
+  });
+
+  function ensureValid(){
+    const t = document.querySelector('input[name="ftype"]:checked').value;
+    const N = parsed.values.length;
+    const dtH = Number(dt.value);
+    if(!N || !Number.isFinite(dtH) || dtH<=0) return {ok:false, msg:'Please paste data and set a valid Δt (hours).'};
+    if(t==='band'){
+      const a = Number(bandMin.value), b = Number(bandMax.value);
+      if(!(a>0 && b>0)) return {ok:false, msg:'Band limits must be positive hours.'};
+      if(Math.min(a,b) <= dtH/2) return {ok:true}; // allow but warn silently (Nyquist handled by mask)
+      return {ok:true};
+    } else {
+      const c = Number(cutoffHours.value);
+      if(!(c>0)) return {ok:false, msg:'Cutoff period must be > 0 hours.'};
+      return {ok:true};
+    }
+  }
+
+  function buildCSV(values, timestamps){
+    let out = 'index';
+    if(timestamps.length) out += ',timestamp';
+    out += ',value\n';
+    for(let i=0;i<values.length;i++){
+      out += i;
+      if(timestamps.length) out += ','+JSON.stringify(timestamps[i]||'');
+      out += ','+values[i]+"\n";
+    }
+    return out;
+  }
+
+  function download(filename, text){
+    const blob = new Blob([text], {type:'text/csv;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  }
+
+  function plot(original, filtered){
+    const labels = Array.from({length: original.length}, (_,i)=> i);
+    const ctx = document.getElementById('chart');
+    const data = {
+      labels,
+      datasets: [
+        {label:'Original', data: original, borderWidth:2, tension:0.1},
+        {label:'Filtered', data: filtered, borderWidth:2, tension:0.1}
+      ]
+    };
+    const options = {
+      responsive:true,
+      interaction: {mode:'index', intersect:false},
+      scales: {
+        x: {title:{display:true, text:'Sample index'}},
+        y: {title:{display:true, text:'Value'}}
+      },
+      plugins: {
+        legend: {labels:{usePointStyle:true, boxWidth:8}},
+        tooltip: {callbacks: { label: (ctx)=> `${ctx.dataset.label}: ${fmt(ctx.parsed.y)}` }}
+      }
+    };
+    if(chart){ chart.destroy(); }
+    chart = new Chart(ctx, {type:'line', data, options});
+  }
+
+  runBtn.addEventListener('click', ()=>{
+    refreshStats();
+    const chk = ensureValid();
+    if(!chk.ok){ alert(chk.msg); return; }
+
+    const dtH = Number(dt.value);
+    const ftype = document.querySelector('input[name="ftype"]:checked').value;
+    let params = {};
+    if(ftype==='band'){
+      params = { minHours: Number(bandMin.value), maxHours: Number(bandMax.value) };
+    } else {
+      params = { cutoffHours: Number(cutoffHours.value) };
+    }
+
+    try{
+      filtered = applyFFTFilter(parsed.values, dtH, ftype, params);
+      plot(parsed.values, filtered);
+      dlBtn.disabled = false;
+    } catch(err){
+      console.error(err);
+      alert('Error while filtering: '+ err.message);
+    }
+  });
+
+  dlBtn.addEventListener('click', ()=>{
+    if(!filtered.length){ alert('No filtered data yet.'); return; }
+    const csv = buildCSV(filtered, parsed.timestamps);
+    const t = document.querySelector('input[name="ftype"]:checked').value;
+    const name = t==='band'
+      ? `filtered_band_${bandMin.value}to${bandMax.value}h.csv`
+      : `filtered_${t}_${cutoffHours.value}h.csv`;
+    download(name, csv);
+  });
+
+  clearBtn.addEventListener('click', ()=>{
+    input.value = '';
+    filtered = [];
+    dlBtn.disabled = true;
+    refreshStats();
+    if(chart){ chart.destroy(); chart = null; }
+  });
+</script>
+</body>
 </html>
