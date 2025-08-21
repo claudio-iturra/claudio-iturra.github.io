@@ -627,8 +627,9 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
             const resolution = document.getElementById('timeResolution').value;
             const frequencies = [];
             const amplitudes = [];
+            const freqValues = [];
             
-            // Calculate FFT amplitudes
+            // Calculate FFT amplitudes - skip DC component (k=0)
             for (let k = 1; k <= Math.floor(n/2); k++) {
                 let real = 0, imag = 0;
                 for (let t = 0; t < n; t++) {
@@ -636,35 +637,90 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
                     real += data[t] * Math.cos(angle);
                     imag += data[t] * Math.sin(angle);
                 }
-                const amplitude = Math.sqrt(real*real + imag*imag) / n;
+                const amplitude = Math.sqrt(real*real + imag*imag) / n * 2; // Single-sided spectrum
                 
-                // Convert frequency to cycles per time unit
-                const freqValue = k / n;
+                // Calculate actual frequency in cycles per time unit
+                const freqValue = k / n; // Normalized frequency
+                
+                freqValues.push(freqValue);
+                amplitudes.push(amplitude);
+            }
+            
+            // Find the dominant frequency (highest amplitude, excluding DC)
+            const maxAmplitude = Math.max(...amplitudes);
+            const dominantIndex = amplitudes.indexOf(maxAmplitude);
+            const dominantFreq = freqValues[dominantIndex];
+            
+            // Create frequency labels with emphasis on dominant frequency
+            for (let i = 0; i < freqValues.length; i++) {
+                const freqValue = freqValues[i];
                 let freqLabel;
+                
                 if (resolution === 'hours') {
-                    freqLabel = `${freqValue.toFixed(3)} cycles/hr`;
+                    if (freqValue < 0.001) {
+                        freqLabel = `${(freqValue * 24).toFixed(3)} cyc/day`;
+                    } else if (freqValue < 0.1) {
+                        freqLabel = `${freqValue.toFixed(4)} cyc/hr`;
+                    } else {
+                        freqLabel = `${freqValue.toFixed(3)} cyc/hr`;
+                    }
                 } else if (resolution === 'days') {
-                    freqLabel = `${freqValue.toFixed(3)} cycles/day`;
+                    if (freqValue < 0.01) {
+                        freqLabel = `${(freqValue * 365).toFixed(2)} cyc/yr`;
+                    } else if (freqValue < 0.1) {
+                        freqLabel = `${(freqValue * 30).toFixed(3)} cyc/mo`;
+                    } else {
+                        freqLabel = `${freqValue.toFixed(3)} cyc/day`;
+                    }
                 } else if (resolution === 'minutes') {
-                    freqLabel = `${freqValue.toFixed(3)} cycles/min`;
+                    if (freqValue < 0.01) {
+                        freqLabel = `${(freqValue * 60).toFixed(3)} cyc/hr`;
+                    } else {
+                        freqLabel = `${freqValue.toFixed(3)} cyc/min`;
+                    }
                 } else {
-                    freqLabel = `${freqValue.toFixed(3)} cycles/${resolution}`;
+                    freqLabel = `${freqValue.toFixed(4)} cyc/${resolution.slice(0, -1)}`;
+                }
+                
+                // Mark dominant frequency
+                if (i === dominantIndex) {
+                    freqLabel = `★ ${freqLabel}`;
                 }
                 
                 frequencies.push(freqLabel);
-                amplitudes.push(amplitude);
             }
+            
+            // Color bars - highlight dominant frequency
+            const backgroundColors = amplitudes.map((amp, i) => {
+                if (i === dominantIndex) {
+                    return 'rgba(231, 76, 60, 0.8)'; // Red for dominant
+                } else if (amp > maxAmplitude * 0.5) {
+                    return 'rgba(241, 196, 15, 0.7)'; // Yellow for significant
+                } else {
+                    return 'rgba(118, 75, 162, 0.7)'; // Purple for others
+                }
+            });
+            
+            const borderColors = amplitudes.map((amp, i) => {
+                if (i === dominantIndex) {
+                    return '#e74c3c';
+                } else if (amp > maxAmplitude * 0.5) {
+                    return '#f1c40f';
+                } else {
+                    return '#764ba2';
+                }
+            });
             
             visualizationCharts.frequency = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: frequencies,
                     datasets: [{
-                        label: 'Amplitude',
+                        label: 'Power Spectrum',
                         data: amplitudes,
-                        backgroundColor: 'rgba(118, 75, 162, 0.7)',
-                        borderColor: '#764ba2',
-                        borderWidth: 1
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -672,10 +728,88 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
                     maintainAspectRatio: false,
                     scales: {
                         x: { 
-                            title: { display: true, text: `Frequency (${resolution})` },
-                            ticks: { maxRotation: 45 }
+                            title: { display: true, text: `Frequency` },
+                            ticks: { 
+                                maxRotation: 45,
+                                callback: function(value, index) {
+                                    // Always show dominant frequency and every 2nd label
+                                    if (index === dominantIndex || index % 2 === 0) {
+                                        return this.getLabelForValue(value);
+                                    }
+                                    return '';
+                                }
+                            }
                         },
-                        y: { title: { display: true, text: 'Amplitude' } }
+                        y: { 
+                            title: { display: true, text: 'Amplitude' },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    const freq = freqValues[index];
+                                    let period;
+                                    
+                                    if (resolution === 'hours') {
+                                        const periodHours = 1 / freq;
+                                        if (periodHours > 24) {
+                                            period = `${(periodHours / 24).toFixed(2)} days`;
+                                        } else {
+                                            period = `${periodHours.toFixed(2)} hours`;
+                                        }
+                                    } else if (resolution === 'days') {
+                                        const periodDays = 1 / freq;
+                                        if (periodDays > 365) {
+                                            period = `${(periodDays / 365).toFixed(2)} years`;
+                                        } else if (periodDays > 30) {
+                                            period = `${(periodDays / 30).toFixed(2)} months`;
+                                        } else {
+                                            period = `${periodDays.toFixed(2)} days`;
+                                        }
+                                    } else {
+                                        period = `${(1/freq).toFixed(2)} ${resolution}`;
+                                    }
+                                    
+                                    return `Period: ${period}`;
+                                },
+                                afterLabel: function(context) {
+                                    const amp = amplitudes[context.dataIndex];
+                                    const power = amp * amp;
+                                    const isDominant = context.dataIndex === dominantIndex;
+                                    return [
+                                        `Power: ${power.toFixed(6)}`,
+                                        isDominant ? '★ DOMINANT FREQUENCY' : ''
+                                    ].filter(Boolean);
+                                }
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            labels: {
+                                generateLabels: function(chart) {
+                                    return [
+                                        {
+                                            text: 'Dominant Frequency',
+                                            fillStyle: 'rgba(231, 76, 60, 0.8)',
+                                            strokeStyle: '#e74c3c'
+                                        },
+                                        {
+                                            text: 'Significant Frequencies',
+                                            fillStyle: 'rgba(241, 196, 15, 0.7)',
+                                            strokeStyle: '#f1c40f'
+                                        },
+                                        {
+                                            text: 'Other Frequencies',
+                                            fillStyle: 'rgba(118, 75, 162, 0.7)',
+                                            strokeStyle: '#764ba2'
+                                        }
+                                    ];
+                                }
+                            }
+                        }
                     }
                 }
             });
@@ -980,8 +1114,13 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
         
         function performFourierAnalysis(data) {
             const n = data.length;
+            const resolution = document.getElementById('timeResolution').value;
             const frequencies = [];
             const amplitudes = [];
+            const powers = [];
+            
+            // Calculate sampling rate (1 sample per time unit)
+            const samplingRate = 1;
             
             for (let k = 1; k <= Math.floor(n/2); k++) {
                 let real = 0, imag = 0;
@@ -990,24 +1129,70 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
                     real += data[t] * Math.cos(angle);
                     imag += data[t] * Math.sin(angle);
                 }
-                const amplitude = Math.sqrt(real*real + imag*imag) / n;
-                frequencies.push(k);
+                const amplitude = Math.sqrt(real*real + imag*imag) / n * 2; // Single-sided spectrum
+                const power = amplitude * amplitude;
+                const freqValue = (k * samplingRate) / n;
+                
+                frequencies.push(freqValue);
                 amplitudes.push(amplitude);
+                powers.push(power);
             }
             
-            const maxIdx = amplitudes.indexOf(Math.max(...amplitudes));
+            const maxIdx = powers.indexOf(Math.max(...powers));
             const dominantFreq = frequencies[maxIdx];
             const dominantAmp = amplitudes[maxIdx];
+            const dominantPower = powers[maxIdx];
+            
+            // Calculate period in appropriate units
+            let periodText;
+            if (resolution === 'hours') {
+                const periodHours = 1 / dominantFreq;
+                if (periodHours > 24) {
+                    periodText = `${(periodHours / 24).toFixed(2)} days`;
+                } else {
+                    periodText = `${periodHours.toFixed(2)} hours`;
+                }
+            } else if (resolution === 'days') {
+                const periodDays = 1 / dominantFreq;
+                if (periodDays > 365) {
+                    periodText = `${(periodDays / 365).toFixed(2)} years`;
+                } else if (periodDays > 30) {
+                    periodText = `${(periodDays / 30).toFixed(2)} months`;
+                } else {
+                    periodText = `${periodDays.toFixed(2)} days`;
+                }
+            } else {
+                periodText = `${(1/dominantFreq).toFixed(2)} ${resolution}`;
+            }
+            
+            // Format dominant frequency
+            let freqText;
+            if (resolution === 'hours') {
+                if (dominantFreq < 0.001) {
+                    freqText = `${(dominantFreq * 24).toFixed(4)} cycles/day`;
+                } else {
+                    freqText = `${dominantFreq.toFixed(4)} cycles/hour`;
+                }
+            } else if (resolution === 'days') {
+                if (dominantFreq < 0.01) {
+                    freqText = `${(dominantFreq * 365).toFixed(3)} cycles/year`;
+                } else {
+                    freqText = `${dominantFreq.toFixed(4)} cycles/day`;
+                }
+            } else {
+                freqText = `${dominantFreq.toFixed(4)} cycles/${resolution.slice(0, -1)}`;
+            }
             
             return {
                 equation: `$$X(k) = \\sum_{t=0}^{N-1} x(t) e^{-j2\\pi kt/N}$$`,
                 method: 'Discrete Fourier Transform (DFT)',
                 description: 'Fourier analysis decomposes the signal into frequency components to identify periodic patterns.',
-                mathFormula: `$$x(t) = \\sum_{k=0}^{N-1} X(k) e^{j2\\pi kt/N}$$`,
+                mathFormula: `$$|X(k)|^2 = \\text{Re}(X(k))^2 + \\text{Im}(X(k))^2$$`,
                 results: [
-                    `Dominant Frequency: ${dominantFreq}`,
+                    `Dominant Frequency: ${freqText}`,
                     `Peak Amplitude: ${dominantAmp.toFixed(4)}`,
-                    `Period: ${(n/dominantFreq).toFixed(2)} time units`,
+                    `Peak Power: ${dominantPower.toFixed(6)}`,
+                    `Dominant Period: ${periodText}`,
                     `Frequency Components: ${frequencies.length}`
                 ]
             };
@@ -1282,8 +1467,12 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
         
         function performSpectralAnalysis(data) {
             const n = data.length;
+            const resolution = document.getElementById('timeResolution').value;
             const frequencies = [];
             const powerSpectrum = [];
+            
+            // Calculate sampling rate
+            const samplingRate = 1; // 1 sample per time unit
             
             // Compute power spectral density
             for (let k = 0; k < Math.floor(n/2); k++) {
@@ -1295,25 +1484,62 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
                 }
                 
                 const power = (real * real + imag * imag) / (n * n);
-                frequencies.push(k / n);
+                const freqValue = (k * samplingRate) / n;
+                frequencies.push(freqValue);
                 powerSpectrum.push(power);
             }
             
-            // Find peak frequencies
-            const maxPower = Math.max(...powerSpectrum);
+            // Find peak frequencies (skip DC component at k=0)
+            const maxPower = Math.max(...powerSpectrum.slice(1));
             const peakIdx = powerSpectrum.indexOf(maxPower);
             const peakFreq = frequencies[peakIdx];
             
-            // Spectral centroid
+            // Spectral centroid (weighted average frequency)
+            const totalPower = powerSpectrum.reduce((a, b) => a + b, 0);
             const spectralCentroid = frequencies.reduce((sum, freq, i) => 
-                sum + freq * powerSpectrum[i], 0) / powerSpectrum.reduce((a, b) => a + b, 0);
+                sum + freq * powerSpectrum[i], 0) / totalPower;
             
-            // Spectral bandwidth
+            // Spectral bandwidth (spread around centroid)
             const spectralBandwidth = Math.sqrt(
                 frequencies.reduce((sum, freq, i) => 
-                    sum + Math.pow(freq - spectralCentroid, 2) * powerSpectrum[i], 0) / 
-                powerSpectrum.reduce((a, b) => a + b, 0)
+                    sum + Math.pow(freq - spectralCentroid, 2) * powerSpectrum[i], 0) / totalPower
             );
+            
+            // Format peak frequency based on resolution
+            let peakFreqText;
+            if (resolution === 'hours') {
+                if (peakFreq < 0.001) {
+                    peakFreqText = `${(peakFreq * 24).toFixed(4)} cycles/day`;
+                } else {
+                    peakFreqText = `${peakFreq.toFixed(4)} cycles/hour`;
+                }
+            } else if (resolution === 'days') {
+                if (peakFreq < 0.01) {
+                    peakFreqText = `${(peakFreq * 365).toFixed(3)} cycles/year`;
+                } else {
+                    peakFreqText = `${peakFreq.toFixed(4)} cycles/day`;
+                }
+            } else {
+                peakFreqText = `${peakFreq.toFixed(4)} cycles/${resolution.slice(0, -1)}`;
+            }
+            
+            // Format spectral centroid
+            let centroidText;
+            if (resolution === 'hours') {
+                if (spectralCentroid < 0.001) {
+                    centroidText = `${(spectralCentroid * 24).toFixed(4)} cycles/day`;
+                } else {
+                    centroidText = `${spectralCentroid.toFixed(4)} cycles/hour`;
+                }
+            } else if (resolution === 'days') {
+                if (spectralCentroid < 0.01) {
+                    centroidText = `${(spectralCentroid * 365).toFixed(3)} cycles/year`;
+                } else {
+                    centroidText = `${spectralCentroid.toFixed(4)} cycles/day`;
+                }
+            } else {
+                centroidText = `${spectralCentroid.toFixed(4)} cycles/${resolution.slice(0, -1)}`;
+            }
             
             return {
                 equation: `$$S_{xx}(f) = \\lim_{T \\to \\infty} \\frac{1}{T} E[|X_T(f)|^2]$$`,
@@ -1321,10 +1547,11 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
                 description: 'Spectral analysis reveals the frequency content and power distribution of the signal.',
                 mathFormula: `$$S_{xx}(f) = \\int_{-\\infty}^{\\infty} R_{xx}(\\tau) e^{-j2\\pi f\\tau} d\\tau$$`,
                 results: [
-                    `Peak Frequency: ${peakFreq.toFixed(4)} Hz`,
-                    `Peak Power: ${maxPower.toFixed(6)}`,
-                    `Spectral Centroid: ${spectralCentroid.toFixed(4)}`,
-                    `Spectral Bandwidth: ${spectralBandwidth.toFixed(4)}`
+                    `Peak Frequency: ${peakFreqText}`,
+                    `Peak Power Density: ${maxPower.toFixed(8)}`,
+                    `Spectral Centroid: ${centroidText}`,
+                    `Spectral Bandwidth: ${spectralBandwidth.toFixed(6)}`,
+                    `Total Power: ${totalPower.toFixed(6)}`
                 ]
             };
         }
@@ -2004,5 +2231,5 @@ Example: 23.5, 24.1, 22.8, 25.3, 26.7, 24.9, 23.2, 25.8, 27.1, 26.3"></textarea>
             loadSampleData();
         };
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97275680500deaba',t:'MTc1NTc1MDAyNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972762f870e5b51c',t:'MTc1NTc1MDUzNy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
