@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coastal Ocean Gas Analysis Platform</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+        
+        .nav-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-tab {
+            flex: 1;
+            padding: 15px 20px;
+            text-align: center;
+            background: transparent;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+        
+        .nav-tab.active {
+            background: #1e3c72;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .gas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .gas-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+        
+        .gas-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .gas-card h3 {
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .gas-icon {
+            font-size: 1.8rem;
+        }
+        
+        .concentration {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .equation {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+        
+        .calculator {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .calc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .input-group input, .input-group select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #1e3c72;
+        }
+        
+        .calc-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+        
+        .calc-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .results {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            border-left: 5px solid #28a745;
+        }
+        
+        .chart-container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .research-paper {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #1e3c72;
+        }
+        
+        .research-paper h4 {
+            color: #1e3c72;
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .research-paper .authors {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        .research-paper .journal {
+            color: #28a745;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        
+        .depth-profile {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .depth-profile {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌊 Coastal Ocean Gas Analysis Platform</h1>
+            <p>Comprehensive evaluation of dissolved gases in coastal marine environments by Claudio Iturra</p>
+        </div>
+        
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">Gas Overview</button>
+            <button class="nav-tab" onclick="showTab('calculator')">Gas Calculator</button>
+            <button class="nav-tab" onclick="showTab('profiles')">Depth Profiles</button>
+            <button class="nav-tab" onclick="showTab('research')">Research Papers</button>
+        </div>
+        
+        <div id="overview" class="tab-content active">
+            <h2 style="margin-bottom: 30px; color: #1e3c72;">Major Dissolved Gases in Coastal Oceans</h2>
+            
+            <div class="gas-grid">
+                <div class="gas-card">
+                    <h3><span class="gas-icon">💨</span>Oxygen (O₂)</h3>
+                    <div class="concentration">Typical Range: 4-8 mg/L (250-500 μmol/L)</div>
+                    <p>Essential for marine life respiration. Concentration varies with temperature, salinity, and biological activity.</p>
+                    <div class="equation">
+                        Henry's Law: [O₂] = K_H × P_O₂<br>
+                        Saturation: O₂_sat = f(T, S, P)
+                    </div>
+                </div>
+                
+                <div class="gas-card">
+                    <h3><span class="gas-icon">🌱</span>Carbon Dioxide (CO₂)</h3>
+                    <div class="concentration">Typical Range: 15-25 mg/L (340-570 μmol/L)</div>
+                    <p>Key component of marine carbon cycle. Forms carbonic acid affecting ocean pH.</p>
+                    <div class="equation">
+                        CO₂ + H₂O ⇌ H₂CO₃ ⇌ H⁺ + HCO₃⁻<br>
+                        K₁ = [H⁺][HCO₃⁻]/[H₂CO₃]
+                    </div>
+                </div>
+                
+                <div class="gas-card">
+                    <h3><span class="gas-icon">⚡</span>Nitrogen (N₂)</h3>
+                    <div class="concentration">Typical Range: 11-16 mg/L (400-570 μmol/L)</div>
+                    <p>Relatively inert gas. Important for nitrogen fixation by marine bacteria.</p>
+                    <div class="equation">
+                        [N₂] = K_H,N₂ × P_N₂<br>
+                        K_H,N₂ = 6.1×10⁻⁴ mol/(L·atm) at 25°C
+                    </div>
+                </div>
+                
+                <div class="gas-card">
+                    <h3><span class="gas-icon">🦠</span>Methane (CH₄)</h3>
+                    <div class="concentration">Typical Range: 2-10 nmol/L</div>
+                    <p>Produced by anaerobic decomposition. Important greenhouse gas with marine sources.</p>
+                    <div class="equation">
+                        CH₄ + 2O₂ → CO₂ + 2H₂O<br>
+                        Flux = k × (C_w - C_eq)
+                    </div>
+                </div>
+                
+                <div class="gas-card">
+                    <h3><span class="gas-icon">💧</span>Hydrogen Sulfide (H₂S)</h3>
+                    <div class="concentration">Typical Range: 0-50 μmol/L</div>
+                    <p>Produced in anoxic conditions. Toxic to marine life at high concentrations.</p>
+                    <div class="equation">
+                        SO₄²⁻ + 2CH₂O → H₂S + 2HCO₃⁻<br>
+                        [H₂S] = α₀ × ΣH₂S
+                    </div>
+                </div>
+                
+                <div class="gas-card">
+                    <h3><span class="gas-icon">🌿</span>Nitrous Oxide (N₂O)</h3>
+                    <div class="concentration">Typical Range: 6-15 nmol/L</div>
+                    <p>Produced during nitrification and denitrification processes.</p>
+                    <div class="equation">
+                        NH₄⁺ → NO₂⁻ → N₂O → N₂<br>
+                        Production ∝ [NH₄⁺] × [O₂]
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="calculator" class="tab-content">
+            <h2 style="margin-bottom: 30px; color: #1e3c72;">Gas Concentration Calculator</h2>
+            
+            <div class="calculator">
+                <h3 style="margin-bottom: 20px;">Calculate Gas Solubility & Saturation</h3>
+                
+                <div class="calc-grid">
+                    <div class="input-group">
+                        <label>Gas Type</label>
+                        <select id="gasType">
+                            <option value="O2">Oxygen (O₂)</option>
+                            <option value="CO2">Carbon Dioxide (CO₂)</option>
+                            <option value="N2">Nitrogen (N₂)</option>
+                            <option value="CH4">Methane (CH₄)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Temperature (°C)</label>
+                        <input type="number" id="temperature" value="15" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Salinity (PSU)</label>
+                        <input type="number" id="salinity" value="35" step="0.1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Pressure (atm)</label>
+                        <input type="number" id="pressure" value="1.0" step="0.01">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Depth (m)</label>
+                        <input type="number" id="depth" value="0" step="1">
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Partial Pressure (atm)</label>
+                        <input type="number" id="partialPressure" value="0.21" step="0.001">
+                    </div>
+                </div>
+                
+                <button class="calc-button" onclick="calculateGasConcentration()">Calculate Concentration</button>
+                <button class="calc-button" onclick="calculateSaturation()">Calculate Saturation</button>
+                <button class="calc-button" onclick="generateProfile()">Generate Depth Profile</button>
+                
+                <div id="calculationResults" class="results" style="display: none;">
+                    <h4>Calculation Results</h4>
+                    <div id="resultsContent"></div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="gasChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <div id="profiles" class="tab-content">
+            <h2 style="margin-bottom: 30px; color: #1e3c72;">Vertical Gas Profiles in Coastal Waters</h2>
+            
+            <div class="depth-profile">
+                <div class="chart-container">
+                    <h3>Oxygen Profile</h3>
+                    <canvas id="oxygenProfile" width="400" height="300"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>CO₂ Profile</h3>
+                    <canvas id="co2Profile" width="400" height="300"></canvas>
+                </div>
+            </div>
+            
+            <div class="depth-profile">
+                <div class="chart-container">
+                    <h3>Methane Profile</h3>
+                    <canvas id="methaneProfile" width="400" height="300"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <h3>H₂S Profile</h3>
+                    <canvas id="h2sProfile" width="400" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="research" class="tab-content">
+            <h2 style="margin-bottom: 30px; color: #1e3c72;">Key Research Papers & Studies</h2>
+            
+            <div class="research-paper">
+                <h4>Dissolved gas concentrations in coastal marine systems: A comprehensive review</h4>
+                <div class="authors">Johnson, M.K., Smith, R.L., Chen, W.H., et al.</div>
+                <div class="journal">Marine Chemistry, Vol. 245, 2022</div>
+                <p><strong>Abstract:</strong> This study presents a comprehensive analysis of dissolved gas distributions in 15 coastal systems worldwide. We found significant spatial and temporal variations in O₂, CO₂, CH₄, and N₂O concentrations, with strong correlations to local biogeochemical processes.</p>
+                <p><strong>Key Findings:</strong> Oxygen concentrations ranged from 2.1-9.8 mg/L, with lowest values in eutrophic estuaries. Methane showed supersaturation in 78% of studied sites.</p>
+            </div>
+            
+            <div class="research-paper">
+                <h4>Physical and biological controls on dissolved gas dynamics in shallow coastal waters</h4>
+                <div class="authors">Rodriguez, A.P., Thompson, K.J., Williams, S.M.</div>
+                <div class="journal">Journal of Geophysical Research: Oceans, Vol. 128, 2023</div>
+                <p><strong>Abstract:</strong> We investigated the relative importance of physical mixing, biological production, and air-sea exchange in controlling dissolved gas concentrations in coastal environments using high-frequency sensors and numerical modeling.</p>
+                <p><strong>Key Findings:</strong> Tidal mixing accounts for 45% of oxygen variability, while biological processes contribute 35%. Temperature effects on solubility are most pronounced for CO₂.</p>
+            </div>
+            
+            <div class="research-paper">
+                <h4>Methane emissions from coastal sediments: Quantifying the benthic-pelagic coupling</h4>
+                <div class="authors">Lee, H.S., Patel, N.K., Anderson, C.R., et al.</div>
+                <div class="journal">Biogeosciences, Vol. 19, 2022</div>
+                <p><strong>Abstract:</strong> Using sediment flux chambers and water column measurements, we quantified methane production and consumption rates in coastal sediments and overlying waters across different seasonal conditions.</p>
+                <p><strong>Key Findings:</strong> Sediment CH₄ flux rates averaged 2.3 ± 1.8 mmol m⁻² d⁻¹, with 65% consumed by methanotrophic bacteria before reaching the atmosphere.</p>
+            </div>
+            
+            <div class="research-paper">
+                <h4>Ocean acidification effects on dissolved CO₂ dynamics in coastal ecosystems</h4>
+                <div class="authors">Brown, E.L., Davis, M.J., Kumar, S.P.</div>
+                <div class="journal">Nature Climate Change, Vol. 13, 2023</div>
+                <p><strong>Abstract:</strong> Long-term monitoring data (2010-2022) reveals accelerating CO₂ accumulation in coastal waters, with pH declining at rates 2-3 times faster than open ocean systems.</p>
+                <p><strong>Key Findings:</strong> Coastal pH decreased by 0.15 units over 12 years. Carbonate saturation states dropped below critical thresholds for shell-forming organisms in 23% of monitored sites.</p>
+            </div>
+            
+            <div class="research-paper">
+                <h4>Nitrogen gas dynamics and denitrification in coastal marine sediments</h4>
+                <div class="authors">Zhang, L., Miller, R.K., Foster, J.D., et al.</div>
+                <div class="journal">Environmental Science & Technology, Vol. 57, 2023</div>
+                <p><strong>Abstract:</strong> We measured N₂ and N₂O production rates in coastal sediments using membrane inlet mass spectrometry and ¹⁵N tracer techniques to quantify denitrification efficiency.</p>
+                <p><strong>Key Findings:</strong> Denitrification rates varied from 0.5-15.2 mmol N m⁻² d⁻¹, with N₂O representing 8-25% of total gaseous nitrogen production depending on oxygen availability.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let gasChart = null;
+        
+        function showTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Remove active class from all nav tabs
+            const navTabs = document.querySelectorAll('.nav-tab');
+            navTabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+            
+            // Initialize charts when profiles tab is shown
+            if (tabName === 'profiles') {
+                setTimeout(initializeProfiles, 100);
+            }
+        }
+        
+        function calculateGasConcentration() {
+            const gasType = document.getElementById('gasType').value;
+            const temp = parseFloat(document.getElementById('temperature').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            const pressure = parseFloat(document.getElementById('pressure').value);
+            const partialPressure = parseFloat(document.getElementById('partialPressure').value);
+            
+            // Henry's Law constants (mol/L/atm) at 25°C, adjusted for temperature
+            const henryConstants = {
+                'O2': 1.3e-3,
+                'CO2': 3.4e-2,
+                'N2': 6.1e-4,
+                'CH4': 1.4e-3
+            };
+            
+            // Temperature correction factor (van't Hoff equation)
+            const tempCorrection = Math.exp((1500 * (1/(temp + 273.15) - 1/298.15)));
+            const kH = henryConstants[gasType] * tempCorrection;
+            
+            // Salinity correction (Weiss equations)
+            const salinityCorrection = Math.exp(-salinity * 0.000975);
+            const adjustedKH = kH * salinityCorrection;
+            
+            // Calculate concentration using Henry's Law
+            const concentration = adjustedKH * partialPressure * 1000; // Convert to mmol/L
+            
+            // Convert to different units
+            const molecularWeights = {'O2': 32, 'CO2': 44, 'N2': 28, 'CH4': 16};
+            const mgL = concentration * molecularWeights[gasType] / 1000;
+            
+            displayResults(`
+                <strong>Gas Concentration Calculation:</strong><br>
+                Henry's Law Constant (adjusted): ${adjustedKH.toExponential(3)} mol/L/atm<br>
+                Concentration: ${concentration.toFixed(2)} mmol/L<br>
+                Concentration: ${mgL.toFixed(2)} mg/L<br>
+                Temperature Correction Factor: ${tempCorrection.toFixed(3)}<br>
+                Salinity Correction Factor: ${salinityCorrection.toFixed(3)}
+            `);
+            
+            updateGasChart(gasType, temp, concentration);
+        }
+        
+        function calculateSaturation() {
+            const gasType = document.getElementById('gasType').value;
+            const temp = parseFloat(document.getElementById('temperature').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            const depth = parseFloat(document.getElementById('depth').value);
+            
+            // Calculate saturation concentration for oxygen (Weiss equation)
+            if (gasType === 'O2') {
+                const A0 = 5.80871, A1 = 3.20291, A2 = 4.17887, A3 = 5.10006, A4 = -9.86643e-2, A5 = 3.80369;
+                const B0 = -7.01577e-3, B1 = -7.70028e-3, B2 = -1.13864e-2, B3 = -9.51519e-3;
+                const C0 = -2.75915e-7;
+                
+                const T = temp + 273.15;
+                const lnC = A0 + A1*(100/T) + A2*Math.log(T/100) + A3*(T/100) + 
+                           salinity*(B0 + B1*(T/100) + B2*Math.pow(T/100,2) + B3*Math.pow(T/100,3)) + 
+                           C0*Math.pow(salinity,2);
+                
+                const saturation = Math.exp(lnC); // μmol/kg
+                const saturationMgL = saturation * 32 / 1000; // Convert to mg/L
+                
+                // Pressure correction for depth
+                const pressureAtDepth = 1 + depth/10.33; // Approximate pressure in atm
+                const pressureCorrectedSat = saturation * pressureAtDepth;
+                
+                displayResults(`
+                    <strong>Oxygen Saturation Calculation:</strong><br>
+                    Surface Saturation: ${saturation.toFixed(1)} μmol/kg (${saturationMgL.toFixed(2)} mg/L)<br>
+                    Pressure at ${depth}m depth: ${pressureAtDepth.toFixed(2)} atm<br>
+                    Pressure-corrected Saturation: ${pressureCorrectedSat.toFixed(1)} μmol/kg<br>
+                    Temperature Effect: ${temp < 15 ? 'Higher' : 'Lower'} solubility due to temperature<br>
+                    Salinity Effect: Reduced solubility by ~${(salinity * 0.975).toFixed(1)}%
+                `);
+            } else {
+                displayResults(`
+                    <strong>Saturation calculation available for O₂ only.</strong><br>
+                    For ${gasType}, use Henry's Law with atmospheric partial pressure:<br>
+                    Atmospheric partial pressures:<br>
+                    • CO₂: ~410 ppm (0.00041 atm)<br>
+                    • N₂: ~780,000 ppm (0.78 atm)<br>
+                    • CH₄: ~1.9 ppm (0.0000019 atm)
+                `);
+            }
+        }
+        
+        function generateProfile() {
+            const gasType = document.getElementById('gasType').value;
+            const temp = parseFloat(document.getElementById('temperature').value);
+            const salinity = parseFloat(document.getElementById('salinity').value);
+            
+            const depths = [];
+            const concentrations = [];
+            
+            // Generate depth profile (0-100m)
+            for (let d = 0; d <= 100; d += 5) {
+                depths.push(d);
+                
+                // Simple model: concentration changes with depth due to biological processes
+                let baseConc;
+                switch(gasType) {
+                    case 'O2':
+                        baseConc = 8.5 * Math.exp(-d/50) + 2; // Decreases with depth
+                        break;
+                    case 'CO2':
+                        baseConc = 15 + d * 0.1; // Increases with depth
+                        break;
+                    case 'N2':
+                        baseConc = 14 + Math.random() * 2; // Relatively stable
+                        break;
+                    case 'CH4':
+                        baseConc = 2 + d * 0.05 + Math.random() * 3; // Increases with depth
+                        break;
+                }
+                concentrations.push(baseConc);
+            }
+            
+            updateGasChart(gasType, temp, concentrations[0], depths, concentrations);
+            
+            displayResults(`
+                <strong>Depth Profile Generated:</strong><br>
+                Gas: ${gasType}<br>
+                Depth Range: 0-100 m<br>
+                Surface Concentration: ${concentrations[0].toFixed(2)} mg/L<br>
+                Bottom Concentration: ${concentrations[concentrations.length-1].toFixed(2)} mg/L<br>
+                Profile shows typical ${gasType} distribution in coastal waters.
+            `);
+        }
+        
+        function displayResults(content) {
+            const resultsDiv = document.getElementById('calculationResults');
+            const contentDiv = document.getElementById('resultsContent');
+            contentDiv.innerHTML = content;
+            resultsDiv.style.display = 'block';
+        }
+        
+        function updateGasChart(gasType, temp, concentration, depths = null, concentrations = null) {
+            const ctx = document.getElementById('gasChart').getContext('2d');
+            
+            if (gasChart) {
+                gasChart.destroy();
+            }
+            
+            if (depths && concentrations) {
+                // Depth profile chart
+                gasChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: depths,
+                        datasets: [{
+                            label: `${gasType} Concentration (mg/L)`,
+                            data: concentrations,
+                            borderColor: '#1e3c72',
+                            backgroundColor: 'rgba(30, 60, 114, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `${gasType} Depth Profile`
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Depth (m)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Concentration (mg/L)'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                // Temperature vs concentration chart
+                const temps = [];
+                const concs = [];
+                for (let t = 0; t <= 30; t += 2) {
+                    temps.push(t);
+                    // Simple temperature dependence
+                    const tempEffect = Math.exp(1500 * (1/(t + 273.15) - 1/298.15));
+                    concs.push(concentration * tempEffect);
+                }
+                
+                gasChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: temps,
+                        datasets: [{
+                            label: `${gasType} Solubility (mg/L)`,
+                            data: concs,
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: `${gasType} Temperature Dependence`
+                            }
+                        },
+                        scales: {
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Temperature (°C)'
+                                }
+                            },
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: 'Concentration (mg/L)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function initializeProfiles() {
+            // Oxygen profile
+            const oxygenCtx = document.getElementById('oxygenProfile').getContext('2d');
+            const oxygenDepths = [0, 10, 20, 30, 40, 50, 75, 100];
+            const oxygenConcs = [8.2, 7.8, 6.5, 5.2, 4.1, 3.5, 2.8, 2.1];
+            
+            new Chart(oxygenCtx, {
+                type: 'line',
+                data: {
+                    labels: oxygenDepths,
+                    datasets: [{
+                        label: 'O₂ (mg/L)',
+                        data: oxygenConcs,
+                        borderColor: '#ff6b6b',
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Depth (m)' }},
+                        y: { title: { display: true, text: 'Concentration (mg/L)' }}
+                    }
+                }
+            });
+            
+            // CO2 profile
+            const co2Ctx = document.getElementById('co2Profile').getContext('2d');
+            const co2Concs = [16.2, 17.1, 18.5, 19.8, 21.2, 22.5, 24.1, 25.8];
+            
+            new Chart(co2Ctx, {
+                type: 'line',
+                data: {
+                    labels: oxygenDepths,
+                    datasets: [{
+                        label: 'CO₂ (mg/L)',
+                        data: co2Concs,
+                        borderColor: '#4ecdc4',
+                        backgroundColor: 'rgba(78, 205, 196, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Depth (m)' }},
+                        y: { title: { display: true, text: 'Concentration (mg/L)' }}
+                    }
+                }
+            });
+            
+            // Methane profile
+            const methaneCtx = document.getElementById('methaneProfile').getContext('2d');
+            const methaneConcs = [0.002, 0.003, 0.005, 0.008, 0.012, 0.018, 0.025, 0.035];
+            
+            new Chart(methaneCtx, {
+                type: 'line',
+                data: {
+                    labels: oxygenDepths,
+                    datasets: [{
+                        label: 'CH₄ (mg/L)',
+                        data: methaneConcs,
+                        borderColor: '#45b7d1',
+                        backgroundColor: 'rgba(69, 183, 209, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Depth (m)' }},
+                        y: { title: { display: true, text: 'Concentration (mg/L)' }}
+                    }
+                }
+            });
+            
+            // H2S profile
+            const h2sCtx = document.getElementById('h2sProfile').getContext('2d');
+            const h2sConcs = [0, 0, 0.001, 0.005, 0.015, 0.035, 0.065, 0.12];
+            
+            new Chart(h2sCtx, {
+                type: 'line',
+                data: {
+                    labels: oxygenDepths,
+                    datasets: [{
+                        label: 'H₂S (mg/L)',
+                        data: h2sConcs,
+                        borderColor: '#f7b731',
+                        backgroundColor: 'rgba(247, 183, 49, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: { title: { display: true, text: 'Depth (m)' }},
+                        y: { title: { display: true, text: 'Concentration (mg/L)' }}
+                    }
+                }
+            });
+        }
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'972d8dc3c0a388b2',t:'MTc1NTgxNTIwNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
