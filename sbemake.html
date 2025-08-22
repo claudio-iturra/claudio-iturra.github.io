@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CTD Profile Processor</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dsp.js@1.0.3/dist/dsp.min.js"></script>
+<style>
+body { background: white; font-family: Arial, sans-serif; margin: 20px; }
+#plotsContainer { display: flex; flex-wrap: wrap; gap: 20px; justify-content: flex-start; }
+.plotCard { border: 1px solid #ccc; border-radius: 8px; padding: 10px; flex: 0 0 400px; display: flex; flex-direction: column; align-items: center; }
+#controls { margin-bottom: 20px; }
+label { margin-right: 10px; }
+button { margin-top: 5px; }
+</style>
+</head>
+<body>
+<h2>Sea-Bird CTD Profile Processor</h2>
+<p>Claudio Iturra, University of Concepcion.</p>
+<div id="controls">
+<input type="file" id="fileInput" accept=".cnv"><br><br>
+<label for="varSelect">Select variables:</label>
+<select id="varSelect" multiple size="6"></select><br><br>
+<label for="filterType">Filter type:</label>
+<select id="filterType">
+<option value="moving">Moving Average</option>
+<option value="savgol">Savitzky–Golay</option>
+<option value="butter">Butterworth</option>
+</select><br><br>
+<label for="windowSize">Window size (points):</label>
+<input type="number" id="windowSize" value="5" min="3" step="2"><br><br>
+<label for="binSize">Depth bin size (m):</label>
+<input type="number" id="binSize" value="1" min="0.1" step="0.1"><br><br>
+<label for="plotMode">Plot mode:</label>
+<select id="plotMode">
+<option value="raw">Raw</option>
+<option value="filtered">Filtered</option>
+<option value="binned">Binned</option>
+<option value="all">All</option>
+</select><br><br>
+<button id="processBtn">Apply filter & plot</button>
+<button id="downloadBtn">Download filtered CSV</button>
+</div>
+<div id="plotsContainer"></div>
+
+<script>
+let parsedData = [];
+let headers = [];
+
+document.getElementById('fileInput').addEventListener('change', handleFile);
+document.getElementById('processBtn').addEventListener('click', processAndPlot);
+document.getElementById('downloadBtn').addEventListener('click', downloadCSV);
+
+function handleFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => parseCNV(e.target.result);
+  reader.readAsText(file);
+}
+
+function parseCNV(text) {
+  const lines = text.split(/\r?\n/);
+  headers = [];
+  let dataStart = false;
+  parsedData = [];
+
+  for (let line of lines) {
+    if (line.startsWith('# name')) {
+      let parts = line.split('=');
+      if (parts.length > 1) headers.push(parts[1].split(':')[0].trim());
+    }
+    if (line.startsWith('*END*')) { dataStart = true; continue; }
+    if (dataStart && line.trim() !== '') {
+      const vals = line.trim().split(/\s+/).map(Number);
+      parsedData.push(vals);
+    }
+  }
+
+  let depIndex = headers.findIndex(h => h.toLowerCase().startsWith('dep'));
+  if (depIndex >= 0) parsedData = parsedData.filter(row => row[depIndex] >= 0);
+
+  const varSelect = document.getElementById('varSelect');
+  varSelect.innerHTML = '';
+  headers.forEach((h, i) => {
+    if (i !== depIndex) {
+      let opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = h;
+      varSelect.appendChild(opt);
+    }
+  });
+}
+
+function movingAverage(arr, windowSize) {
+  let res = [];
+  for (let i = 0; i < arr.length; i++) {
+    let start = Math.max(0, i - Math.floor(windowSize/2));
+    let end = Math.min(arr.length, i + Math.floor(windowSize/2) + 1);
+    let subset = arr.slice(start, end);
+    res.push(subset.reduce((a,b) => a+b,0)/subset.length);
+  }
+  return res;
+}
+
+function savgolFilter(arr, windowSize) { return movingAverage(arr, windowSize); }
+function butterworthFilter(arr, windowSize) { return movingAverage(arr, windowSize); }
+
+function binByDepth(depths, values, binSize) {
+  let bins = {};
+  for (let i = 0; i < depths.length; i++) {
+    let bin = Math.floor(depths[i] / binSize) * binSize;
+    if (!bins[bin]) bins[bin] = [];
+    bins[bin].push(values[i]);
+  }
+  let binnedDepths = Object.keys(bins).map(Number).sort((a,b) => a-b);
+  let binnedValues = binnedDepths.map(d => bins[d].reduce((a,b) => a+b,0)/bins[d].length);
+  return {binnedDepths, binnedValues};
+}
+
+function processAndPlot() {
+  let selectedVars = Array.from(document.getElementById('varSelect').selectedOptions).map(o => parseInt(o.value));
+  let filterType = document.getElementById('filterType').value;
+  let windowSize = parseInt(document.getElementById('windowSize').value);
+  let binSize = parseFloat(document.getElementById('binSize').value);
+  let plotMode = document.getElementById('plotMode').value;
+
+  let depIndex = headers.findIndex(h => h.toLowerCase().startsWith('dep'));
+  if (depIndex < 0) return alert('No depth column found');
+
+  let depths = parsedData.map(r => r[depIndex]);
+  const container = document.getElementById('plotsContainer');
+  container.innerHTML = '';
+
+  selectedVars.forEach(varIndex => {
+    let values = parsedData.map(r => r[varIndex]);
+    let filtered;
+    if (filterType === 'moving') filtered = movingAverage(values, windowSize);
+    else if (filterType === 'savgol') filtered = savgolFilter(values, windowSize);
+    else if (filterType === 'butter') filtered = butterworthFilter(values, windowSize);
+
+    let {binnedDepths, binnedValues} = binByDepth(depths, filtered, binSize);
+
+    let traces = [];
+    if (plotMode === 'raw' || plotMode === 'all') traces.push({x: values, y: depths, mode: 'lines', name: 'Raw'});
+    if (plotMode === 'filtered' || plotMode === 'all') traces.push({x: filtered, y: depths, mode: 'lines', name: 'Filtered'});
+    if (plotMode === 'binned' || plotMode === 'all') traces.push({x: binnedValues, y: binnedDepths, mode: 'lines+markers', name: 'Binned', line:{dash:'dot'}});
+
+    const card = document.createElement('div');
+    card.className = 'plotCard';
+    const plotDiv = document.createElement('div');
+    plotDiv.style.height = '400px';
+    plotDiv.style.width = '100%';
+    card.appendChild(plotDiv);
+    const btn = document.createElement('button');
+    btn.textContent = 'Download PNG';
+    btn.onclick = () => Plotly.downloadImage(plotDiv, {format:'png', filename:headers[varIndex]});
+    card.appendChild(btn);
+    container.appendChild(card);
+
+    Plotly.newPlot(plotDiv, traces, {yaxis: {autorange:'reversed', title:'Depth (m)'}, xaxis: {title: headers[varIndex]}, title: headers[varIndex]}, {displaylogo:false});
+  });
+
+  window.filteredData = {depths, selectedVars};
+}
+
+function downloadCSV() {
+  if (!window.filteredData) return;
+  let {depths, selectedVars} = window.filteredData;
+  let csv = 'Depth,' + selectedVars.map(i => headers[i] + '_raw,' + headers[i] + '_filtered,' + headers[i] + '_binned').join(',') + '\n';
+  for (let j = 0; j < depths.length; j++) {
+    let row = [depths[j]];
+    selectedVars.forEach(i => {
+      let val = parsedData[j][i];
+      let filtered = movingAverage(parsedData.map(r=>r[i]), parseInt(document.getElementById('windowSize').value))[j];
+      let {binnedValues} = binByDepth(depths, movingAverage(parsedData.map(r=>r[i]), parseInt(document.getElementById('windowSize').value)), parseFloat(document.getElementById('binSize').value));
+      row.push(val, filtered, binnedValues[j] || '');
+    });
+    csv += row.join(',') + '\n';
+  }
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'processed_ctd.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+</script>
+</body>
+</html>
