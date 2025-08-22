@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CRBasic Web Designer — Campbell Scientific Helper by Claudio Iturra</title>
+  <style>
+    :root{
+      --bg:#0b1220; --panel:#121b2e; --soft:#1a2540; --muted:#94a3b8; --text:#e5e7eb; --accent:#60a5fa; --accent2:#34d399; --warn:#fbbf24;
+      --mono:"SFMono-Regular",Consolas,Menlo,Monaco,monospace; --sans:Inter,system-ui,Segoe UI,Roboto,Ubuntu,Arial,Helvetica,sans-serif;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,#0b1220,#0d1426);color:var(--text);font-family:var(--sans)}
+    .app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto 1fr;gap:12px;min-height:100vh;padding:14px}
+    header{grid-column:1/-1;background:var(--panel);border:1px solid #1f2a44;border-radius:16px;padding:16px 18px;display:flex;align-items:center;gap:16px}
+    header h1{font-size:20px;margin:0}
+    header .badge{font-size:12px;color:#0b1220;background:linear-gradient(90deg,var(--accent),#a78bfa);padding:4px 10px;border-radius:999px}
+    .wrap{background:var(--panel);border:1px solid #1f2a44;border-radius:16px;overflow:hidden}
+    aside{display:flex;flex-direction:column;min-height:0}
+    .aside-header{padding:12px 12px 8px;border-bottom:1px solid #1f2a44}
+    .search{display:flex;gap:8px}
+    .search input{flex:1;border:none;border-radius:12px;padding:10px 12px;background:var(--soft);color:var(--text)}
+    .search button{border:none;background:var(--soft);color:var(--muted);padding:10px 12px;border-radius:12px;cursor:pointer}
+    .list{overflow:auto;padding:0 10px 12px}
+    details{background:transparent;border-radius:12px;margin:10px 0;border:1px solid #1f2a44}
+    details[open]{background:#101a30}
+    summary{cursor:pointer;padding:10px 14px;font-weight:600;color:#dbeafe}
+    .cmd{padding:8px 14px;border-top:1px solid #1f2a44}
+    .cmd b{color:#93c5fd;font-family:var(--mono)}
+    .cmd small{display:block;color:var(--muted)}
+
+    main{display:grid;grid-template-rows:1fr auto;gap:12px;min-height:0}
+    .editor{display:grid;grid-template-columns:1fr 420px;gap:12px;min-height:0}
+    .code-panel, .explainer{background:var(--panel);border:1px solid #1f2a44;border-radius:16px;display:flex;flex-direction:column;min-height:0}
+    .code-toolbar{display:flex;gap:8px;padding:10px;border-bottom:1px solid #1f2a44}
+    .code-toolbar button{background:var(--soft);border:1px solid #203356;color:var(--text);padding:8px 10px;border-radius:10px;cursor:pointer}
+    .code-toolbar button.primary{background:linear-gradient(90deg,var(--accent),#a78bfa);border:none;color:#071225}
+    .code-toolbar .pill{margin-left:auto;background:#0e1b33;color:#cbd5e1;border:1px dashed #2b3e6a}
+    textarea#code{flex:1;background:#0a1222;color:#e5e7eb;border:none;padding:14px;font-size:13px;line-height:1.5;font-family:var(--mono);resize:none;outline:none}
+
+    .explainer h3{margin:12px 12px 8px;font-size:14px;color:#93c5fd}
+    .explainer .doc{flex:1;overflow:auto;padding:0 12px 12px}
+    .doc .block{border:1px solid #1f2a44;border-radius:12px;padding:10px;margin:10px 0}
+    .doc .block code{font-family:var(--mono);background:#0e1a34;padding:2px 6px;border-radius:6px}
+
+    .terminal{background:var(--panel);border:1px solid #1f2a44;border-radius:16px;display:flex;flex-direction:column}
+    .terminal-log{height:160px;overflow:auto;padding:12px;font-family:var(--mono);background:#0a1222}
+    .terminal-log .line{padding:3px 0}
+    .terminal-log .line.ok{color:#a7f3d0}
+    .terminal-log .line.warn{color:#fde68a}
+    .terminal-log .line.err{color:#fecaca}
+    .terminal-input{display:flex;gap:8px;padding:10px;border-top:1px solid #1f2a44}
+    .terminal-input input{flex:1;border:none;background:#0e1a34;color:#e5e7eb;padding:10px;border-radius:10px;font-family:var(--mono)}
+    .terminal-input button{border:none;background:var(--accent2);color:#052016;padding:10px 14px;border-radius:10px;cursor:pointer}
+
+    .footer{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:10px;border-top:1px solid #1f2a44}
+    .footer small{color:var(--muted)}
+    .kbd{font-family:var(--mono);background:#0e1a34;padding:2px 6px;border-radius:6px;border:1px solid #23355e}
+    @media(max-width:1100px){.editor{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="wrap">
+      <h1>CRBasic Web Designer</h1>
+      <span class="badge">Campbell Scientific helper</span>
+      <div style="margin-left:auto;color:#93c5fd">Type natural instructions in the terminal to build a program</div>
+    </header>
+
+    <aside class="wrap">
+      <div class="aside-header">
+        <div class="search">
+          <input id="search" placeholder="Search commands & snippets (e.g., SDI12, VoltSE, Scan)" />
+          <button onclick="expandAll()" title="Expand all">＋</button>
+        </div>
+      </div>
+      <div class="list" id="refList">
+        <!-- Filled by JS from COMMANDS -->
+      </div>
+    </aside>
+
+    <main>
+      <div class="editor">
+        <section class="code-panel">
+          <div class="code-toolbar">
+            <button class="primary" id="btnNew">New program</button>
+            <button id="btnInsert">Insert selected snippet</button>
+            <button id="btnDownload">Download .crbasic</button>
+            <button id="btnExample">Load met-station example</button>
+            <span class="pill">Tip: use the terminal at the bottom</span>
+          </div>
+          <textarea id="code" spellcheck="false"></textarea>
+          <div class="footer">
+            <small>Keyboard: <span class="kbd">Ctrl / ⌘ + Enter</span> to run terminal</small>
+            <small>Note: This tool includes a curated set of common CRBasic instructions. Extend or edit as needed.</small>
+          </div>
+        </section>
+        <aside class="explainer">
+          <h3>Command / Function Reference</h3>
+          <div class="doc" id="doc"></div>
+        </aside>
+      </div>
+
+      <section class="terminal">
+        <div class="terminal-log" id="log"></div>
+        <div class="terminal-input">
+          <input id="term" placeholder="e.g., set scan 1 s; add sdi-12 sensor CS655 at C1 addr 1 every 10 min to table TenMin" />
+          <button id="run">Run</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    /***********************
+     * Command catalog (curated)
+     ***********************/
+    const COMMANDS = [
+      {cat:"Program Structure", name:"BeginProg … EndProg", code:`' Program header\n' CRBasic generated by CRBasic Web Designer\n\nPublic PTemp, BattV\n\nBeginProg\n  ' Main program here\nEndProg`, desc:"Defines program boundaries. Place declarations above, logic between."},
+      {cat:"Timing", name:"Scan() / NextScan", code:`Scan (1,Sec,1,0)\n  ' measurements here\nNextScan`, desc:"Main loop executed on a fixed interval. Syntax: Scan(Interval,Units,Offset,Scale)."},
+      {cat:"Timing", name:"Delay()", code:`Delay (0,500,mSec)`, desc:"Pause execution. Useful for sensor settle times."},
+      {cat:"Declarations", name:"Public / Units / Alias / Const / Dim", code:`Public WS_ms, TA_C\nUnits  WS_ms = m/s\nAlias  WS_ms = WindSpeed\nConst  CF = 1.0\nDim    SampleCount As Long`, desc:"Declare variables, units, constants, and memory."},
+      {cat:"Data Tables", name:"DataTable / DataInterval / Sample / Average / StdDev / Maximum / Minimum / WindVector", code:`DataTable(TenMin,True,-1)\n  DataInterval(0,10,Min,10)\n  Sample(1,WS_ms,FP2)\n  Average(1,TA_C,FP2,False)\nEndTable`, desc:"Log data with processing at fixed intervals."},
+      {cat:"Analog", name:"VoltSE() — Single-Ended", code:`VoltSE(WS_V,1,mV5000,1,0,0,0)`, desc:"Measure single-ended voltage. Args: Dest, Reps, Range, InChan, Mult, Offset, Settling, Integ."},
+      {cat:"Analog", name:"VoltDiff() — Differential", code:`VoltDiff(Therm_mV,1,mV50,1,True,0,_60Hz,1,0)`, desc:"Differential voltage measurement, often for thermistors/bridges."},
+      {cat:"Pulse", name:"PulseCount() / PeriodAvg()", code:`PulseCount(WS_ct,1,1,0)`, desc:"Count pulses (e.g., anemometer), or average frequency with PeriodAvg."},
+      {cat:"Bridge", name:"BrFull() / BrHalf() / BrQuarter()", code:`BrHalf(Strain_mV,1,mV2500,1,Vx1,1,2500,True,0,_60Hz,1,0)`, desc:"Bridge measurements for strain gauges and bridges."},
+      {cat:"Digital & I/O", name:"PortSet() / PortGet() / PortToggle()", code:`PortSet(C1,1)`, desc:"Control digital I/O for powering sensors or relays."},
+      {cat:"SDI-12", name:"SDI12Recorder()", code:`SDI12Recorder(C1,SDI_String,\"0!M!\",1,0)`, desc:"Communicate with SDI-12 sensors (set address, send commands)."},
+      {cat:"Serial", name:"SerialOpen() / SerialIn() / SerialOut()", code:`SerialOpen(COM1,9600,0,0,10000)`, desc:"RS-232/RS-485 serial comms for smart sensors."},
+      {cat:"Modbus", name:"ModbusMaster()", code:`ModbusMaster(COM1,9600,1,0,4,30001,2,ModbusRegs)`, desc:"Query Modbus RTU/TCP devices."},
+      {cat:"Flow", name:"If…Then…Else / Select Case / For…Next / While…Wend", code:`If WS_ms > 25 Then\n  FlagHigh = True\nElse\n  FlagHigh = False\nEndIf`, desc:"Control structures just like VB-style syntax."},
+      {cat:"Math", name:"Math functions", code:`WS_ms = WS_ct * CF\nTA_C = (Therm_mV * 0.1) + 0\nTA_F = TA_C * 1.8 + 32`, desc:"Operators and functions for scaling & conversions."},
+      {cat:"Tables", name:"CallTable()", code:`CallTable TenMin`, desc:"Executes a DataTable inside Scan."},
+      {cat:"System", name:"Battery / Panel Temperature", code:`Battery(BattV)\nPanelTemp(PTemp)`, desc:"System diagnostics."},
+      {cat:"Alarms & Flags", name:"SetStatus, Email, SMS (via modem)", code:`If BattV < 11.5 Then\n  ' trigger action\nEndIf`, desc:"Implement alarms using comms modules (modems, gateways)."}
+    ];
+
+    /***********************
+     * Reference rendering & search
+     ***********************/
+    const cats = [...new Set(COMMANDS.map(c=>c.cat))];
+    const refList = document.getElementById('refList');
+    function renderRef(filter=""){
+      refList.innerHTML='';
+      cats.forEach(cat=>{
+        const group = document.createElement('details');
+        group.innerHTML = `<summary>${cat}</summary>`;
+        COMMANDS.filter(c=>c.cat===cat && (c.name.toLowerCase().includes(filter)||c.desc.toLowerCase().includes(filter))).forEach(c=>{
+          const div = document.createElement('div');
+          div.className='cmd';
+          div.innerHTML = `<b>${c.name}</b><small>${c.desc}</small>`;
+          div.onclick=()=>selectDoc(c);
+          group.appendChild(div);
+        });
+        if(group.children.length>1) refList.appendChild(group);
+      });
+    }
+    function expandAll(){
+      refList.querySelectorAll('details').forEach(d=>d.open=true);
+    }
+
+    const docPanel = document.getElementById('doc');
+    let selectedDoc = null;
+    function selectDoc(c){
+      selectedDoc = c;
+      docPanel.innerHTML = `
+        <div class='block'>
+          <h4 style='margin:0 0 8px'>${c.name}</h4>
+          <div style='color:#cbd5e1'>${c.desc}</div>
+        </div>
+        <div class='block'>
+          <div style='color:#93c5fd;margin-bottom:6px'>Snippet</div>
+          <code style='white-space:pre'>${c.code.replace(/</g,'&lt;')}</code>
+        </div>`;
+    }
+
+    document.getElementById('search').addEventListener('input', (e)=>{
+      renderRef(e.target.value.toLowerCase());
+    });
+
+    /***********************
+     * Simple program model & code generation
+     ***********************/
+    const codeTA = document.getElementById('code');
+    const log = document.getElementById('log');
+
+    const Program = {
+      header:"' CRBasic generated by CRBasic Web Designer\n' Edit as needed\n\n",
+      publics:new Set(['PTemp','BattV']),
+      units:[],
+      consts:[],
+      tables: new Map(), // name -> {interval: '10 Min', fields: ['WS_ms']}
+      scan: {interval:1, units:'Sec'},
+      lines: ["Battery(BattV)","PanelTemp(PTemp)"],
+    };
+
+    function programToText(){
+      const pub = [...Program.publics].join(', ');
+      const units = Program.units.map(u=>`Units ${u}`).join("\n");
+      const consts = Program.consts.map(c=>`Const ${c}`).join("\n");
+      const tables = [...Program.tables.values()].map(t=>{
+        const body = [
+          t.interval?`  DataInterval(0,${t.interval.num},${t.interval.units},${t.interval.mult||1})`:null,
+          ...t.ops.map(op=>`  ${op}`)
+        ].filter(Boolean).join('\n');
+        return `DataTable(${t.name},True,-1)\n${body}\nEndTable`;
+      }).join('\n\n');
+      const calls = [...Program.tables.values()].map(t=>`  CallTable ${t.name}`).join('\n');
+      const scanBlock = `Scan (${Program.scan.interval},${Program.scan.units},1,0)\n  ${Program.lines.join('\n  ')}\n${calls}\nNextScan`;
+      return [
+        Program.header,
+        pub?`Public ${pub}`:'',
+        units,consts,'',
+        tables,'',
+        'BeginProg',
+        scanBlock,
+        'EndProg\n'
+      ].filter(Boolean).join('\n');
+    }
+
+    function resetProgram(){
+      Program.publics = new Set(['PTemp','BattV']);
+      Program.units = [];
+      Program.consts = [];
+      Program.tables = new Map();
+      Program.scan = {interval:1, units:'Sec'};
+      Program.lines = ["Battery(BattV)","PanelTemp(PTemp)"];
+      updateCode();
+    }
+
+    function updateCode(){
+      codeTA.value = programToText();
+    }
+
+    // Utility to push log lines
+    function logLine(msg, type='ok'){ const div = document.createElement('div'); div.className='line '+type; div.textContent=msg; log.appendChild(div); log.scrollTop = log.scrollHeight; }
+
+    // Snippet insertion
+    document.getElementById('btnInsert').onclick = ()=>{
+      if(!selectedDoc){ logLine('Select a command on the left to insert.', 'warn'); return; }
+      insertIntoScan(selectedDoc.code);
+      logLine(`Inserted snippet: ${selectedDoc.name}`);
+    };
+
+    function insertIntoScan(snippet){
+      Program.lines.push(...snippet.split('\n'));
+      updateCode();
+    }
+
+    // Download
+    document.getElementById('btnDownload').onclick = ()=>{
+      const blob = new Blob([codeTA.value], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'program.crbasic';
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+
+    // New program
+    document.getElementById('btnNew').onclick = ()=>{ resetProgram(); logLine('New program started.'); };
+
+    // Example
+    document.getElementById('btnExample').onclick = ()=>{
+      resetProgram();
+      // Add typical met station
+      addPulse('WS_ms','P1',1,0.098,'m/s');
+      addVoltSE('TA_C','SE1','mV500',0.1,0,'degC');
+      addTable('TenMin',{num:10,units:'Min'},[
+        'Average(1,WS_ms,FP2,False)',
+        'Average(1,TA_C,FP2,False)'
+      ]);
+      updateCode();
+      logLine('Loaded example: wind speed (pulse) + air temp (analog) with 10-min table.');
+    }
+
+    // Helpers to add typical measurements
+    function addUnit(varName, unit){ if(unit) Program.units.push(`${varName} = ${unit}`); }
+    function ensurePublic(varName){ Program.publics.add(varName); }
+    function addTable(name, interval, ops){
+      const t = {name, interval, ops: ops||[]};
+      Program.tables.set(name,t);
+    }
+    function addPulse(varName, port, edge=1, mult=1, unit=null){
+      ensurePublic(varName); addUnit(varName,unit);
+      Program.consts.push(`CF_${varName} = ${mult}`);
+      Program.lines.push(`PulseCount(${varName}_ct,1,${port.replace('P','')},0)`);
+      Program.lines.push(`${varName} = ${varName}_ct * CF_${varName}`);
+      ensurePublic(`${varName}_ct`);
+    }
+    function addVoltSE(varName, chan='SE1', range='mV2500', mult=1, offset=0, unit=null){
+      ensurePublic(varName); addUnit(varName,unit);
+      const ch = parseInt(String(chan).replace(/[^0-9]/g,''))||1;
+      Program.lines.push(`VoltSE(${varName}_mV,1,${range},${ch},0,0,0)`);
+      Program.lines.push(`${varName} = ${varName}_mV * ${mult} + ${offset}`);
+      ensurePublic(`${varName}_mV`);
+    }
+    function addVoltDiff(varName, chan='DIFF1', range='mV50', mult=1, offset=0, unit=null){
+      ensurePublic(varName); addUnit(varName,unit);
+      const ch = parseInt(String(chan).replace(/[^0-9]/g,''))||1;
+      Program.lines.push(`VoltDiff(${varName}_mV,1,${range},${ch},True,0,_60Hz,1,0)`);
+      Program.lines.push(`${varName} = ${varName}_mV * ${mult} + ${offset}`);
+      ensurePublic(`${varName}_mV`);
+    }
+    function addSDI12(name, control='C1', addr='0', fields=['All'], intervalSec=null, tableName=null){
+      const varBase = name.replace(/\W+/g,'_');
+      ensurePublic(`${varBase}_Raw`);
+      Program.lines.push(`PortSet(${control},1)`);
+      Program.lines.push(`SDI12Recorder(${control},${varBase}_Raw,\"${addr}!M!\",1,0)`);
+      if(tableName){
+        let t = Program.tables.get(tableName);
+        if(!t){ addTable(tableName, intervalSec?{num:intervalSec,units:'Sec'}:null, []); t = Program.tables.get(tableName); }
+        t.ops.push(`Sample(1,${varBase}_Raw,FP2)`);
+      }
+    }
+    function addModbus(name, com='COM1', baud=9600, slave=1, reg=30001, n=2, tableName=null){
+      const varBase = name.replace(/\W+/g,'_');
+      ensurePublic(`${varBase}_Regs`);
+      Program.lines.push(`SerialOpen(${com},${baud},0,0,10000)`);
+      Program.lines.push(`ModbusMaster(${com},${baud},${slave},0,4,${reg},${n},${varBase}_Regs)`);
+      if(tableName){
+        let t = Program.tables.get(tableName);
+        if(!t){ addTable(tableName,null,[]); t = Program.tables.get(tableName); }
+        t.ops.push(`Sample(${n},${varBase}_Regs,FP2)`);
+      }
+    }
+
+    // Terminal parser (lightweight NLU via regex)
+    const handlers = [
+      {re:/(?:set|scan set|define)\s+scan\s+(\d+(?:\.\d+)?)\s*(sec|second|s|min|minute|m|hr|hour|h)/i,
+       fn:(m)=>{ const num=parseFloat(m[1]); const u=m[2].toLowerCase(); const map={sec:'Sec',second:'Sec',s:'Sec',min:'Min',minute:'Min',m:'Min',hr:'Hr',hour:'Hr',h:'Hr'}; Program.scan={interval:num,units:map[u]||'Sec'}; updateCode(); return `Scan set to ${num} ${map[u]||'Sec'}`; }},
+      {re:/add\s+pulse\s+(\w+)\s+on\s+(P\d+)\s*(?:mult\s*(\d+(?:\.\d+)?))?\s*(?:unit\s*([A-Za-z\/]+))?/i,
+       fn:(m)=>{ addPulse(m[1],m[2],1, m[3]?parseFloat(m[3]):1, m[4]||null); updateCode(); return `Pulse sensor ${m[1]} on ${m[2]}`; }},
+      {re:/add\s+analog\s+se\s+(\w+)\s+(?:on\s+)?(SE\d+)\s*(?:range\s*(mV\d+))?\s*(?:mult\s*(\d+(?:\.\d+)?))?\s*(?:offset\s*(-?\d+(?:\.\d+)?))?\s*(?:unit\s*([A-Za-z\/]+))?/i,
+       fn:(m)=>{ addVoltSE(m[1],m[2], m[3]||'mV2500', m[4]?parseFloat(m[4]):1, m[5]?parseFloat(m[5]):0, m[6]||null); updateCode(); return `Analog SE ${m[1]} on ${m[2]}`; }},
+      {re:/add\s+analog\s+diff\s+(\w+)\s+(?:on\s+)?(DIFF\d+)\s*(?:range\s*(mV\d+))?\s*(?:mult\s*(\d+(?:\.\d+)?))?\s*(?:offset\s*(-?\d+(?:\.\d+)?))?\s*(?:unit\s*([A-Za-z\/]+))?/i,
+       fn:(m)=>{ addVoltDiff(m[1],m[2], m[3]||'mV50', m[4]?parseFloat(m[4]):1, m[5]?parseFloat(m[5]):0, m[6]||null); updateCode(); return `Analog DIFF ${m[1]} on ${m[2]}`; }},
+      {re:/add\s+sdi-?12\s+(?:sensor|probe)?\s*([\w-]+)?\s*(?:at|on)\s*(C\d+)\s*(?:addr(?:ess)?\s*(\d))\s*(?:every\s*(\d+)\s*(sec|s|min|m|hr|h))?\s*(?:to\s+table\s+(\w+))?/i,
+       fn:(m)=>{ const num = m[4]?parseInt(m[4]):null; const map={sec:'Sec',s:'Sec',min:'Min',m:'Min',hr:'Hr',h:'Hr'}; const interval = num?{num,units:map[m[5].toLowerCase()]}:null; addSDI12(m[1]||'SDI12', m[2], m[3]||'0', ['All'], interval?num:null, m[6]||null); updateCode(); return `SDI-12 on ${m[2]} addr ${m[3]||'0'}`; }},
+      {re:/add\s+modbus\s+(\w+)\s*(?:on\s+)?(COM\d+)\s*(?:baud\s*(\d+))?\s*(?:slave\s*(\d+))?\s*(?:reg\s*(\d+))?\s*(?:n\s*(\d+))?\s*(?:to\s+table\s+(\w+))?/i,
+       fn:(m)=>{ addModbus(m[1], m[2], m[3]?parseInt(m[3]):9600, m[4]?parseInt(m[4]):1, m[5]?parseInt(m[5]):30001, m[6]?parseInt(m[6]):2, m[7]||null); updateCode(); return `Modbus ${m[1]} on ${m[2]}`; }},
+      {re:/make\s+table\s+(\w+)\s*(?:interval\s*(\d+)\s*(sec|s|min|m|hr|h))?/i,
+       fn:(m)=>{ const name=m[1]; const num=m[2]?parseInt(m[2]):null; const map={sec:'Sec',s:'Sec',min:'Min',m:'Min',hr:'Hr',h:'Hr'}; addTable(name, num?{num,units:map[m[3].toLowerCase()]}:null, []); updateCode(); return `Table ${name} created`; }},
+      {re:/table\s+(\w+)\s+add\s+(sample|average|stddev|max|min)\s+(\w+)/i,
+       fn:(m)=>{ const t=Program.tables.get(m[1]); if(!t){return `Table ${m[1]} not found`; } const opMap={sample:'Sample(1,VAR,FP2)',average:'Average(1,VAR,FP2,False)',stddev:'StdDev(1,VAR,FP2,False)',max:'Maximum(1,VAR,FP2,False,False)',min:'Minimum(1,VAR,FP2,False,False)'}; t.ops.push(opMap[m[2].toLowerCase()].replace('VAR',m[3])); updateCode(); return `Added ${m[2]} of ${m[3]} to ${m[1]}`; }},
+      {re:/help|\?$/i, fn:()=>`Examples: set scan 1 s | add pulse WS_ms on P1 mult 0.098 unit m/s | add analog se TA_C on SE1 range mV500 mult 0.1 unit degC | make table TenMin interval 10 min | table TenMin add average WS_ms | add sdi-12 sensor CS655 at C1 address 1 every 10 min to table TenMin`}
+    ];
+
+    function runTerminal(text){
+      const parts = text.split(/;|\n/).map(s=>s.trim()).filter(Boolean);
+      parts.forEach(cmd=>{
+        let handled = false; for(const h of handlers){ const m = cmd.match(h.re); if(m){ const out = h.fn(m); logLine(out,'ok'); handled = true; break; } }
+        if(!handled){ logLine(`Could not parse: ${cmd}`,'warn'); }
+      });
+      updateCode();
+    }
+
+    document.getElementById('run').onclick = ()=>{
+      const t = document.getElementById('term');
+      runTerminal(t.value); t.value=''; t.focus();
+    };
+    document.getElementById('term').addEventListener('keydown', (e)=>{
+      if((e.ctrlKey||e.metaKey) && e.key==='Enter'){ document.getElementById('run').click(); }
+    });
+
+    // Initial render
+    renderRef();
+    resetProgram();
+    selectDoc(COMMANDS[1]);
+  </script>
+</body>
+</html>
