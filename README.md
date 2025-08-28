@@ -111,3 +111,11 @@
 54) [singular Value Decomposition](https://claudio-iturra.github.io/svd.html)
 
 55) [MarkDown Pro](https://claudio-iturra.github.io/markz)
+
+56) [CoastalAI](https://claudio-iturra.github.io/coastalAI)
+
+57) [FilterX](https://claudio-iturra.github.io/filterX.html)
+
+58) [WaveltX](https://claudio-iturra.github.io/waveletX.html)
+
+59) [sbeX](https://claudio-iturra.github.io/sbemake)
