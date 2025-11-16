@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>carriel-sur</title>
+</head>
+<body>
+  <h1>carriel-sur ws monthly downloader</h1>
+  <h2>by dr(c). claudio-iturra</h2>
+
+  <!-- Change the year here or in the box below -->
+  <label>
+    Year:
+    <input type="number" id="yearInput" value="1969" min="1900" max="2100">
+  </label>
+  <button onclick="buildLinks()">Generate links</button>
+  <button onclick="downloadAll()">Download all 12 months</button>
+
+  <p>
+    After generating links, you can:
+    <br>• Click each link manually, or
+    <br>• Click "Download all 12 months" (Firefox may ask for permission).
+  </p>
+
+  <hr>
+
+  <div id="links"></div>
+
+  <script>
+    const BASE_URL = "https://climatologia.meteochile.gob.cl/application/informacion/datosMensualesDelElemento/360019";
+
+    function buildLinks() {
+      const year = document.getElementById('yearInput').value.trim();
+      if (!year) {
+        alert("Please enter a year.");
+        return;
+      }
+
+      const linksDiv = document.getElementById('links');
+      linksDiv.innerHTML = ""; // clear old links
+
+      for (let month = 1; month <= 12; month++) {
+        const mm = String(month).padStart(2, '0');   // 01, 02, ..., 12
+        const url = `${BASE_URL}/${year}/${month}/28`;
+        const filename = `${year}_${mm}.html`;
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.textContent = `Download ${year} month ${mm}`;
+        a.download = filename;  // suggest filename to browser
+        a.target = "_blank";    // open in new tab (sometimes helps with auth)
+
+        linksDiv.appendChild(a);
+        linksDiv.appendChild(document.createElement('br'));
+      }
+    }
+
+    function downloadAll() {
+      const links = document.querySelectorAll('#links a');
+      if (links.length === 0) {
+        alert("First click 'Generate links' to build the 12 links.");
+        return;
+      }
+
+      let i = 0;
+      function clickNext() {
+        if (i >= links.length) return;
+        links[i].click();
+        i++;
+        // small delay between downloads (adjust if needed)
+        setTimeout(clickNext, 1500);
+      }
+      clickNext();
+    }
+
+    // Build default links for 1969 on load
+    window.addEventListener('load', buildLinks);
+  </script>
+</body>
+</html>
