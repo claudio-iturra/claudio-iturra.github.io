@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sands of Time Tracker</title>
+    <title>Precision Sands of Time Tracker</title>
     <style>
         :root {
             --bg-color: #121212;
@@ -43,37 +43,65 @@
             letter-spacing: 1px;
         }
 
-        .input-row {
+        .config-section {
             display: flex;
+            flex-direction: column;
             gap: 15px;
             margin-bottom: 25px;
+            background: #181818;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .section-title {
+            text-align: left;
+            margin: 0 0 5px 0;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+
+        .birth-inputs-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .lifespan-wrapper {
+            text-align: left;
+            margin-top: 5px;
         }
 
         .input-group {
-            flex: 1;
+            display: flex;
+            flex-direction: column;
             text-align: left;
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
+            margin-bottom: 6px;
+            font-size: 12px;
             font-weight: 600;
             color: #aaa;
         }
 
-        input {
+        select, input {
             width: 100%;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 10px;
+            border-radius: 6px;
             border: 1px solid #444;
             background-color: #2a2a2a;
             color: white;
-            font-size: 16px;
+            font-size: 15px;
             box-sizing: border-box;
+            cursor: pointer;
         }
 
-        input:focus {
+        select:focus, input:focus {
             border-color: var(--accent-color);
             outline: none;
         }
@@ -108,7 +136,6 @@
             margin-top: 25px;
         }
 
-        /* Stats Tables Styling */
         table {
             flex: 1;
             border-collapse: collapse;
@@ -152,6 +179,9 @@
         }
 
         @media (max-width: 600px) {
+            .birth-inputs-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
             .tables-container {
                 flex-direction: column;
             }
@@ -163,15 +193,36 @@
 <div class="container">
     <h1>The Sands of Time</h1>
     
-    <div class="input-row">
-        <div class="input-group">
-            <label for="birth-year">Birth Year:</label>
-            <input type="number" id="birth-year" min="1900" max="2026" value="2000" oninput="calculateLife()">
+    <div class="config-section">
+        <h2 class="section-title">Birth Date & Time Setup</h2>
+        <div class="birth-inputs-grid">
+            <div class="input-group">
+                <label for="birth-year">Year</label>
+                <select id="birth-year" onchange="updateDays(); calculateLife();"></select>
+            </div>
+            <div class="input-group">
+                <label for="birth-month">Month</label>
+                <select id="birth-month" onchange="updateDays(); calculateLife();"></select>
+            </div>
+            <div class="input-group">
+                <label for="birth-day">Day</label>
+                <select id="birth-day" onchange="calculateLife();"></select>
+            </div>
+            <div class="input-group">
+                <label for="birth-hour">Hour</label>
+                <select id="birth-hour" onchange="calculateLife();"></select>
+            </div>
+            <div class="input-group">
+                <label for="birth-minute">Minute</label>
+                <select id="birth-minute" onchange="calculateLife();"></select>
+            </div>
         </div>
 
-        <div class="input-group">
-            <label for="lifespan-years">Estimated Lifespan (Years):</label>
-            <input type="number" id="lifespan-years" min="1" max="150" value="80" oninput="calculateLife()">
+        <div class="lifespan-wrapper">
+            <div class="input-group" style="width: 100%;">
+                <label for="lifespan-years" style="color: var(--accent-color);">Estimated Lifespan (Years):</label>
+                <input type="number" id="lifespan-years" min="1" max="150" value="80" oninput="calculateLife()">
+            </div>
         </div>
     </div>
 
@@ -180,7 +231,7 @@
     </div>
 
     <div class="stats">
-        <div>You have lived <span class="percentage" id="pct-output">0.0%</span> of your estimated time.</div>
+        <div>You have lived <span class="percentage" id="pct-output">0.00000%</span> of your estimated time.</div>
         <div style="margin-top: 5px;">Remaining time: <strong id="remaining-output" style="color: #fff;">0.00</strong> years.</div>
     </div>
 
@@ -226,45 +277,101 @@
     let currentDisplayPercentage = 0;
     let animationFrameId;
 
-    function calculateLife() {
-        const birthYear = parseInt(document.getElementById('birth-year').value);
-        const lifespanYears = parseInt(document.getElementById('lifespan-years').value);
-        
-        if (isNaN(birthYear) || isNaN(lifespanYears) || lifespanYears <= 0) {
-            return; 
+    // Build Selector Options on Load
+    function initializeDropdowns() {
+        const yearSel = document.getElementById('birth-year');
+        const monthSel = document.getElementById('birth-month');
+        const hourSel = document.getElementById('birth-hour');
+        const minSel = document.getElementById('birth-minute');
+
+        const currentYear = 2026;
+
+        // Populate Years (1900 to present)
+        for(let y = currentYear; y >= 1900; y--) {
+            yearSel.add(new Option(y, y));
+        }
+        yearSel.value = 2000; // default value
+
+        // Populate Months
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        monthNames.forEach((name, idx) => {
+            monthSel.add(new Option(name, idx));
+        });
+
+        // Populate Hours (0-23)
+        for(let h = 0; h < 24; h++) {
+            hourSel.add(new Option(h.toString().padStart(2, '0'), h));
         }
 
+        // Populate Minutes (0-59)
+        for(let m = 0; m < 60; m++) {
+            minSel.add(new Option(m.toString().padStart(2, '0'), m));
+        }
+
+        updateDays();
+    }
+
+    // Handles dynamically changing day limits (e.g. Feb 28 vs 29, months with 30 vs 31 days)
+    function updateDays() {
+        const year = parseInt(document.getElementById('birth-year').value);
+        const month = parseInt(document.getElementById('birth-month').value);
+        const daySel = document.getElementById('birth-day');
+        
+        const previousValue = daySel.value || 1;
+        daySel.innerHTML = "";
+
+        // Get total days in target month
+        const totalDays = new Date(year, month + 1, 0).getDate();
+
+        for(let d = 1; d <= totalDays; d++) {
+            daySel.add(new Option(d, d));
+        }
+
+        // Retain original day choice if safely fits within limits
+        daySel.value = previousValue <= totalDays ? previousValue : totalDays;
+    }
+
+    function calculateLife() {
+        const year = parseInt(document.getElementById('birth-year').value);
+        const month = parseInt(document.getElementById('birth-month').value);
+        const day = parseInt(document.getElementById('birth-day').value);
+        const hour = parseInt(document.getElementById('birth-hour').value);
+        const minute = parseInt(document.getElementById('birth-minute').value);
+        const lifespanYears = parseInt(document.getElementById('lifespan-years').value);
+        
+        if (isNaN(lifespanYears) || lifespanYears <= 0) return;
+
         const now = new Date();
-        const birthDate = new Date(birthYear, 0, 1); // Approximation: Jan 1st of birth year
-        const deathDate = new Date(birthYear + lifespanYears, 0, 1); 
+        const birthDate = new Date(year, month, day, hour, minute, 0);
+        
+        const deathDate = new Date(birthDate);
+        deathDate.setFullYear(birthDate.getFullYear() + lifespanYears);
 
         const totalLifespanMs = deathDate - birthDate;
         const livedMs = now - birthDate;
         const remainingMs = deathDate - now;
 
         if (livedMs < 0 || remainingMs < 0) {
-            // Handle edge cases where current date exceeds bounds
-            document.getElementById('pct-output').innerText = livedMs < 0 ? '0.0%' : '100.0%';
+            document.getElementById('pct-output').innerText = livedMs < 0 ? '0.00000%' : '100.00000%';
             document.getElementById('remaining-output').innerText = '0.00';
             return;
         }
 
-        // Percentage and Years Calculations
         const passedPercentage = Math.min(Math.max((livedMs / totalLifespanMs) * 100, 0), 100);
         const remainingYears = Math.max(remainingMs / (1000 * 60 * 60 * 24 * 365.25), 0);
 
         document.getElementById('pct-output').innerText = passedPercentage.toFixed(5) + '%';
         document.getElementById('remaining-output').innerText = remainingYears.toFixed(2);
 
-        // Constants for conversion
+        // Unit breakdown parameters
         const MS_PER_SEC = 1000;
         const MS_PER_MIN = MS_PER_SEC * 60;
         const MS_PER_HOUR = MS_PER_MIN * 60;
         const MS_PER_DAY = MS_PER_HOUR * 24;
         const MS_PER_WEEK = MS_PER_DAY * 7;
-        const MS_PER_MONTH = MS_PER_DAY * 30.437; // Average month length
+        const MS_PER_MONTH = MS_PER_DAY * 30.437;
 
-        // --- Populate Lived Table ---
+        // --- Lived Table ---
         document.getElementById('l-seconds').innerText = Math.floor(livedMs / MS_PER_SEC).toLocaleString();
         document.getElementById('l-minutes').innerText = Math.floor(livedMs / MS_PER_MIN).toLocaleString();
         document.getElementById('l-hours').innerText = Math.floor(livedMs / MS_PER_HOUR).toLocaleString();
@@ -272,7 +379,7 @@
         document.getElementById('l-weeks').innerText = Math.floor(livedMs / MS_PER_WEEK).toLocaleString();
         document.getElementById('l-months').innerText = Math.floor(livedMs / MS_PER_MONTH).toLocaleString();
 
-        // --- Populate Remaining Table ---
+        // --- Remaining Table ---
         document.getElementById('r-seconds').innerText = Math.floor(remainingMs / MS_PER_SEC).toLocaleString();
         document.getElementById('r-minutes').innerText = Math.floor(remainingMs / MS_PER_MIN).toLocaleString();
         document.getElementById('r-hours').innerText = Math.floor(remainingMs / MS_PER_HOUR).toLocaleString();
@@ -280,13 +387,12 @@
         document.getElementById('r-weeks').innerText = Math.floor(remainingMs / MS_PER_WEEK).toLocaleString();
         document.getElementById('r-months').innerText = Math.floor(remainingMs / MS_PER_MONTH).toLocaleString();
 
-        // Manage animation loops smoothly
         cancelAnimationFrame(animationFrameId);
         animateSand(passedPercentage);
     }
 
     function animateSand(targetPercentage) {
-        if (Math.abs(currentDisplayPercentage - targetPercentage) > 0.1) {
+        if (Math.abs(currentDisplayPercentage - targetPercentage) > 0.05) {
             currentDisplayPercentage += (targetPercentage - currentDisplayPercentage) * 0.05;
         } else {
             currentDisplayPercentage = targetPercentage;
@@ -307,7 +413,7 @@
         const bottomY = cy + height/2;
         const neckWidth = 10;
 
-        // --- 1. Draw Outer Glass ---
+        // --- Outer Glass ---
         ctx.strokeStyle = '#555';
         ctx.lineWidth = 4;
         ctx.beginPath();
@@ -323,7 +429,7 @@
 
         ctx.fillStyle = '#e5a93c'; 
 
-        // --- 2. Top Bulb Sand ---
+        // --- Top Bulb Sand ---
         const topSandHeight = (height / 2 - 10) * (1 - percentage / 100);
         if (topSandHeight > 0) {
             ctx.save();
@@ -339,7 +445,7 @@
             ctx.restore();
         }
 
-        // --- 3. Bottom Bulb Sand Pile ---
+        // --- Bottom Bulb Sand Pile ---
         const bottomSandHeight = (height / 2 - 15) * (percentage / 100);
         if (bottomSandHeight > 0) {
             ctx.save();
@@ -359,7 +465,7 @@
             ctx.restore();
         }
 
-        // --- 4. Falling Sand Stream ---
+        // --- Falling Sand Stream ---
         if (percentage < 100 && percentage > 0) {
             ctx.strokeStyle = '#e5a93c';
             ctx.lineWidth = 2;
@@ -369,12 +475,14 @@
             ctx.stroke();
         }
 
-        // --- 5. Wood Frame ---
+        // --- Wood Frame ---
         ctx.fillStyle = '#3a2512'; 
         ctx.fillRect(cx - width/2 - 15, topY - 12, width + 30, 12);
         ctx.fillRect(cx - width/2 - 15, bottomY, width + 30, 12);
     }
 
+    // Initialize layout setup
+    initializeDropdowns();
     calculateLife();
 </script>
 
